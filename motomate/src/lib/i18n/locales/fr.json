@@ -14,7 +14,10 @@
 		"close": "Fermer",
 		"saving": "Enregistrement…",
 		"months": "m",
-		"or": "ou"
+		"or": "ou",
+		"columns": "Colonnes",
+		"timeline": "Chronologie",
+		"table": "Tableau"
 	},
 	"auth": {
 		"login": {
@@ -541,7 +544,11 @@
 			"title": "Historique des services",
 			"noHistory": "Pas encore d'historique",
 			"noHistoryDesc": "Enregistrez une intervention de service pour la voir ici.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Tâche",
+			"odometer": "Kilométrage",
+			"cost": "Coût",
+			"notes": "Notes"
 		},
 		"editLog": {
 			"date": "Date",
@@ -705,6 +712,14 @@
 		"empty": {
 			"title": "Aucune dépense enregistrée",
 			"description": "Ajoutez votre première dépense pour commencer le suivi."
+		},
+		"col": {
+			"date": "Date",
+			"category": "Catégorie",
+			"description": "Description",
+			"odometer": "Kilométrage",
+			"amount": "Montant",
+			"attachments": "Pièces jointes"
 		}
 	},
 	"documents": {
@@ -751,7 +766,15 @@
 		},
 		"view": {
 			"list": "Liste",
+			"table": "Tableau",
 			"timeline": "Chronologie"
+		},
+		"col": {
+			"name": "Nom",
+			"type": "Type",
+			"size": "Taille",
+			"date": "Date",
+			"expiry": "Expiration"
 		},
 		"types": {
 			"service": "Service",

@@ -6,8 +6,13 @@
 	import type { PageData } from './$types';
 	import TrackerCard from '$lib/components/ui/TrackerCard.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import ViewToggle from '$lib/components/ui/ViewToggle.svelte';
+	import ColumnPicker from '$lib/components/ui/ColumnPicker.svelte';
+	import AddTrackerForm from '$lib/components/maintenance/AddTrackerForm.svelte';
+	import EditTrackerForm from '$lib/components/maintenance/EditTrackerForm.svelte';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
+	import { sheet } from '$lib/stores/sheet.svelte.js';
 	import {
 		formatMeasurement,
 		formatDateShort,
@@ -36,22 +41,6 @@
 			? $_('vehicle.forms.fields.usage', { values: { unit: unitLabel } })
 			: $_('vehicle.forms.fields.odometer', { values: { unit: unitLabel } })
 	);
-	const trackerMeasurementFieldLabel = $derived(
-		isHoursVehicle
-			? $_('maintenance.editTracker.fields.usage', { values: { unit: unitLabel } })
-			: $_('maintenance.editTracker.fields.odometer', { values: { unit: unitLabel } })
-	);
-	const intervalPlaceholder = $derived(
-		isHoursVehicle
-			? $_('maintenance.addTask.placeholders.hours')
-			: $_('maintenance.addTask.placeholders.km')
-	);
-	const intervalFieldLabel = $derived(
-		$_('maintenance.addTask.fields.intervalKm', { values: { unit: unitLabel } })
-	);
-	const trackerIntervalFieldLabel = $derived(
-		$_('maintenance.editTracker.fields.everyKm', { values: { unit: unitLabel } })
-	);
 
 	let loggingTracker = $state<string | null>(null);
 	let recentlyLoggedId = $state<string | null>(null);
@@ -71,16 +60,7 @@
 			}, 50);
 		}
 	});
-	let showAddTask = $state(false);
 	let trackerMenu = $state<string | null>(null);
-	let editingTracker = $state<string | null>(null);
-	let editingReminderOnly = $state(false);
-	$effect(() => {
-		const t = editingTracker
-			? data.trackers.find((tracker) => tracker.id === editingTracker)
-			: null;
-		editingReminderOnly = t?.reminder_only ?? false;
-	});
 	let editSubmitting = $state(false);
 	let deletingTracker = $state<{ id: string; name: string } | null>(null);
 	let skippingTracker = $state<{ id: string; name: string } | null>(null);
@@ -91,6 +71,25 @@
 		untrack(() => data.page_prefs?.sortBy ?? 'status')
 	);
 	let historySortBy = $state<'date' | 'name'>('date');
+	let historyViewMode = $state<'timeline' | 'table'>(
+		untrack(() => data.page_prefs?.historyViewMode ?? 'timeline')
+	);
+	let historyColumnVisible = $state<Record<string, boolean>>(
+		untrack(
+			() => data.page_prefs?.historyColumnVisibility ?? { odometer: true, cost: true, notes: false }
+		)
+	);
+	let historySortField = $state<'date' | 'name' | 'odometer' | 'cost'>('date');
+	let historySortDir = $state<'asc' | 'desc'>('desc');
+
+	function toggleHistorySort(col: 'date' | 'name' | 'odometer' | 'cost') {
+		if (historySortField === col) {
+			historySortDir = historySortDir === 'asc' ? 'desc' : 'asc';
+		} else {
+			historySortField = col;
+			historySortDir = 'desc';
+		}
+	}
 
 	// Persist sort preference
 	let _prefTimer: ReturnType<typeof setTimeout>;
@@ -114,11 +113,13 @@
 
 	$effect(() => {
 		const s = sortBy;
+		const hvm = historyViewMode;
+		const hcv = historyColumnVisible;
 		if (_firstRun) {
 			_firstRun = false;
 			return;
 		}
-		_pendingPrefs = { sortBy: s };
+		_pendingPrefs = { sortBy: s, historyViewMode: hvm, historyColumnVisibility: hcv };
 		clearTimeout(_prefTimer);
 		_prefTimer = setTimeout(flushPrefs, 600);
 	});
@@ -199,8 +200,12 @@
 	function toggleTrackerMenu(id: string) {
 		trackerMenu = trackerMenu === id ? null : id;
 	}
-	function startEditTracker(id: string) {
-		editingTracker = id;
+	function startEditTracker(tracker: (typeof data.trackers)[number]) {
+		sheet.openSheet(EditTrackerForm, $_('common.edit'), {
+			tracker,
+			vehicleId: data.vehicle.id,
+			odometerUnit: data.vehicle.odometer_unit
+		});
 		trackerMenu = null;
 		loggingTracker = null;
 		historyTracker = null;
@@ -235,11 +240,9 @@
 	$effect(() => {
 		if (form?.trackerUpdated) {
 			toasts.success($_('maintenance.toasts.trackerUpdated'));
-			editingTracker = null;
 		}
 		if (form?.trackerDeleted) {
 			toasts.success($_('maintenance.toasts.trackerDeleted'));
-			editingTracker = null;
 			trackerMenu = null;
 		}
 		if (form?.skipped) {
@@ -247,7 +250,6 @@
 		}
 		if (form?.added) {
 			toasts.success($_('maintenance.toasts.taskAdded'));
-			showAddTask = false;
 			invalidateAll();
 		}
 		if (form?.error) {
@@ -267,10 +269,6 @@
 			toasts.error(String(form.defaultsError));
 		}
 	});
-
-	function trackerById(id: string) {
-		return data.trackers.find((t: (typeof data.trackers)[number]) => t.id === id);
-	}
 
 	function scrollOnMount(node: HTMLElement) {
 		if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
@@ -301,18 +299,6 @@
 					block: 'center'
 				});
 			});
-		}
-	});
-
-	$effect(() => {
-		const id = editingTracker;
-		if (id && typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
-			setTimeout(() => {
-				document.querySelector(`[data-edit-form="${id}"]`)?.scrollIntoView({
-					behavior: 'smooth',
-					block: 'nearest'
-				});
-			}, 50);
 		}
 	});
 </script>
@@ -359,9 +345,13 @@
 			class:btn-ghost--disabled={viewMode === 'history'}
 			disabled={viewMode === 'history'}
 			title={viewMode === 'history' ? $_('maintenance.addTask.historyDisabled') : ''}
-			onclick={() => (showAddTask = !showAddTask)}
+			onclick={() =>
+				sheet.openSheet(AddTrackerForm, $_('maintenance.addTask.button'), {
+					vehicleId: data.vehicle.id,
+					odometerUnit: data.vehicle.odometer_unit
+				})}
 		>
-			{showAddTask ? $_('common.cancel') : $_('maintenance.addTask.button')}
+			{$_('maintenance.addTask.button')}
 		</button>
 	</div>
 </div>
@@ -461,230 +451,390 @@
 					<p class="empty-desc">{$_('maintenance.empty.noMatchDesc')}</p>
 				</div>
 			{:else}
-				{#each historyGrouped as [yearMonth, logs]}
-					<div class="timeline-month">
-						<div class="timeline-month-label">
-							<span class="timeline-month-name">{formatYearMonth(yearMonth, locale)}</span>
-							<span class="timeline-month-line"></span>
-						</div>
-						{#each logs as log}
-							{@const tracker = data.trackers.find((t) => t.id === log.tracker_id)}
-							{@const isFullService =
-								!log.tracker_id && (log.serviced_tracker_ids ?? []).length > 0}
-							<div class="timeline-entry" data-log-id={log.id}>
-								<span class="timeline-dot"></span>
-								<span class="timeline-title">
-									{log.notes?.split('\n')[0] ||
-										(isFullService
-											? $_('maintenance.fullService.title')
-											: tracker?.template.name) ||
-										$_('maintenance.history.serviceEntry')}
-									{#if isFullService}
-										<span class="tracker-check-status tracker-check-status--full"
-											>{$_('maintenance.fullService.badge', {
-												values: { n: (log.serviced_tracker_ids ?? []).length }
-											})}</span
-										>
-									{/if}
-								</span>
-								<span class="timeline-meta">
-									{formatDateShort(log.performed_at, locale)} · {formatMeasurement(
-										log.odometer_at_service,
-										data.vehicle.odometer_unit,
-										locale
-									)}
-									{#if log.cost_cents}
-										<span class="timeline-cost">
-											· {formatCurrency(log.cost_cents, log.currency, locale)}</span
-										>
-									{/if}
-								</span>
-								<div class="entry-actions" class:entry-actions--open={logMenu === log.id}>
-									<button
-										class="entry-menu-btn"
-										class:active={logMenu === log.id}
-										onclick={() => (logMenu = logMenu === log.id ? null : log.id)}
-										aria-label="Entry options"
-										aria-haspopup="menu"
-										aria-expanded={logMenu === log.id}>⋮</button
-									>
-									{#if logMenu === log.id}
-										<div class="entry-menu-dropdown" role="menu">
-											<button
-												role="menuitem"
-												class="entry-menu-item"
-												onclick={() => {
-													editingLog = log.id;
-													logMenu = null;
-												}}>{$_('common.edit')}</button
-											>
-										</div>
-									{/if}
-								</div>
+				<div class="history-view-controls">
+					<ViewToggle
+						options={[
+							{ value: 'timeline', label: $_('common.timeline') },
+							{ value: 'table', label: $_('common.table') }
+						]}
+						value={historyViewMode}
+						onchange={(v) => (historyViewMode = v as 'timeline' | 'table')}
+					/>
+					{#if historyViewMode === 'table'}
+						<ColumnPicker
+							columns={[
+								{ key: 'date', label: $_('finance.col.date'), hideable: false },
+								{ key: 'task', label: $_('maintenance.history.task'), hideable: false },
+								{ key: 'odometer', label: $_('maintenance.history.odometer'), hideable: true },
+								{ key: 'cost', label: $_('maintenance.history.cost'), hideable: true },
+								{ key: 'notes', label: $_('maintenance.history.notes'), hideable: true }
+							]}
+							visible={historyColumnVisible}
+							onchange={(v) => (historyColumnVisible = v)}
+						/>
+					{/if}
+				</div>
+				{#if historyViewMode === 'timeline'}
+					{#each historyGrouped as [yearMonth, logs]}
+						<div class="timeline-month">
+							<div class="timeline-month-label">
+								<span class="timeline-month-name">{formatYearMonth(yearMonth, locale)}</span>
+								<span class="timeline-month-line"></span>
 							</div>
-							{#if editingLog === log.id}
-								<div class="entry-edit-card" data-edit-log={log.id}>
-									<form
-										method="POST"
-										action="?/editServiceLog"
-										class="entry-edit-form"
-										use:enhance={() => {
-											editSubmitting = true;
-											return async ({ update }) => {
-												await update();
-												editSubmitting = false;
-												editingLog = null;
-											};
-										}}
-									>
-										<input type="hidden" name="id" value={log.id} />
-										<div class="form-row">
+							{#each logs as log}
+								{@const tracker = data.trackers.find((t) => t.id === log.tracker_id)}
+								{@const isFullService =
+									!log.tracker_id && (log.serviced_tracker_ids ?? []).length > 0}
+								<div class="timeline-entry" data-log-id={log.id}>
+									<span class="timeline-dot"></span>
+									<span class="timeline-title">
+										{log.notes?.split('\n')[0] ||
+											(isFullService
+												? $_('maintenance.fullService.title')
+												: tracker?.template.name) ||
+											$_('maintenance.history.serviceEntry')}
+										{#if isFullService}
+											<span class="tracker-check-status tracker-check-status--full"
+												>{$_('maintenance.fullService.badge', {
+													values: { n: (log.serviced_tracker_ids ?? []).length }
+												})}</span
+											>
+										{/if}
+									</span>
+									<span class="timeline-meta">
+										{formatDateShort(log.performed_at, locale)} · {formatMeasurement(
+											log.odometer_at_service,
+											data.vehicle.odometer_unit,
+											locale
+										)}
+										{#if log.cost_cents}
+											<span class="timeline-cost">
+												· {formatCurrency(log.cost_cents, log.currency, locale)}</span
+											>
+										{/if}
+									</span>
+									<div class="entry-actions" class:entry-actions--open={logMenu === log.id}>
+										<button
+											class="entry-menu-btn"
+											class:active={logMenu === log.id}
+											onclick={() => (logMenu = logMenu === log.id ? null : log.id)}
+											aria-label="Entry options"
+											aria-haspopup="menu"
+											aria-expanded={logMenu === log.id}>⋮</button
+										>
+										{#if logMenu === log.id}
+											<div class="entry-menu-dropdown" role="menu">
+												<button
+													role="menuitem"
+													class="entry-menu-item"
+													onclick={() => {
+														editingLog = log.id;
+														logMenu = null;
+													}}>{$_('common.edit')}</button
+												>
+											</div>
+										{/if}
+									</div>
+								</div>
+								{#if editingLog === log.id}
+									<div class="entry-edit-card" data-edit-log={log.id}>
+										<form
+											method="POST"
+											action="?/editServiceLog"
+											class="entry-edit-form"
+											use:enhance={() => {
+												editSubmitting = true;
+												return async ({ update }) => {
+													await update();
+													editSubmitting = false;
+													editingLog = null;
+												};
+											}}
+										>
+											<input type="hidden" name="id" value={log.id} />
+											<div class="form-row">
+												<label class="field">
+													<span class="field-label">{$_('maintenance.editLog.date')}</span>
+													<input
+														type="date"
+														name="performed_at"
+														value={log.performed_at}
+														class="input"
+														required
+													/>
+												</label>
+												<label class="field">
+													<span class="field-label">{measurementFieldLabel}</span>
+													<input
+														type="number"
+														name="odometer_at_service"
+														min="0"
+														value={log.odometer_at_service}
+														class="input mono"
+														required
+													/>
+												</label>
+											</div>
+											{#if data.trackers.length > 0}
+												<fieldset class="tracker-select">
+													<legend class="field-label"
+														>{$_('vehicle.forms.fields.resetCycle', {
+															values: { optional: $_('vehicle.forms.fields.checkToReset') }
+														})}</legend
+													>
+													<div class="tracker-checkboxes">
+														{#each data.trackers as t}
+															<label class="tracker-checkbox">
+																<input
+																	type="checkbox"
+																	name="reset_trackers"
+																	value={t.id}
+																	checked={log.tracker_id === t.id ||
+																		(log.serviced_tracker_ids ?? []).includes(t.id)}
+																/>
+																<span class="tracker-check-label">
+																	<span class="tracker-check-name">{t.template.name}</span>
+																	{#if t.status === 'due'}
+																		<span class="tracker-check-status tracker-check-status--due"
+																			>{$_('maintenance.tracker.status.due')}</span
+																		>
+																	{:else if t.status === 'overdue'}
+																		<span class="tracker-check-status tracker-check-status--overdue"
+																			>{$_('maintenance.tracker.status.overdue')}</span
+																		>
+																	{/if}
+																</span>
+															</label>
+														{/each}
+													</div>
+												</fieldset>
+											{/if}
 											<label class="field">
-												<span class="field-label">{$_('maintenance.editLog.date')}</span>
+												<span class="field-label">{$_('maintenance.editLog.notes')}</span>
 												<input
-													type="date"
-													name="performed_at"
-													value={log.performed_at}
+													type="text"
+													name="notes"
+													maxlength="200"
+													value={log.notes ?? ''}
 													class="input"
-													required
 												/>
 											</label>
 											<label class="field">
-												<span class="field-label">{measurementFieldLabel}</span>
+												<span class="field-label">{$_('maintenance.editLog.remark')}</span>
+												<input
+													type="text"
+													name="remark"
+													maxlength="200"
+													value={log.remark ?? ''}
+													class="input"
+													placeholder={$_('maintenance.editLog.remarkPlaceholder')}
+												/>
+											</label>
+											<label class="field">
+												<span class="field-label">{$_('maintenance.editLog.cost')}</span>
 												<input
 													type="number"
-													name="odometer_at_service"
+													name="cost"
 													min="0"
-													value={log.odometer_at_service}
+													step="0.01"
+													value={log.cost_cents != null ? log.cost_cents / 100 : ''}
 													class="input mono"
-													required
 												/>
 											</label>
-										</div>
-										{#if data.trackers.length > 0}
-											<fieldset class="tracker-select">
-												<legend class="field-label"
-													>{$_('vehicle.forms.fields.resetCycle', {
-														values: { optional: $_('vehicle.forms.fields.checkToReset') }
-													})}</legend
+											<div class="form-actions">
+												<button type="submit" class="btn-primary" disabled={editSubmitting}>
+													{editSubmitting
+														? $_('maintenance.saving')
+														: $_('maintenance.editLog.save')}
+												</button>
+												<button type="button" class="btn-ghost" onclick={() => (editingLog = null)}
+													>{$_('common.cancel')}</button
 												>
-												<div class="tracker-checkboxes">
-													{#each data.trackers as t}
-														<label class="tracker-checkbox">
-															<input
-																type="checkbox"
-																name="reset_trackers"
-																value={t.id}
-																checked={log.tracker_id === t.id ||
-																	(log.serviced_tracker_ids ?? []).includes(t.id)}
-															/>
-															<span class="tracker-check-label">
-																<span class="tracker-check-name">{t.template.name}</span>
-																{#if t.status === 'due'}
-																	<span class="tracker-check-status tracker-check-status--due"
-																		>{$_('maintenance.tracker.status.due')}</span
-																	>
-																{:else if t.status === 'overdue'}
-																	<span class="tracker-check-status tracker-check-status--overdue"
-																		>{$_('maintenance.tracker.status.overdue')}</span
-																	>
-																{/if}
-															</span>
-														</label>
-													{/each}
-												</div>
-											</fieldset>
-										{/if}
-										<label class="field">
-											<span class="field-label">{$_('maintenance.editLog.notes')}</span>
-											<input
-												type="text"
-												name="notes"
-												maxlength="200"
-												value={log.notes ?? ''}
-												class="input"
-											/>
-										</label>
-										<label class="field">
-											<span class="field-label">{$_('maintenance.editLog.remark')}</span>
-											<input
-												type="text"
-												name="remark"
-												maxlength="200"
-												value={log.remark ?? ''}
-												class="input"
-												placeholder={$_('maintenance.editLog.remarkPlaceholder')}
-											/>
-										</label>
-										<label class="field">
-											<span class="field-label">{$_('maintenance.editLog.cost')}</span>
-											<input
-												type="number"
-												name="cost"
-												min="0"
-												step="0.01"
-												value={log.cost_cents != null ? log.cost_cents / 100 : ''}
-												class="input mono"
-											/>
-										</label>
-										<div class="form-actions">
-											<button type="submit" class="btn-primary" disabled={editSubmitting}>
-												{editSubmitting ? $_('maintenance.saving') : $_('maintenance.editLog.save')}
-											</button>
-											<button type="button" class="btn-ghost" onclick={() => (editingLog = null)}
-												>{$_('common.cancel')}</button
+											</div>
+										</form>
+									</div>
+								{/if}
+							{/each}
+						</div>
+					{/each}
+				{:else}
+					<div class="history-table-wrap">
+						<table class="history-table">
+							<thead>
+								<tr>
+									<th class="htx-th htx-th--sortable" onclick={() => toggleHistorySort('date')}>
+										{$_('finance.col.date')}{#if historySortField === 'date'}<span
+												class="sort-arrow">{historySortDir === 'asc' ? '↑' : '↓'}</span
+											>{/if}
+									</th>
+									<th class="htx-th htx-th--sortable" onclick={() => toggleHistorySort('name')}>
+										{$_('maintenance.history.task')}{#if historySortField === 'name'}<span
+												class="sort-arrow">{historySortDir === 'asc' ? '↑' : '↓'}</span
+											>{/if}
+									</th>
+									{#if historyColumnVisible.odometer}
+										<th
+											class="htx-th htx-th--sortable"
+											onclick={() => toggleHistorySort('odometer')}
+										>
+											{$_('maintenance.history.odometer')}{#if historySortField === 'odometer'}<span
+													class="sort-arrow">{historySortDir === 'asc' ? '↑' : '↓'}</span
+												>{/if}
+										</th>
+									{/if}
+									{#if historyColumnVisible.cost}
+										<th class="htx-th htx-th--sortable" onclick={() => toggleHistorySort('cost')}>
+											{$_('maintenance.history.cost')}{#if historySortField === 'cost'}<span
+													class="sort-arrow">{historySortDir === 'asc' ? '↑' : '↓'}</span
+												>{/if}
+										</th>
+									{/if}
+									{#if historyColumnVisible.notes}
+										<th class="htx-th">{$_('maintenance.history.notes')}</th>
+									{/if}
+									<th class="htx-th"></th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each (() => {
+									const logs = [...filteredHistory];
+									logs.sort((a, b) => {
+										let cmp = 0;
+										if (historySortField === 'date') cmp = a.performed_at.localeCompare(b.performed_at);
+										else if (historySortField === 'name') {
+											const getName = (l: typeof a) => {
+												if (l.tracker_id) return data.trackers.find((t) => t.id === l.tracker_id)?.template.name ?? '';
+												const first = (l.serviced_tracker_ids ?? [])[0];
+												return first ? (data.trackers.find((t) => t.id === first)?.template.name ?? '') : '';
+											};
+											cmp = getName(a).localeCompare(getName(b));
+										} else if (historySortField === 'odometer') cmp = (a.odometer_at_service ?? 0) - (b.odometer_at_service ?? 0);
+										else if (historySortField === 'cost') cmp = (a.cost_cents ?? 0) - (b.cost_cents ?? 0);
+										return historySortDir === 'asc' ? cmp : -cmp;
+									});
+									return logs;
+								})() as log}
+									{@const tracker = data.trackers.find((t) => t.id === log.tracker_id)}
+									{@const isFullService =
+										!log.tracker_id && (log.serviced_tracker_ids ?? []).length > 0}
+									<tr class="htx-row">
+										<td class="htx-td mono">{formatDateShort(log.performed_at, locale)}</td>
+										<td class="htx-td">
+											{log.notes?.split('\n')[0] ||
+												(isFullService
+													? $_('maintenance.fullService.title')
+													: tracker?.template.name) ||
+												$_('maintenance.history.serviceEntry')}
+										</td>
+										{#if historyColumnVisible.odometer}
+											<td class="htx-td mono"
+												>{formatMeasurement(
+													log.odometer_at_service,
+													data.vehicle.odometer_unit,
+													locale
+												)}</td
 											>
-										</div>
-									</form>
-								</div>
-							{/if}
-						{/each}
+										{/if}
+										{#if historyColumnVisible.cost}
+											<td class="htx-td mono"
+												>{log.cost_cents
+													? formatCurrency(log.cost_cents, log.currency, locale)
+													: ''}</td
+											>
+										{/if}
+										{#if historyColumnVisible.notes}
+											<td class="htx-td htx-td--notes"
+												>{log.notes?.split('\n').slice(1).join(' ') ?? ''}</td
+											>
+										{/if}
+										<td class="htx-td htx-td--center">
+											<div class="entry-actions" class:entry-actions--open={logMenu === log.id}>
+												<button
+													class="entry-menu-btn"
+													class:active={logMenu === log.id}
+													onclick={() => (logMenu = logMenu === log.id ? null : log.id)}
+													aria-label="Options"
+													aria-haspopup="true">⋮</button
+												>
+												{#if logMenu === log.id}
+													<div class="entry-menu-dropdown" role="menu">
+														<button
+															role="menuitem"
+															class="entry-menu-item"
+															onclick={() => {
+																editingLog = log.id;
+																logMenu = null;
+															}}>{$_('common.edit')}</button
+														>
+													</div>
+												{/if}
+											</div>
+										</td>
+									</tr>
+									{#if editingLog === log.id}
+										<tr
+											><td colspan="99" class="htx-td-edit">
+												<form
+													method="POST"
+													action="?/editServiceLog"
+													use:enhance={() => {
+														return async ({ update }) => {
+															await update();
+															editingLog = null;
+														};
+													}}
+												>
+													<input type="hidden" name="id" value={log.id} />
+													<div class="form-row-compact">
+														<label class="field"
+															><span class="field-label">{$_('maintenance.editLog.date')}</span
+															><input
+																type="date"
+																name="performed_at"
+																value={log.performed_at}
+																class="input"
+															/></label
+														>
+														<label class="field"
+															><span class="field-label">{unitLabel}</span><input
+																type="number"
+																name="odometer_at_service"
+																value={log.odometer_at_service}
+																class="input mono"
+															/></label
+														>
+														<label class="field"
+															><span class="field-label">{$_('maintenance.editLog.cost')}</span
+															><input
+																type="number"
+																name="cost"
+																min="0"
+																step="0.01"
+																value={log.cost_cents != null ? log.cost_cents / 100 : ''}
+																class="input mono"
+															/></label
+														>
+													</div>
+													<div class="form-actions">
+														<button type="submit" class="btn-primary">{$_('common.save')}</button
+														><button
+															type="button"
+															class="btn-ghost"
+															onclick={() => (editingLog = null)}>{$_('common.cancel')}</button
+														>
+													</div>
+												</form>
+											</td></tr
+										>
+									{/if}
+								{/each}
+							</tbody>
+						</table>
 					</div>
-				{/each}
+				{/if}
 			{/if}
 		{/if}
 	</div>
-{:else if showAddTask && (viewMode === 'current' || viewMode === 'forecast')}
-	<form method="POST" action="?/addTask" use:enhance {@attach scrollOnMount} class="add-task-form">
-		<div class="add-task-fields">
-			<label class="field">
-				<span class="field-label">{$_('maintenance.addTask.fields.name')}</span>
-				<input
-					name="name"
-					type="text"
-					placeholder={$_('maintenance.addTask.placeholders.name')}
-					required
-					class="input"
-				/>
-			</label>
-			<label class="field">
-				<span class="field-label">{intervalFieldLabel}</span>
-				<input
-					name="interval_km"
-					type="number"
-					min="1"
-					placeholder={intervalPlaceholder}
-					class="input mono"
-				/>
-			</label>
-			<label class="field">
-				<span class="field-label">{$_('maintenance.addTask.fields.intervalMonths')}</span>
-				<input
-					name="interval_months"
-					type="number"
-					min="1"
-					placeholder={$_('maintenance.addTask.placeholders.months')}
-					class="input mono"
-				/>
-			</label>
-		</div>
-		<div class="add-task-actions">
-			<button type="submit" class="btn-primary">{$_('maintenance.addTask.submit')}</button>
-			<button type="button" class="btn-ghost" onclick={() => (showAddTask = false)}
-				>{$_('common.cancel')}</button
-			>
-		</div>
-	</form>
 {/if}
 
 {#if data.trackers.length === 0}
@@ -738,12 +888,10 @@
 						onlogclick={(id) => {
 							loggingTracker = loggingTracker === id ? null : id;
 							historyTracker = null;
-							editingTracker = null;
 						}}
 						onhistoryclick={(id) => {
 							historyTracker = historyTracker === id ? null : id;
 							loggingTracker = null;
-							editingTracker = null;
 						}}
 						onoptionsclick={(id) => {
 							loggingTracker = null;
@@ -754,10 +902,8 @@
 
 					{#if trackerMenu === t.id}
 						<div class="tracker-menu-dropdown" role="menu">
-							<button
-								role="menuitem"
-								class="tracker-menu-item"
-								onclick={() => startEditTracker(t.id)}>{$_('common.edit')}</button
+							<button role="menuitem" class="tracker-menu-item" onclick={() => startEditTracker(t)}
+								>{$_('common.edit')}</button
 							>
 							<button
 								role="menuitem"
@@ -769,190 +915,6 @@
 							>
 						</div>
 					{/if}
-				</div>
-
-				<!-- Edit tracker state form -->
-				<div class="expand-wrap" class:open={editingTracker === t.id}>
-					<div class="expand-inner">
-						{#if editingTracker === t.id}
-							{@const et = trackerById(t.id)}
-							{#if et}
-								<form
-									method="POST"
-									action="?/updateTracker"
-									class="edit-tracker-form"
-									data-edit-form={t.id}
-									use:enhance={() => {
-										editSubmitting = true;
-										return async ({ update }) => {
-											await update();
-											editSubmitting = false;
-										};
-									}}
-								>
-									<input type="hidden" name="id" value={t.id} />
-
-									<div class="edit-section">
-										<span class="edit-section-label"
-											>{$_('maintenance.editTracker.sections.identity')}</span
-										>
-										<div class="edit-row">
-											<label class="field">
-												<span class="field-label">{$_('maintenance.editTracker.fields.name')}</span>
-												<input
-													type="text"
-													name="name"
-													required
-													value={et.template.name}
-													class="input"
-												/>
-											</label>
-											<label class="field">
-												<span class="field-label"
-													>{$_('maintenance.editTracker.fields.description')}</span
-												>
-												<input
-													type="text"
-													name="description"
-													value={et.template.description ?? ''}
-													class="input"
-												/>
-											</label>
-										</div>
-									</div>
-
-									<div class="edit-section">
-										<span class="edit-section-label"
-											>{$_('maintenance.editTracker.sections.interval')}</span
-										>
-										<div class="edit-row">
-											<label class="field">
-												<span class="field-label">{trackerIntervalFieldLabel}</span>
-												<input
-													type="number"
-													name="interval_km"
-													min="1"
-													value={et.template.interval_measurement ?? et.template.interval_km ?? ''}
-													placeholder={intervalPlaceholder}
-													class="input mono"
-												/>
-											</label>
-											<label class="field">
-												<span class="field-label"
-													>{$_('maintenance.editTracker.fields.everyMonths')}</span
-												>
-												<input
-													type="number"
-													name="interval_months"
-													min="1"
-													value={et.template.interval_months ?? ''}
-													placeholder="e.g. 12"
-													class="input mono"
-												/>
-											</label>
-										</div>
-									</div>
-
-									<div class="edit-section">
-										<span class="edit-section-label"
-											>{$_('maintenance.editTracker.sections.lastServiced')}</span
-										>
-										<div class="edit-row">
-											<label class="field">
-												<span class="field-label">{$_('maintenance.editTracker.fields.date')}</span>
-												<input
-													type="date"
-													name="last_done_at"
-													value={et.last_done_at ?? ''}
-													class="input"
-												/>
-											</label>
-											<label class="field">
-												<span class="field-label">{trackerMeasurementFieldLabel}</span>
-												<input
-													type="number"
-													name="last_done_odometer"
-													min="0"
-													placeholder="e.g. 0"
-													value={et.last_done_measurement ?? et.last_done_odometer ?? ''}
-													class="input mono"
-												/>
-											</label>
-										</div>
-									</div>
-
-									<div class="edit-section">
-										<span class="edit-section-label"
-											>{$_('maintenance.editTracker.sections.nextDue')}
-											<span class="field-hint"
-												>{$_('maintenance.editTracker.fields.autoCompute')}</span
-											></span
-										>
-										<div class="edit-row">
-											<label class="field">
-												<span class="field-label">{trackerMeasurementFieldLabel}</span>
-												<input
-													type="number"
-													name="next_due_odometer"
-													min="0"
-													value={et.next_due_measurement ?? et.next_due_odometer ?? ''}
-													placeholder="auto"
-													class="input mono"
-												/>
-											</label>
-											<label class="field">
-												<span class="field-label">{$_('maintenance.editTracker.fields.date')}</span>
-												<input
-													type="date"
-													name="next_due_at"
-													value={et.next_due_at ?? ''}
-													class="input"
-												/>
-											</label>
-										</div>
-									</div>
-
-									<div class="edit-section">
-										<div class="field-toggle">
-											<span class="field-label"
-												>{$_('maintenance.editTracker.fields.reminderOnly')}</span
-											>
-											<input
-												type="hidden"
-												name="reminder_only"
-												value={editingReminderOnly ? 'true' : 'false'}
-											/>
-											<button
-												type="button"
-												class="toggle-btn"
-												class:toggle-btn--on={editingReminderOnly}
-												onclick={() => (editingReminderOnly = !editingReminderOnly)}
-												aria-label={editingReminderOnly
-													? 'Disable reminder mode'
-													: 'Enable reminder mode'}
-											>
-												<span class="toggle-thumb"></span>
-											</button>
-										</div>
-										<p class="toggle-hint">
-											{$_('maintenance.editTracker.fields.reminderOnlyHint')}
-										</p>
-									</div>
-
-									<div class="edit-actions">
-										<button type="submit" class="btn-primary" disabled={editSubmitting}>
-											{editSubmitting
-												? $_('maintenance.saving')
-												: $_('maintenance.editTracker.submit')}
-										</button>
-										<button type="button" class="btn-ghost" onclick={() => (editingTracker = null)}
-											>{$_('maintenance.addTask.cancel')}</button
-										>
-									</div>
-								</form>
-							{/if}
-						{/if}
-					</div>
 				</div>
 
 				<!-- Log service entry form -->
@@ -1202,33 +1164,6 @@
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 	}
 
-	/* Add task form */
-	.add-task-form {
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		background: var(--bg-subtle);
-		padding: 1.25rem;
-		margin-bottom: 1.25rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.875rem;
-		scroll-margin-top: 1rem;
-	}
-	.add-task-fields {
-		display: grid;
-		grid-template-columns: 2fr 1fr 1fr;
-		gap: 0.75rem;
-	}
-	@media (max-width: 540px) {
-		.add-task-fields {
-			grid-template-columns: 1fr;
-		}
-	}
-	.add-task-actions {
-		display: flex;
-		gap: 0.5rem;
-	}
-
 	/* Filters */
 	.filters {
 		display: flex;
@@ -1378,45 +1313,6 @@
 		gap: 0.875rem;
 	}
 
-	/* Edit tracker form */
-	.edit-tracker-form {
-		padding: 1.25rem;
-		background: var(--bg-subtle);
-		border-top: 1px solid var(--border);
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-		scroll-margin-top: 1rem;
-	}
-	.edit-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.edit-section-label {
-		font-size: var(--text-xs);
-		font-weight: 600;
-		color: var(--text-subtle);
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-	}
-	.field-hint {
-		text-transform: none;
-		font-weight: 400;
-		letter-spacing: 0;
-		color: var(--text-subtle);
-	}
-	.edit-row {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-	}
-	.edit-actions {
-		display: flex;
-		gap: 0.5rem;
-		padding-top: 0.125rem;
-	}
-
 	/* Log form */
 	.log-form {
 		padding: 1.25rem;
@@ -1451,50 +1347,6 @@
 	}
 
 	/* Shared form elements */
-	.field-toggle {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.field-toggle .field-label {
-		font-size: var(--text-sm);
-		font-weight: 500;
-		color: var(--text-muted);
-	}
-	.toggle-btn {
-		width: 2.25rem;
-		height: 1.25rem;
-		border-radius: 999px;
-		border: none;
-		cursor: pointer;
-		background: var(--border-strong);
-		position: relative;
-		flex-shrink: 0;
-		transition: background 0.15s;
-	}
-	.toggle-btn--on {
-		background: var(--accent);
-	}
-	.toggle-thumb {
-		position: absolute;
-		top: 2px;
-		left: 2px;
-		width: calc(1.25rem - 4px);
-		height: calc(1.25rem - 4px);
-		border-radius: 50%;
-		background: #fff;
-		transition: transform 0.15s;
-	}
-	.toggle-btn--on .toggle-thumb {
-		transform: translateX(1rem);
-	}
-	.toggle-hint {
-		font-size: var(--text-xs);
-		color: var(--text-subtle);
-		line-height: var(--leading-base);
-		font-weight: 400;
-		margin: 0.25rem 0 0;
-	}
 	.field {
 		display: flex;
 		flex-direction: column;
@@ -1637,6 +1489,91 @@
 	.tracker-check-status--full {
 		background: var(--bg-muted);
 		color: var(--text-muted);
+	}
+
+	.history-view-controls {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin-bottom: var(--space-4);
+	}
+
+	.history-table-wrap {
+		overflow-x: auto;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+	}
+
+	.history-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--text-sm);
+	}
+
+	.htx-th {
+		padding: 0.625rem 0.875rem;
+		text-align: left;
+		font-size: var(--text-xs);
+		font-weight: 500;
+		color: var(--text-muted);
+		border-bottom: 1px solid var(--border);
+		white-space: nowrap;
+		background: var(--bg-subtle);
+	}
+
+	.htx-th--sortable {
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.htx-th--sortable:hover {
+		color: var(--text);
+	}
+
+	.htx-row {
+		border-bottom: 1px solid var(--border);
+		transition: background 0.1s;
+	}
+
+	.htx-row:last-child {
+		border-bottom: none;
+	}
+	.htx-row:hover {
+		background: var(--bg-subtle);
+	}
+
+	.htx-td {
+		padding: 0.625rem 0.875rem;
+		color: var(--text);
+		vertical-align: middle;
+	}
+
+	.htx-td--notes {
+		max-width: 200px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: var(--text-muted);
+	}
+
+	.htx-td--center {
+		text-align: center;
+	}
+
+	.htx-td-edit {
+		padding: var(--space-4);
+	}
+
+	.form-row-compact {
+		display: flex;
+		gap: var(--space-3);
+		flex-wrap: wrap;
+		margin-bottom: var(--space-3);
+	}
+
+	.sort-arrow {
+		margin-left: 0.25rem;
+		font-size: var(--text-xs);
 	}
 
 	/* History timeline */

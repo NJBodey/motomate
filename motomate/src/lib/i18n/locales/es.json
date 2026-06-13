@@ -14,7 +14,10 @@
 		"close": "Cerrar",
 		"saving": "Guardando…",
 		"months": "m",
-		"or": "o"
+		"or": "o",
+		"columns": "Columnas",
+		"timeline": "Cronología",
+		"table": "Tabla"
 	},
 	"auth": {
 		"login": {
@@ -541,7 +544,11 @@
 			"title": "Historial de servicio",
 			"noHistory": "Sin historial de servicio",
 			"noHistoryDesc": "Registra una intervención de servicio para verla aquí.",
-			"serviceEntry": "Servicio"
+			"serviceEntry": "Servicio",
+			"task": "Tarea",
+			"odometer": "Odómetro",
+			"cost": "Coste",
+			"notes": "Notas"
 		},
 		"editLog": {
 			"date": "Fecha",
@@ -705,6 +712,14 @@
 		"empty": {
 			"title": "Sin gastos registrados",
 			"description": "Añade tu primer gasto para empezar a rastrear."
+		},
+		"col": {
+			"date": "Fecha",
+			"category": "Categoría",
+			"description": "Descripción",
+			"odometer": "Odómetro",
+			"amount": "Importe",
+			"attachments": "Archivos adjuntos"
 		}
 	},
 	"documents": {
@@ -751,7 +766,15 @@
 		},
 		"view": {
 			"list": "Lista",
+			"table": "Tabla",
 			"timeline": "Línea de tiempo"
+		},
+		"col": {
+			"name": "Nombre",
+			"type": "Tipo",
+			"size": "Tamaño",
+			"date": "Fecha",
+			"expiry": "Vencimiento"
 		},
 		"types": {
 			"service": "Servicio",

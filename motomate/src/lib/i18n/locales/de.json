@@ -14,7 +14,10 @@
 		"close": "Schließen",
 		"saving": "Speichern…",
 		"months": "Mo",
-		"or": "oder"
+		"or": "oder",
+		"columns": "Spalten",
+		"timeline": "Zeitlinie",
+		"table": "Tabelle"
 	},
 	"auth": {
 		"login": {
@@ -541,7 +544,11 @@
 			"title": "Servicehistorie",
 			"noHistory": "Noch keine Servicehistorie",
 			"noHistoryDesc": "Protokollieren Sie einen Serviceeintrag, um ihn hier zu sehen.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Aufgabe",
+			"odometer": "Kilometerstand",
+			"cost": "Kosten",
+			"notes": "Notizen"
 		},
 		"editLog": {
 			"date": "Datum",
@@ -705,6 +712,14 @@
 		"empty": {
 			"title": "Keine Ausgaben erfasst",
 			"description": "Fügen Sie Ihre erste Ausgabe hinzu, um mit der Verfolgung zu beginnen."
+		},
+		"col": {
+			"date": "Datum",
+			"category": "Kategorie",
+			"description": "Beschreibung",
+			"odometer": "Kilometerstand",
+			"amount": "Betrag",
+			"attachments": "Anhänge"
 		}
 	},
 	"documents": {
@@ -751,7 +766,15 @@
 		},
 		"view": {
 			"list": "Liste",
+			"table": "Tabelle",
 			"timeline": "Zeitleiste"
+		},
+		"col": {
+			"name": "Name",
+			"type": "Typ",
+			"size": "Größe",
+			"date": "Datum",
+			"expiry": "Ablauf"
 		},
 		"types": {
 			"service": "Service",

@@ -17,9 +17,23 @@ export type NotificationChannels = {
 };
 
 export type PagePrefs = {
-	maintenance?: { sortBy?: 'status' | 'name' | 'last' };
-	documents?: { sortBy?: 'newest' | 'oldest' | 'name'; viewMode?: 'list' | 'timeline' };
-	finance?: { groupBy?: 'category' | 'year' | 'description' | 'none'; last_category?: string };
+	maintenance?: {
+		sortBy?: 'status' | 'name' | 'last';
+		historyViewMode?: 'timeline' | 'table';
+		historyColumnVisibility?: Record<string, boolean>;
+	};
+	documents?: {
+		sortBy?: 'newest' | 'oldest' | 'name';
+		viewMode?: 'list' | 'table' | 'timeline';
+		columnVisibility?: Record<string, boolean>;
+	};
+	finance?: {
+		groupBy?: 'category' | 'year' | 'description' | 'none';
+		last_category?: string;
+		viewMode?: 'timeline' | 'table';
+		columnVisibility?: Record<string, boolean>;
+		columnOrder?: string[];
+	};
 	travels?: { sortBy?: 'newest' | 'oldest' | 'name'; filterBy?: 'all' | 'past' | 'upcoming' };
 	timeline?: {
 		showService?: boolean;

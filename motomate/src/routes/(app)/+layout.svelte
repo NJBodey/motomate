@@ -10,6 +10,7 @@
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import ShortcutsModal from '$lib/components/ui/ShortcutsModal.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import AppSheet from '$lib/components/ui/AppSheet.svelte';
 	import { quickAdd } from '$lib/stores/quickAdd.svelte.js';
 	import { dicebearUri } from '$lib/utils/dicebear.js';
 	import { resolveTheme, readStoredTheme } from '$lib/utils/theme.js';
@@ -867,6 +868,7 @@
 {/if}
 
 <Toast />
+<AppSheet />
 <ShortcutsModal bind:open={shortcutsOpen} />
 <ConfirmDialog
 	open={logoutConfirmOpen}

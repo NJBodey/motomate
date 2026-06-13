@@ -14,7 +14,10 @@
 		"close": "Close",
 		"saving": "Saving…",
 		"months": "mo",
-		"or": "or"
+		"or": "or",
+		"columns": "Columns",
+		"timeline": "Timeline",
+		"table": "Table"
 	},
 	"auth": {
 		"login": {
@@ -542,7 +545,11 @@
 			"title": "Service history",
 			"noHistory": "No service history yet",
 			"noHistoryDesc": "Log a service entry to see it here.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Task",
+			"odometer": "Odometer",
+			"cost": "Cost",
+			"notes": "Notes"
 		},
 		"editLog": {
 			"date": "Date",
@@ -706,6 +713,14 @@
 		"empty": {
 			"title": "No expenses recorded",
 			"description": "Add your first expense to start tracking."
+		},
+		"col": {
+			"date": "Date",
+			"category": "Category",
+			"description": "Description",
+			"odometer": "Odometer",
+			"amount": "Amount",
+			"attachments": "Attachments"
 		}
 	},
 	"documents": {
@@ -752,7 +767,15 @@
 		},
 		"view": {
 			"list": "List",
+			"table": "Table",
 			"timeline": "Timeline"
+		},
+		"col": {
+			"name": "Name",
+			"type": "Type",
+			"size": "Size",
+			"date": "Date",
+			"expiry": "Expiry"
 		},
 		"types": {
 			"service": "Service",

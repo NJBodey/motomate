@@ -14,7 +14,10 @@
 		"close": "Chiudi",
 		"saving": "Salvataggio…",
 		"months": "m",
-		"or": "o"
+		"or": "o",
+		"columns": "Colonne",
+		"timeline": "Cronologia",
+		"table": "Tabella"
 	},
 	"auth": {
 		"login": {
@@ -542,7 +545,11 @@
 			"title": "Storico servizi",
 			"noHistory": "Nessuno storico servizi",
 			"noHistoryDesc": "Registra un intervento di servizio per visualizzarlo qui.",
-			"serviceEntry": "Servizio"
+			"serviceEntry": "Servizio",
+			"task": "Attività",
+			"odometer": "Chilometraggio",
+			"cost": "Costo",
+			"notes": "Note"
 		},
 		"editLog": {
 			"date": "Data",
@@ -706,6 +713,14 @@
 		"empty": {
 			"title": "Nessuna spesa registrata",
 			"description": "Aggiungi la tua prima spesa per iniziare a tracciare."
+		},
+		"col": {
+			"date": "Data",
+			"category": "Categoria",
+			"description": "Descrizione",
+			"odometer": "Chilometraggio",
+			"amount": "Importo",
+			"attachments": "Allegati"
 		}
 	},
 	"documents": {
@@ -752,7 +767,15 @@
 		},
 		"view": {
 			"list": "Lista",
+			"table": "Tabella",
 			"timeline": "Cronologia"
+		},
+		"col": {
+			"name": "Nome",
+			"type": "Tipo",
+			"size": "Dimensione",
+			"date": "Data",
+			"expiry": "Scadenza"
 		},
 		"types": {
 			"service": "Servizio",

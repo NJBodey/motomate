@@ -14,7 +14,10 @@
 		"close": "Sluiten",
 		"saving": "Opslaan…",
 		"months": "mnd",
-		"or": "of"
+		"or": "of",
+		"columns": "Kolommen",
+		"timeline": "Tijdlijn",
+		"table": "Tabel"
 	},
 	"auth": {
 		"login": {
@@ -541,7 +544,11 @@
 			"title": "Servicegeschiedenis",
 			"noHistory": "Nog geen servicegeschiedenis",
 			"noHistoryDesc": "Log een service-item om het hier te zien.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Taak",
+			"odometer": "Kilometerstand",
+			"cost": "Kosten",
+			"notes": "Notities"
 		},
 		"editLog": {
 			"date": "Datum",
@@ -705,6 +712,14 @@
 		"empty": {
 			"title": "Geen uitgaven geregistreerd",
 			"description": "Voeg je eerste uitgave toe om te beginnen met bijhouden."
+		},
+		"col": {
+			"date": "Datum",
+			"category": "Categorie",
+			"description": "Omschrijving",
+			"odometer": "Kilometerstand",
+			"amount": "Bedrag",
+			"attachments": "Bijlagen"
 		}
 	},
 	"documents": {
@@ -751,7 +766,15 @@
 		},
 		"view": {
 			"list": "Lijst",
+			"table": "Tabel",
 			"timeline": "Tijdlijn"
+		},
+		"col": {
+			"name": "Naam",
+			"type": "Type",
+			"size": "Grootte",
+			"date": "Datum",
+			"expiry": "Vervaldatum"
 		},
 		"types": {
 			"service": "Facturen",
