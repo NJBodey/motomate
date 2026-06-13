@@ -403,11 +403,7 @@
 
 <svelte:head><title>{$_('finance.title')} · {data.vehicle.name}</title></svelte:head>
 
-<svelte:window
-	onclick={() => {
-		if (colContextMenu) colContextMenu = null;
-	}}
-/>
+<svelte:window onclick={closeColContextMenu} />
 
 <div class="page-header">
 	<div class="page-header-text">

@@ -5,7 +5,7 @@
 	import { _, waitLocale } from '$lib/i18n';
 
 	let {
-		vehicleId,
+		vehicleId: _vehicleId,
 		file = undefined
 	}: {
 		vehicleId: string;

@@ -12,8 +12,8 @@
 	}
 
 	let {
-		vehicleId,
-		locale,
+		vehicleId: _vehicleId,
+		locale: _locale,
 		currency,
 		odometerUnit,
 		allDocs = [],

@@ -270,14 +270,6 @@
 		}
 	});
 
-	function scrollOnMount(node: HTMLElement) {
-		if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
-			requestAnimationFrame(() => {
-				node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-			});
-		}
-	}
-
 	$effect(() => {
 		const id = loggingTracker;
 		if (id && typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {

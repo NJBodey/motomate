@@ -5,7 +5,7 @@
 	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
 
 	let {
-		vehicleId,
+		vehicleId: _vehicleId,
 		odometerUnit
 	}: {
 		vehicleId: string;

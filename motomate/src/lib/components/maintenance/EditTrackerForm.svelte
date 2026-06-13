@@ -10,7 +10,7 @@
 
 	let {
 		tracker,
-		vehicleId,
+		vehicleId: _vehicleId,
 		odometerUnit
 	}: {
 		tracker: Tracker;
