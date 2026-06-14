@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+
+- New insights view for mileage and costs over time. See how far you've ridden and what you've spent, filter by vehicle and time range, switch between monthly and cumulative views, and tap any data point to jump to the related entry. Service events are marked on the mileage chart
+- Security: updated dependencies to address cookie handling and dev server vulnerabilities
+
 ## 0.3.1
 
 - New mobile navigation bar at the bottom of the screen with tabs for dashboard and garage, and a floating + button to quickly log entries
