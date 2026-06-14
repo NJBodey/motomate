@@ -207,6 +207,44 @@
 		</section>
 	{/if}
 
+	<!-- This year -->
+	{#if data.vehicles.length > 0}
+		<section class="dash-section">
+			<div class="section-header">
+				<h2 class="section-eyebrow">{$_('dashboard.sections.thisYear')}</h2>
+			</div>
+			<div class="year-list">
+				{#each data.vehicles as vehicle (vehicle.id)}
+					{@const yearCost = data.yearCostByVehicle[vehicle.id]}
+					{#if yearCost}
+						<a href="/insights?v={vehicle.id}" class="year-entry">
+							<span class="year-vehicle"
+								>{vehicle.meta?.avatar_emoji ??
+									(vehicle.type === 'scooter' ? '🛵' : vehicle.type === 'bike' ? '🚲' : '🏍')}
+								{vehicle.name}</span
+							>
+							<span class="year-cost mono">
+								{yearCost.totalCents > 0
+									? formatCurrency(yearCost.totalCents, yearCost.currency, currentLocale)
+									: $_('dashboard.yearCost.none')}
+							</span>
+							<svg
+								class="year-arrow"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg
+							>
+						</a>
+					{/if}
+				{/each}
+			</div>
+		</section>
+	{/if}
+
 	<!-- Empty state -->
 	{#if data.vehicles.length === 0}
 		<section class="dash-section">
@@ -396,6 +434,48 @@
 	}
 	.vehicle-status-dot--overdue {
 		background: var(--status-overdue);
+	}
+
+	/* This year */
+	.year-list {
+		display: flex;
+		flex-direction: column;
+	}
+	.year-entry {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) 0;
+		border-bottom: 1px solid var(--border);
+		text-decoration: none;
+		transition: opacity 0.1s;
+	}
+	.year-entry:first-child {
+		border-top: 1px solid var(--border);
+	}
+	.year-entry:hover {
+		opacity: 0.75;
+	}
+	.year-vehicle {
+		flex: 1;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.year-cost {
+		font-size: var(--text-sm);
+		color: var(--text);
+		font-weight: 500;
+		flex-shrink: 0;
+	}
+	.year-arrow {
+		width: 14px;
+		height: 14px;
+		color: var(--text-subtle);
+		flex-shrink: 0;
 	}
 
 	/* Empty state */

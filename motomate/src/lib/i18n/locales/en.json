@@ -205,7 +205,11 @@
 		"sections": {
 			"needsAttention": "Needs attention",
 			"garage": "Garage",
-			"recentActivity": "Recent activity"
+			"recentActivity": "Recent activity",
+			"thisYear": "This year"
+		},
+		"yearCost": {
+			"none": "No expenses logged"
 		},
 		"viewAll": "View all →",
 		"serviceEntry": "Service entry",
@@ -1074,6 +1078,7 @@
 		"nav": {
 			"dashboard": "Dashboard",
 			"garage": "Garage",
+			"insights": "Insights",
 			"settings": "Settings",
 			"profile": "Profile"
 		},
@@ -1204,6 +1209,35 @@
 		"odometerNudge": {
 			"title": "Update your odometer",
 			"body": "Did you ride {{vehicle_name}} recently? Update the odometer to keep your maintenance trackers accurate."
+		}
+	},
+	"insights": {
+		"title": "Insights",
+		"subtitle": "Mileage and costs over time",
+		"vehicles": {
+			"all": "All vehicles"
+		},
+		"timeRange": {
+			"6m": "6 months",
+			"1y": "1 year",
+			"2y": "2 years",
+			"all": "All time"
+		},
+		"mileage": {
+			"title": "Mileage",
+			"modOdometer": "Odometer",
+			"modDelta": "Per month",
+			"allFleetNote": "Showing combined readings"
+		},
+		"costs": {
+			"title": "Costs",
+			"modMonthly": "Monthly",
+			"modCumulative": "Cumulative"
+		},
+		"empty": {
+			"title": "No data yet",
+			"mileage": "Log odometer readings to see your mileage trend.",
+			"costs": "Add expenses to see your cost trend."
 		}
 	}
 }

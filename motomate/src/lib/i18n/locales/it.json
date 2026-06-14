@@ -204,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Richiede attenzione",
 			"garage": "Garage",
-			"recentActivity": "Attività recente"
+			"recentActivity": "Attività recente",
+			"thisYear": "Quest'anno"
+		},
+		"yearCost": {
+			"none": "Nessuna spesa registrata"
 		},
 		"viewAll": "Visualizza tutto →",
 		"serviceEntry": "Voce di servizio",
@@ -1085,6 +1089,7 @@
 		"nav": {
 			"dashboard": "Dashboard",
 			"garage": "Garage",
+			"insights": "Statistiche",
 			"settings": "Impostazioni",
 			"profile": "Profilo"
 		},
@@ -1204,6 +1209,35 @@
 			"all": "Tutti",
 			"past": "Passati",
 			"upcoming": "Pianificati"
+		}
+	},
+	"insights": {
+		"title": "Statistiche",
+		"subtitle": "Chilometraggio e costi nel tempo",
+		"vehicles": {
+			"all": "Tutti i veicoli"
+		},
+		"timeRange": {
+			"6m": "6 mesi",
+			"1y": "1 anno",
+			"2y": "2 anni",
+			"all": "Sempre"
+		},
+		"mileage": {
+			"title": "Chilometraggio",
+			"modOdometer": "Odometro",
+			"modDelta": "Al mese",
+			"allFleetNote": "Visualizzazione delle letture combinate"
+		},
+		"costs": {
+			"title": "Costi",
+			"modMonthly": "Mensile",
+			"modCumulative": "Cumulativo"
+		},
+		"empty": {
+			"title": "Nessun dato ancora",
+			"mileage": "Registra le letture del chilometraggio per vedere il tuo andamento.",
+			"costs": "Aggiungi spese per vedere il tuo andamento dei costi."
 		}
 	}
 }

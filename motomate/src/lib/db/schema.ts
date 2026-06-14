@@ -43,7 +43,14 @@ export type PagePrefs = {
 		showFinance?: boolean;
 		showReminder?: boolean;
 	};
-	maintenance_report_pdf?: Record<string, string[]>; // vehicle_id > array of tracker_ids to exclude from PDF
+	maintenance_report_pdf?: Record<string, string[]>;
+	insights?: {
+		vehicleId?: string;
+		timeRange?: '6m' | '1y' | '2y' | 'all';
+		mileageMode?: 'odometer' | 'delta';
+		costMode?: 'monthly' | 'cumulative';
+		showServiceEvents?: boolean;
+	};
 };
 
 export type UserSettings = {

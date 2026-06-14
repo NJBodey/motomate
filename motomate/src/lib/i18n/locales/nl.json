@@ -204,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Aandacht nodig",
 			"garage": "Garage",
-			"recentActivity": "Recente activiteit"
+			"recentActivity": "Recente activiteit",
+			"thisYear": "Dit jaar"
+		},
+		"yearCost": {
+			"none": "Geen uitgaven geregistreerd"
 		},
 		"viewAll": "Alles bekijken →",
 		"serviceEntry": "Service-invoer",
@@ -1084,6 +1088,7 @@
 		"nav": {
 			"dashboard": "Dashboard",
 			"garage": "Garage",
+			"insights": "Statistieken",
 			"settings": "Instellingen",
 			"profile": "Profiel"
 		},
@@ -1203,6 +1208,35 @@
 			"all": "Alle",
 			"past": "Verleden",
 			"upcoming": "Gepland"
+		}
+	},
+	"insights": {
+		"title": "Statistieken",
+		"subtitle": "Kilometerstand en kosten over tijd",
+		"vehicles": {
+			"all": "Alle voertuigen"
+		},
+		"timeRange": {
+			"6m": "6 maanden",
+			"1y": "1 jaar",
+			"2y": "2 jaar",
+			"all": "Altijd"
+		},
+		"mileage": {
+			"title": "Kilometerstand",
+			"modOdometer": "Teller",
+			"modDelta": "Per maand",
+			"allFleetNote": "Gecombineerde afstandswaarden worden getoond"
+		},
+		"costs": {
+			"title": "Kosten",
+			"modMonthly": "Maandelijks",
+			"modCumulative": "Cumulatief"
+		},
+		"empty": {
+			"title": "Nog geen gegevens",
+			"mileage": "Log kilometerstandlezingen om je kilometertrend te zien.",
+			"costs": "Voeg uitgaven toe om je kostentrend te zien."
 		}
 	}
 }

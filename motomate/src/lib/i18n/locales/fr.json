@@ -204,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Nécessite attention",
 			"garage": "Garage",
-			"recentActivity": "Activité récente"
+			"recentActivity": "Activité récente",
+			"thisYear": "Cette année"
+		},
+		"yearCost": {
+			"none": "Aucune dépense enregistrée"
 		},
 		"viewAll": "Voir tout →",
 		"serviceEntry": "Entrée de service",
@@ -1084,6 +1088,7 @@
 		"nav": {
 			"dashboard": "Tableau de bord",
 			"garage": "Garage",
+			"insights": "Statistiques",
 			"settings": "Paramètres",
 			"profile": "Profil"
 		},
@@ -1203,6 +1208,35 @@
 			"all": "Tous",
 			"past": "Passés",
 			"upcoming": "Planifiés"
+		}
+	},
+	"insights": {
+		"title": "Statistiques",
+		"subtitle": "Kilométrage et coûts au fil du temps",
+		"vehicles": {
+			"all": "Tous les véhicules"
+		},
+		"timeRange": {
+			"6m": "6 mois",
+			"1y": "1 an",
+			"2y": "2 ans",
+			"all": "Tout le temps"
+		},
+		"mileage": {
+			"title": "Kilométrage",
+			"modOdometer": "Odomètre",
+			"modDelta": "Par mois",
+			"allFleetNote": "Affichage des relevés combinés"
+		},
+		"costs": {
+			"title": "Coûts",
+			"modMonthly": "Mensuel",
+			"modCumulative": "Cumulatif"
+		},
+		"empty": {
+			"title": "Pas encore de données",
+			"mileage": "Enregistrez des relevés kilométriques pour voir votre tendance.",
+			"costs": "Ajoutez des dépenses pour voir votre tendance de coûts."
 		}
 	}
 }

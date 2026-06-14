@@ -204,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Erfordert Aufmerksamkeit",
 			"garage": "Garage",
-			"recentActivity": "Letzte Aktivität"
+			"recentActivity": "Letzte Aktivität",
+			"thisYear": "Dieses Jahr"
+		},
+		"yearCost": {
+			"none": "Keine Ausgaben erfasst"
 		},
 		"viewAll": "Alle anzeigen →",
 		"serviceEntry": "Serviceeintrag",
@@ -1084,6 +1088,7 @@
 		"nav": {
 			"dashboard": "Übersicht",
 			"garage": "Garage",
+			"insights": "Statistiken",
 			"settings": "Einstellungen",
 			"profile": "Profil"
 		},
@@ -1203,6 +1208,35 @@
 			"all": "Alle",
 			"past": "Vergangen",
 			"upcoming": "Geplant"
+		}
+	},
+	"insights": {
+		"title": "Statistiken",
+		"subtitle": "Kilometerstand und Kosten im Zeitverlauf",
+		"vehicles": {
+			"all": "Alle Fahrzeuge"
+		},
+		"timeRange": {
+			"6m": "6 Monate",
+			"1y": "1 Jahr",
+			"2y": "2 Jahre",
+			"all": "Alle"
+		},
+		"mileage": {
+			"title": "Kilometerstand",
+			"modOdometer": "Tachometer",
+			"modDelta": "Pro Monat",
+			"allFleetNote": "Kombinierte Ablesungen werden angezeigt"
+		},
+		"costs": {
+			"title": "Kosten",
+			"modMonthly": "Monatlich",
+			"modCumulative": "Kumuliert"
+		},
+		"empty": {
+			"title": "Noch keine Daten",
+			"mileage": "Erfasse Kilometerstände, um deinen Kilometertrend zu sehen.",
+			"costs": "Füge Ausgaben hinzu, um deinen Kostentrend zu sehen."
 		}
 	}
 }

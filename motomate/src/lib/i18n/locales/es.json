@@ -204,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Requiere atención",
 			"garage": "Garage",
-			"recentActivity": "Actividad reciente"
+			"recentActivity": "Actividad reciente",
+			"thisYear": "Este año"
+		},
+		"yearCost": {
+			"none": "Sin gastos registrados"
 		},
 		"viewAll": "Ver todo →",
 		"serviceEntry": "Entrada de servicio",
@@ -1084,6 +1088,7 @@
 		"nav": {
 			"dashboard": "Panel",
 			"garage": "Garage",
+			"insights": "Estadísticas",
 			"settings": "Configuración",
 			"profile": "Perfil"
 		},
@@ -1203,6 +1208,35 @@
 			"all": "Todos",
 			"past": "Pasados",
 			"upcoming": "Planificados"
+		}
+	},
+	"insights": {
+		"title": "Estadísticas",
+		"subtitle": "Kilometraje y costes en el tiempo",
+		"vehicles": {
+			"all": "Todos los vehículos"
+		},
+		"timeRange": {
+			"6m": "6 meses",
+			"1y": "1 año",
+			"2y": "2 años",
+			"all": "Todo el tiempo"
+		},
+		"mileage": {
+			"title": "Kilometraje",
+			"modOdometer": "Odómetro",
+			"modDelta": "Por mes",
+			"allFleetNote": "Mostrando lecturas combinadas"
+		},
+		"costs": {
+			"title": "Costes",
+			"modMonthly": "Mensual",
+			"modCumulative": "Acumulado"
+		},
+		"empty": {
+			"title": "Sin datos aún",
+			"mileage": "Registra lecturas del odómetro para ver tu tendencia de kilometraje.",
+			"costs": "Añade gastos para ver tu tendencia de costes."
 		}
 	}
 }

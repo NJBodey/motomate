@@ -100,7 +100,16 @@ const PagePrefsSchema = z.object({
 			showReminder: z.boolean().optional()
 		})
 		.optional(),
-	maintenance_report_pdf: z.record(z.string(), z.array(z.string())).optional()
+	maintenance_report_pdf: z.record(z.string(), z.array(z.string())).optional(),
+	insights: z
+		.object({
+			vehicleId: z.string().max(64).optional(),
+			timeRange: z.enum(['6m', '1y', '2y', 'all']).optional(),
+			mileageMode: z.enum(['odometer', 'delta']).optional(),
+			costMode: z.enum(['monthly', 'cumulative']).optional(),
+			showServiceEvents: z.boolean().optional()
+		})
+		.optional()
 });
 
 export const UserSettingsSchema = z.object({

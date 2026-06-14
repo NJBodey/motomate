@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { getVehiclesByUser } from '$lib/db/repositories/vehicles.js';
 import { recomputeTrackerStatuses } from '$lib/db/repositories/maintenance.js';
 import { getRecentLogsAcrossVehicles } from '$lib/db/repositories/service-logs.js';
+import { getFinanceTransactionsByVehicle } from '$lib/db/repositories/finance-transactions.js';
 import { getUnreadCount } from '$lib/workflow/channels/inapp.js';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -9,7 +10,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const vehicles = await getVehiclesByUser(user.id);
 	const vehicleIds = vehicles.map((v) => v.id);
 
-	const [trackersByVehicle, recentLogsRaw, unreadCount] = await Promise.all([
+	const yearStart = new Date().getFullYear() + '-01-01';
+
+	const [trackersByVehicle, recentLogsRaw, unreadCount, yearFinance] = await Promise.all([
 		Promise.all(
 			vehicles.map(async (v) => {
 				const trackers = await recomputeTrackerStatuses(v.id, v.current_odometer);
@@ -17,7 +20,16 @@ export const load: PageServerLoad = async ({ locals }) => {
 			})
 		),
 		getRecentLogsAcrossVehicles(vehicleIds, 5),
-		getUnreadCount(user.id)
+		getUnreadCount(user.id),
+		Promise.all(
+			vehicles.map(async (v) => {
+				const txns = await getFinanceTransactionsByVehicle(v.id, user.id);
+				const yearTxns = txns.filter((t) => t.performed_at >= yearStart);
+				const totalCents = yearTxns.reduce((s, t) => s + t.amount_cents, 0);
+				const currency = yearTxns[0]?.currency ?? user.settings?.currency ?? 'EUR';
+				return { vehicleId: v.id, totalCents, currency };
+			})
+		)
 	]);
 
 	const flatTrackers = trackersByVehicle.flat();
@@ -43,6 +55,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 		vehicle: vehicleMap.get(log.vehicle_id)!
 	}));
 
+	const yearCostByVehicle = Object.fromEntries(
+		yearFinance.map((e) => [e.vehicleId, { totalCents: e.totalCents, currency: e.currency }])
+	);
+
 	return {
 		user,
 		vehicles,
@@ -50,6 +66,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		dueTrackers,
 		recentLogs,
 		vehicleStatus: Object.fromEntries(vehicleStatus),
+		yearCostByVehicle,
 		unreadCount
 	};
 };
