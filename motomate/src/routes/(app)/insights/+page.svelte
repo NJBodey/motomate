@@ -174,11 +174,7 @@
 	});
 
 	$effect(() => {
-		selectedVehicleId;
-		timeRange;
-		mileageMode;
-		costMode;
-		showServiceEvents;
+		void [selectedVehicleId, timeRange, mileageMode, costMode, showServiceEvents];
 		if (_firstRun) {
 			_firstRun = false;
 			return;

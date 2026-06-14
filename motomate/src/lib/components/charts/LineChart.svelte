@@ -36,7 +36,7 @@
 	const INNER_W = W - PAD.left - PAD.right;
 
 	const H = $derived(height);
-	const INNER_H = $derived(H - PAD.top - PAD.bottom);
+	const _INNER_H = $derived(H - PAD.top - PAD.bottom);
 
 	const minVal = $derived(points.length ? Math.min(...points.map((p) => p.value)) : 0);
 	const maxVal = $derived(points.length ? Math.max(...points.map((p) => p.value)) : 1);
