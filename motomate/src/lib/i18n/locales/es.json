@@ -250,7 +250,7 @@
 				"timeline": "Linea de tiempo",
 				"maintenance": "Mantenimiento",
 				"documents": "Documentos",
-				"finance": "Finanzas",
+				"finance": "Gastos",
 				"settings": "Configuracion",
 				"travels": "Viajes"
 			},
@@ -289,7 +289,7 @@
 					"odometer": "Odómetro",
 					"notes": "Notas",
 					"travels": "Viajes",
-					"finance": "Finanzas",
+					"finance": "Gastos",
 					"usage": "Uso",
 					"reminders": "Recordatorios"
 				},
@@ -650,7 +650,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanzas",
+		"title": "Gastos",
 		"subtitle": "Rastrea gastos",
 		"totalSpent": "Total gastado en tu {name}",
 		"addExpense": "Añadir",
@@ -1113,7 +1113,7 @@
 			"maintenanceDesc": "Aceite, neumáticos o reparaciones",
 			"mileage": "Kilometraje",
 			"mileageDesc": "Número en tu salpicadero",
-			"finance": "Finanzas",
+			"finance": "Gastos",
 			"financeDesc": "Combustible, seguro o piezas",
 			"usage": "Uso",
 			"usageDesc": "Horas o lectura en tu contador"
@@ -1212,7 +1212,7 @@
 	},
 	"insights": {
 		"title": "Estadísticas",
-		"subtitle": "Kilometraje y costes en el tiempo",
+		"subtitle": "Cuánto has rodado y qué has gastado",
 		"vehicles": {
 			"all": "Todos los vehículos"
 		},
@@ -1226,17 +1226,21 @@
 			"title": "Kilometraje",
 			"modOdometer": "Odómetro",
 			"modDelta": "Por mes",
-			"allFleetNote": "Mostrando lecturas combinadas"
+			"allFleetNote": "Mostrando lecturas combinadas",
+			"summary": "Has recorrido {km} en el periodo seleccionado.",
+			"showServices": "Eventos de servicio",
+			"viewLog": "Ver registro de mantenimiento"
 		},
 		"costs": {
-			"title": "Costes",
+			"title": "Gastos",
 			"modMonthly": "Mensual",
-			"modCumulative": "Acumulado"
+			"modCumulative": "Acumulado",
+			"viewDetails": "Ver gastos"
 		},
 		"empty": {
 			"title": "Sin datos aún",
-			"mileage": "Registra lecturas del odómetro para ver tu tendencia de kilometraje.",
-			"costs": "Añade gastos para ver tu tendencia de costes."
+			"mileage": "Registra lecturas del odómetro para ver cuánto has rodado.",
+			"costs": "Añade gastos para ver qué has gastado."
 		}
 	}
 }

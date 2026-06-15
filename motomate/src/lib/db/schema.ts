@@ -51,6 +51,9 @@ export type PagePrefs = {
 		costMode?: 'monthly' | 'cumulative';
 		showServiceEvents?: boolean;
 	};
+	global?: {
+		addMenuOrder?: Array<'service' | 'odometer' | 'note' | 'finance'>;
+	};
 };
 
 export type UserSettings = {

@@ -56,6 +56,11 @@
 		color: var(--text);
 	}
 
+	.view-btn:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: -2px;
+	}
+
 	.view-btn--active {
 		background: var(--bg);
 		color: var(--text);

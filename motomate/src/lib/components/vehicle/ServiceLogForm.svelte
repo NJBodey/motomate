@@ -1,42 +1,30 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { untrack } from 'svelte';
 	import { sheet } from '$lib/stores/sheet.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
 	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
+	import type { ActiveTracker, TaskTemplate } from '$lib/db/schema.js';
 
+	type Tracker = ActiveTracker & { template: TaskTemplate };
 	interface DocRecord {
 		id: string;
 		name: string;
 		doc_type: string;
 	}
 
-	interface EditData {
-		id: string;
-		category: string;
-		amount_cents: number;
-		performed_at: string;
-		odometer_at_transaction?: number | null;
-		notes?: string | null;
-	}
-
 	let {
-		vehicleId: _vehicleId,
-		locale: _locale,
-		currency,
 		odometerUnit,
-		allDocs = [],
-		pagePrefsCategory,
-		editData
+		currentOdometer,
+		today,
+		trackers,
+		allDocs = []
 	}: {
-		vehicleId: string;
-		locale: string;
-		currency: string;
 		odometerUnit: 'km' | 'mi' | 'h';
+		currentOdometer: number;
+		today: string;
+		trackers: Tracker[];
 		allDocs?: DocRecord[];
-		pagePrefsCategory?: string;
-		editData?: EditData;
 	} = $props();
 
 	$effect(() => {
@@ -47,18 +35,15 @@
 	const unitLabel = $derived($_(getMeasurementUnitTranslationKey(odometerUnit)));
 	const measurementFieldLabel = $derived(
 		isHoursVehicle
-			? $_('finance.form.usage', { values: { unit: unitLabel } })
-			: $_('finance.form.odometer', { values: { unit: unitLabel } })
+			? $_('vehicle.forms.fields.usage', { values: { unit: unitLabel } })
+			: $_('vehicle.forms.fields.odometer', { values: { unit: unitLabel } })
 	);
 
-	const categoryOptions = $derived([
-		{ value: 'maintenance', label: $_('finance.categories.maintenance') },
-		{ value: 'parts', label: $_('finance.categories.parts') },
-		{ value: 'accessories', label: $_('finance.categories.accessories') },
-		{ value: 'administrative', label: $_('finance.categories.administrative') },
-		{ value: 'fuel', label: $_('finance.categories.fuel') },
-		{ value: 'other', label: $_('finance.categories.other') }
-	]);
+	let submitting = $state(false);
+	let attachFile = $state<File | null>(null);
+	let attachType = $state('service');
+	let showLinkNew = $state(false);
+	let newLinkedDocIds = new SvelteSet<string>();
 
 	const docTypeEntries = Object.entries({
 		service: 'documents.types.service',
@@ -68,22 +53,6 @@
 		notes: 'documents.types.notes',
 		other: 'documents.types.other'
 	});
-
-	let category = $state(untrack(() => editData?.category ?? pagePrefsCategory ?? 'maintenance'));
-	let amount = $state(untrack(() => (editData ? String(editData.amount_cents / 100) : '')));
-	let date = $state(untrack(() => editData?.performed_at ?? new Date().toISOString().slice(0, 10)));
-	let odometer = $state(
-		untrack(() =>
-			editData?.odometer_at_transaction != null ? String(editData.odometer_at_transaction) : ''
-		)
-	);
-	let notes = $state(untrack(() => editData?.notes ?? ''));
-	let submitting = $state(false);
-
-	let attachFile = $state<File | null>(null);
-	let attachType = $state('other');
-	let showLinkNew = $state(false);
-	let newLinkedDocIds = new SvelteSet<string>();
 
 	const docMap = $derived(new Map(allDocs.map((d) => [d.id, d])));
 
@@ -102,9 +71,9 @@
 
 <form
 	method="POST"
-	action={editData ? '?/editTransaction' : '?/addTransaction'}
+	action="?/logService"
 	enctype="multipart/form-data"
-	class="tx-form"
+	class="form"
 	use:enhance={({ formData }) => {
 		if (attachFile) formData.set('attachment_file', attachFile);
 		for (const id of newLinkedDocIds) formData.append('linked_doc_id', id);
@@ -112,70 +81,95 @@
 		return async ({ result, update }) => {
 			await update();
 			submitting = false;
-			attachType = 'other';
-			if (result.type === 'success') {
-				sheet.closeSheet();
-			}
+			if (result.type === 'success') sheet.closeSheet();
 		};
 	}}
 >
-	{#if editData}
-		<input type="hidden" name="id" value={editData.id} />
-	{/if}
-
 	<div class="form-row">
 		<label class="field">
-			<span class="field-label">{$_('finance.form.category')}</span>
-			<select name="category" bind:value={category} class="input">
-				{#each categoryOptions as opt (opt.value)}
-					<option value={opt.value}>{opt.label}</option>
-				{/each}
-			</select>
+			<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
+			<input type="date" name="performed_at" value={today} class="input" required />
 		</label>
-
-		<label class="field">
-			<span class="field-label">{$_('finance.form.amount', { values: { currency } })}</span>
-			<input
-				type="number"
-				name="amount"
-				bind:value={amount}
-				min="0"
-				step="0.01"
-				placeholder="0.00"
-				class="input mono"
-				required
-			/>
-		</label>
-	</div>
-
-	<div class="form-row">
-		<label class="field">
-			<span class="field-label">{$_('finance.form.date')}</span>
-			<input type="date" name="date" bind:value={date} class="input" required />
-		</label>
-
 		<label class="field">
 			<span class="field-label">{measurementFieldLabel}</span>
 			<input
 				type="number"
-				name="odometer"
-				bind:value={odometer}
+				name="odometer_at_service"
+				value={currentOdometer}
 				min="0"
-				placeholder={$_('finance.form.odometerOptional')}
 				class="input mono"
+				required
+				autofocus
 			/>
 		</label>
 	</div>
 
+	{#if trackers.length > 0}
+		<fieldset class="tracker-select">
+			<legend class="field-label"
+				>{$_('vehicle.forms.fields.resetCycle', {
+					values: { optional: $_('vehicle.forms.fields.checkToReset') }
+				})}</legend
+			>
+			<div class="tracker-checkboxes">
+				{#each trackers as t (t.id)}
+					<label class="tracker-checkbox">
+						<input type="checkbox" name="reset_trackers" value={t.id} />
+						<span class="tracker-check-label">
+							<span class="tracker-check-name">{t.template.name}</span>
+							{#if (t as any).reminder_only}
+								<span class="tracker-check-status">{$_('maintenance.tracker.reminderBadge')}</span>
+							{:else if t.status === 'due'}
+								<span class="tracker-check-status tracker-check-status--due"
+									>{$_('maintenance.tracker.status.due')}</span
+								>
+							{:else if t.status === 'overdue'}
+								<span class="tracker-check-status tracker-check-status--overdue"
+									>{$_('maintenance.tracker.status.overdue')}</span
+								>
+							{/if}
+						</span>
+					</label>
+				{/each}
+			</div>
+		</fieldset>
+	{/if}
+
 	<label class="field">
-		<span class="field-label">{$_('finance.form.notes')}</span>
+		<span class="field-label">{$_('vehicle.forms.fields.description')}</span>
 		<input
 			type="text"
 			name="notes"
-			bind:value={notes}
-			placeholder="e.g., Motor oil, 4 liters"
+			placeholder={$_('vehicle.forms.placeholders.description')}
 			maxlength="200"
 			class="input"
+		/>
+	</label>
+
+	<label class="field">
+		<span class="field-label"
+			>{$_('vehicle.forms.fields.remark', { values: { optional: $_('common.optional') } })}</span
+		>
+		<input
+			type="text"
+			name="remark"
+			placeholder={$_('vehicle.forms.placeholders.additionalDetails')}
+			maxlength="200"
+			class="input"
+		/>
+	</label>
+
+	<label class="field">
+		<span class="field-label"
+			>{$_('vehicle.forms.fields.cost', { values: { optional: $_('common.optional') } })}</span
+		>
+		<input
+			type="number"
+			name="cost"
+			min="0"
+			step="0.01"
+			placeholder={$_('vehicle.forms.placeholders.cost')}
+			class="input mono"
 		/>
 	</label>
 
@@ -295,20 +289,16 @@
 
 	<div class="form-actions">
 		<button type="submit" class="btn-primary" disabled={submitting}>
-			{submitting
-				? $_('finance.saving')
-				: editData
-					? $_('finance.form.editTitle')
-					: $_('finance.save')}
+			{submitting ? $_('common.saving') : $_('vehicle.forms.submit.service')}
 		</button>
-		<button type="button" class="btn-cancel" onclick={() => sheet.closeSheet()}>
-			{$_('finance.cancel')}
+		<button type="button" class="btn-ghost" onclick={() => sheet.closeSheet()}>
+			{$_('common.cancel')}
 		</button>
 	</div>
 </form>
 
 <style>
-	.tx-form {
+	.form {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
@@ -363,6 +353,60 @@
 	.mono {
 		font-family: var(--font-mono);
 		font-variant-numeric: tabular-nums;
+	}
+
+	.tracker-select {
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: var(--space-3);
+		margin: 0;
+	}
+
+	.tracker-checkboxes {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		margin-top: var(--space-2);
+	}
+
+	.tracker-checkbox {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		cursor: pointer;
+	}
+
+	.tracker-check-label {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		flex: 1;
+	}
+
+	.tracker-check-name {
+		font-size: var(--text-sm);
+		color: var(--text);
+	}
+
+	.tracker-check-status {
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		background: var(--bg-muted);
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		padding: 0.1rem 0.4rem;
+	}
+
+	.tracker-check-status--due {
+		color: var(--status-due);
+		border-color: color-mix(in srgb, var(--status-due) 30%, transparent);
+		background: color-mix(in srgb, var(--status-due) 8%, var(--bg));
+	}
+
+	.tracker-check-status--overdue {
+		color: var(--status-overdue);
+		border-color: color-mix(in srgb, var(--status-overdue) 30%, transparent);
+		background: color-mix(in srgb, var(--status-overdue) 8%, var(--bg));
 	}
 
 	.form-attachments {
@@ -552,7 +596,7 @@
 		cursor: not-allowed;
 	}
 
-	.btn-cancel {
+	.btn-ghost {
 		padding: 0.75rem 1.25rem;
 		background: transparent;
 		border: 1px solid var(--border);
@@ -564,7 +608,7 @@
 		min-height: 48px;
 	}
 
-	.btn-cancel:hover {
+	.btn-ghost:hover {
 		background: var(--bg-muted);
 		color: var(--text);
 	}

@@ -22,13 +22,13 @@ const spec = {
 		{ name: 'Maintenance', description: 'All trackers with their current status.' },
 		{ name: 'Service logs', description: 'Read and write your service history.' },
 		{ name: 'Odometer', description: 'Log and retrieve odometer readings.' },
-		{ name: 'Finance', description: 'Expenses, fuel costs, and other transactions.' }
+		{ name: 'Spending', description: 'Expenses, fuel costs, and other transactions.' }
 	],
 	'x-tagGroups': [
 		{ name: 'Account', tags: ['Profile'] },
 		{
 			name: 'Vehicle data',
-			tags: ['Vehicles', 'Attention', 'Maintenance', 'Service logs', 'Odometer', 'Finance']
+			tags: ['Vehicles', 'Attention', 'Maintenance', 'Service logs', 'Odometer', 'Spending']
 		}
 	],
 	components: {
@@ -508,7 +508,7 @@ const spec = {
 		},
 		'/vehicles/{id}/finance': {
 			get: {
-				tags: ['Finance'],
+				tags: ['Spending'],
 				summary: 'Expense history',
 				description:
 					'Every cost logged against this vehicle: fuel, parts, insurance, services. The response always includes a `total_cents` that sums all records, not just the current page.',
@@ -543,7 +543,7 @@ const spec = {
 				}
 			},
 			post: {
-				tags: ['Finance'],
+				tags: ['Spending'],
 				summary: 'Add a transaction',
 				description:
 					'Log an expense: a tank of fuel, a new tyre, an insurance premium. Amount in cents; negative values for income such as selling a part. Currency follows your account setting.',
@@ -602,7 +602,7 @@ const spec = {
 		},
 		'/vehicles/{id}/finance/{transactionId}': {
 			delete: {
-				tags: ['Finance'],
+				tags: ['Spending'],
 				summary: 'Remove a transaction',
 				description: 'Remove an expense you logged by mistake.',
 				operationId: 'deleteFinanceTransaction',

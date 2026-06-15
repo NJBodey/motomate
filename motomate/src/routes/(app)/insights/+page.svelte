@@ -207,26 +207,24 @@
 	</div>
 
 	<div class="insights-controls">
-		<div class="control-group">
-			<div class="pill-group">
+		<div class="pill-group">
+			<button
+				class="pill"
+				class:pill--active={selectedVehicleId === 'all'}
+				onclick={() => (selectedVehicleId = 'all')}
+			>
+				{$_('insights.vehicles.all')}
+			</button>
+			{#each data.vehicles as v (v.id)}
 				<button
 					class="pill"
-					class:pill--active={selectedVehicleId === 'all'}
-					onclick={() => (selectedVehicleId = 'all')}
+					class:pill--active={selectedVehicleId === v.id}
+					onclick={() => (selectedVehicleId = v.id)}
 				>
-					{$_('insights.vehicles.all')}
+					{v.meta?.avatar_emoji ?? '🏍'}
+					{v.name}
 				</button>
-				{#each data.vehicles as v (v.id)}
-					<button
-						class="pill"
-						class:pill--active={selectedVehicleId === v.id}
-						onclick={() => (selectedVehicleId = v.id)}
-					>
-						{v.meta?.avatar_emoji ?? '🏍'}
-						{v.name}
-					</button>
-				{/each}
-			</div>
+			{/each}
 		</div>
 
 		<ViewToggle
@@ -246,7 +244,7 @@
 			<div class="chart-card-title-group">
 				<h2 class="chart-title">{$_('insights.mileage.title')}</h2>
 				{#if totalKm !== null}
-					<span class="chart-stat mono">{mileageFormatter(Math.round(totalKm ?? 0))}</span>
+					<span class="chart-stat mono">{mileageFormatter(Math.round(totalKm))}</span>
 				{/if}
 			</div>
 			<div class="chart-card-controls">
@@ -260,7 +258,7 @@
 				/>
 				<label class="events-toggle">
 					<input type="checkbox" bind:checked={showServiceEvents} class="events-checkbox" />
-					<span class="events-label">Services</span>
+					<span class="events-label">{$_('insights.mileage.showServices')}</span>
 				</label>
 			</div>
 		</div>
@@ -269,7 +267,7 @@
 		{/if}
 		{#if mileageMode === 'delta' && totalKm !== null && totalKm > 0}
 			<p class="chart-summary">
-				Ridden {mileageFormatter(Math.round(totalKm))} in the selected period.
+				{$_('insights.mileage.summary', { values: { km: mileageFormatter(Math.round(totalKm)) } })}
 			</p>
 		{/if}
 		{#if mileagePoints.length < 2}
@@ -287,6 +285,7 @@
 					oneventclick={selectedVehicleId !== 'all'
 						? () => goto('/vehicles/' + selectedVehicleId + '/maintenance')
 						: undefined}
+					viewLogLabel={selectedVehicleId !== 'all' ? $_('insights.mileage.viewLog') : undefined}
 				/>
 			</div>
 		{/if}
@@ -321,18 +320,12 @@
 					formatValue={costFormatter}
 					{locale}
 					onbarclick={drillDownCost}
+					clickHint={selectedVehicleId !== 'all' ? $_('insights.costs.viewDetails') : undefined}
 				/>
 			</div>
 		{:else}
 			<div class="chart-wrap">
-				<LineChart
-					points={costPoints}
-					formatValue={costFormatter}
-					{locale}
-					oneventclick={selectedVehicleId !== 'all'
-						? () => goto('/vehicles/' + selectedVehicleId + '/finance')
-						: undefined}
-				/>
+				<LineChart points={costPoints} formatValue={costFormatter} {locale} />
 			</div>
 		{/if}
 	</div>
@@ -342,7 +335,7 @@
 	.insights-page {
 		max-width: 860px;
 		margin: 0 auto;
-		padding: var(--space-6) var(--space-4);
+		padding: var(--space-6);
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-6);
@@ -359,14 +352,14 @@
 	}
 
 	.vehicle-avatar {
-		width: 48px;
-		height: 48px;
+		width: 56px;
+		height: 56px;
 		border-radius: 50%;
 		background: var(--bg-muted);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 1.5rem;
+		font-size: 1.75rem;
 		flex-shrink: 0;
 	}
 
@@ -380,7 +373,7 @@
 	.page-sub {
 		font-size: var(--text-sm);
 		color: var(--text-muted);
-		margin: 0.25rem 0 0;
+		margin: var(--space-1) 0 0;
 	}
 
 	.insights-controls {
@@ -406,6 +399,7 @@
 
 	.pill {
 		padding: 0.375rem 0.75rem;
+		min-height: 2.75rem;
 		border: 1px solid var(--border);
 		border-radius: 100px;
 		background: transparent;
@@ -424,6 +418,15 @@
 	.pill:hover {
 		border-color: var(--border-strong);
 		color: var(--text);
+	}
+
+	.pill:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
+	.pill:active:not(.pill--active) {
+		background: var(--bg-muted);
 	}
 
 	.pill--active {
@@ -483,7 +486,7 @@
 	.events-toggle {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: var(--space-2);
 		cursor: pointer;
 	}
 
@@ -542,7 +545,7 @@
 		}
 
 		.chart-card {
-			padding: 1rem;
+			padding: var(--space-4);
 		}
 
 		.chart-card-header {

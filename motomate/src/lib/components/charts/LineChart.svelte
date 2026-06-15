@@ -19,7 +19,8 @@
 		height = 200,
 		locale = 'en',
 		ariaLabel = 'Line chart',
-		oneventclick
+		oneventclick,
+		viewLogLabel
 	}: {
 		points: Point[];
 		events?: EventMarker[];
@@ -29,14 +30,12 @@
 		locale?: string;
 		ariaLabel?: string;
 		oneventclick?: () => void;
+		viewLogLabel?: string;
 	} = $props();
 
 	const W = 600;
 	const PAD = { top: 20, right: 20, bottom: 40, left: 56 };
 	const INNER_W = W - PAD.left - PAD.right;
-
-	const H = $derived(height);
-	const _INNER_H = $derived(H - PAD.top - PAD.bottom);
 
 	const minVal = $derived(points.length ? Math.min(...points.map((p) => p.value)) : 0);
 	const maxVal = $derived(points.length ? Math.max(...points.map((p) => p.value)) : 1);
@@ -94,6 +93,8 @@
 	});
 
 	let tooltipData = $state<{ x: number; y: number; label: string; value: string } | null>(null);
+	let hoveredEvent = $state<string | null>(null);
+	let eventTooltip = $state<{ x: number; y: number; month: string; title: string } | null>(null);
 	let svgEl = $state<SVGSVGElement | undefined>();
 
 	function onPointerMove(e: PointerEvent) {
@@ -201,19 +202,38 @@
 			{@const idx = points.findIndex((p) => p.label === ev.label)}
 			{#if idx !== -1}
 				{@const px = toX(idx, points.length)}
+				{@const isHovered = hoveredEvent === ev.label}
+				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 				<line
 					role={oneventclick ? 'button' : undefined}
+					tabindex={oneventclick ? 0 : undefined}
 					aria-label={ev.label}
 					x1={px}
 					x2={px}
 					y1={PAD.top}
 					y2={height - PAD.bottom}
-					stroke="var(--text-subtle)"
+					stroke={isHovered ? accentColor : 'var(--text-subtle)'}
+					stroke-opacity={isHovered ? 0.4 : 1}
 					stroke-width="1"
 					stroke-dasharray="3 3"
 					onclick={oneventclick}
 					onkeydown={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') oneventclick?.();
+					}}
+					onpointerenter={(e) => {
+						hoveredEvent = ev.label;
+						if (!svgEl) return;
+						const rect = svgEl.getBoundingClientRect();
+						eventTooltip = {
+							x: e.clientX - rect.left,
+							y: e.clientY - rect.top,
+							month: formatMonthLabel(ev.label, locale),
+							title: ev.title
+						};
+					}}
+					onpointerleave={() => {
+						hoveredEvent = null;
+						eventTooltip = null;
 					}}
 					style="cursor: {oneventclick ? 'pointer' : 'default'}"
 				/>
@@ -222,11 +242,26 @@
 					aria-label={ev.label}
 					cx={px}
 					cy={PAD.top}
-					r="3"
-					fill="var(--text-muted)"
+					r={isHovered ? 5 : 3}
+					fill={isHovered ? accentColor : 'var(--text-muted)'}
 					onclick={oneventclick}
 					onkeydown={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') oneventclick?.();
+					}}
+					onpointerenter={(e) => {
+						hoveredEvent = ev.label;
+						if (!svgEl) return;
+						const rect = svgEl.getBoundingClientRect();
+						eventTooltip = {
+							x: e.clientX - rect.left,
+							y: e.clientY - rect.top,
+							month: formatMonthLabel(ev.label, locale),
+							title: ev.title
+						};
+					}}
+					onpointerleave={() => {
+						hoveredEvent = null;
+						eventTooltip = null;
 					}}
 					style="cursor: {oneventclick ? 'pointer' : 'default'}"
 				/>
@@ -234,13 +269,28 @@
 		{/each}
 	</svg>
 
-	{#if tooltipData}
+	{#if tooltipData && !eventTooltip}
 		<div
 			class="chart-tooltip"
 			style="left: {tooltipData.x}px; top: {Math.max(0, tooltipData.y - 52)}px"
 		>
 			<span class="tooltip-label">{tooltipData.label}</span>
 			<span class="tooltip-value">{tooltipData.value}</span>
+		</div>
+	{/if}
+
+	{#if eventTooltip}
+		<div
+			class="chart-tooltip"
+			style="left: {eventTooltip.x}px; top: {Math.max(0, eventTooltip.y - 68)}px"
+		>
+			<span class="tooltip-label">{eventTooltip.month}</span>
+			{#if eventTooltip.title}
+				<span class="tooltip-value">{eventTooltip.title}</span>
+			{/if}
+			{#if viewLogLabel}
+				<span class="tooltip-hint">{viewLogLabel}</span>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -277,5 +327,11 @@
 		font-weight: 600;
 		color: var(--text);
 		font-variant-numeric: tabular-nums;
+	}
+
+	.tooltip-hint {
+		font-size: var(--text-xs);
+		color: var(--text-subtle);
+		font-style: italic;
 	}
 </style>

@@ -250,7 +250,7 @@
 				"timeline": "Chronologie",
 				"maintenance": "Entretien",
 				"documents": "Documents",
-				"finance": "Finances",
+				"finance": "Dépenses",
 				"settings": "Parametres",
 				"travels": "Voyages"
 			},
@@ -289,7 +289,7 @@
 					"odometer": "Kilométrage",
 					"notes": "Notes",
 					"travels": "Voyages",
-					"finance": "Finances",
+					"finance": "Dépenses",
 					"usage": "Usage",
 					"reminders": "Rappels"
 				},
@@ -650,7 +650,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finances",
+		"title": "Dépenses",
 		"subtitle": "Suivez les dépenses",
 		"totalSpent": "Total dépensé pour votre {name}",
 		"addExpense": "Ajouter",
@@ -1113,7 +1113,7 @@
 			"maintenanceDesc": "Huile, pneus ou réparations",
 			"mileage": "Kilométrage",
 			"mileageDesc": "Nombre sur votre tableau de bord",
-			"finance": "Finance",
+			"finance": "Dépenses",
 			"financeDesc": "Carburant, assurance ou pièces",
 			"usage": "Usage",
 			"usageDesc": "Heures ou relevé sur votre compteur"
@@ -1212,7 +1212,7 @@
 	},
 	"insights": {
 		"title": "Statistiques",
-		"subtitle": "Kilométrage et coûts au fil du temps",
+		"subtitle": "Combien de kilomètres vous avez parcourus et ce que vous avez dépensé",
 		"vehicles": {
 			"all": "Tous les véhicules"
 		},
@@ -1226,17 +1226,21 @@
 			"title": "Kilométrage",
 			"modOdometer": "Odomètre",
 			"modDelta": "Par mois",
-			"allFleetNote": "Affichage des relevés combinés"
+			"allFleetNote": "Affichage des relevés combinés",
+			"summary": "{km} parcourus sur la période sélectionnée.",
+			"showServices": "Événements de service",
+			"viewLog": "Voir le journal d'entretien"
 		},
 		"costs": {
-			"title": "Coûts",
+			"title": "Dépenses",
 			"modMonthly": "Mensuel",
-			"modCumulative": "Cumulatif"
+			"modCumulative": "Cumulatif",
+			"viewDetails": "Voir les dépenses"
 		},
 		"empty": {
 			"title": "Pas encore de données",
-			"mileage": "Enregistrez des relevés kilométriques pour voir votre tendance.",
-			"costs": "Ajoutez des dépenses pour voir votre tendance de coûts."
+			"mileage": "Enregistrez des relevés kilométriques pour voir combien vous avez roulé.",
+			"costs": "Ajoutez des dépenses pour voir ce que vous avez dépensé."
 		}
 	}
 }

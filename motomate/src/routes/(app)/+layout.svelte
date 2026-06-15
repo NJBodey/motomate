@@ -204,10 +204,20 @@
 	});
 
 	function openQuickAdd() {
-		// Called from bottom nav FAB - original behavior
 		if (data.vehicles.length === 0) {
 			goto('/vehicles/new');
 			return;
+		}
+		// Pre-select vehicle when already on a vehicle page
+		const pathParts = page.url.pathname.split('/');
+		if (pathParts[1] === 'vehicles' && pathParts[2]) {
+			const currentVehicle = data.vehicles.find((v: NavVehicle) => v.id === pathParts[2]);
+			if (currentVehicle) {
+				selectedVehicle = currentVehicle;
+				quickAddStep = 'type';
+				quickAddOpen = true;
+				return;
+			}
 		}
 		if (data.vehicles.length === 1) {
 			selectedVehicle = data.vehicles[0];

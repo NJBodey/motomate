@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 				return trackers.map((t) => ({ ...t, vehicle: v }));
 			})
 		),
-		getRecentLogsAcrossVehicles(vehicleIds, 5),
+		getRecentLogsAcrossVehicles(vehicleIds, vehicleIds.length * 5),
 		getUnreadCount(user.id),
 		Promise.all(
 			vehicles.map(async (v) => {
@@ -50,10 +50,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 	);
 
 	const vehicleMap = new Map(vehicles.map((v) => [v.id, v]));
-	const recentLogs = recentLogsRaw.map((log) => ({
-		...log,
-		vehicle: vehicleMap.get(log.vehicle_id)!
-	}));
+	const seenVehicles = new Set<string>();
+	const recentLogs = recentLogsRaw
+		.filter((log) => {
+			if (seenVehicles.has(log.vehicle_id)) return false;
+			seenVehicles.add(log.vehicle_id);
+			return true;
+		})
+		.map((log) => ({ ...log, vehicle: vehicleMap.get(log.vehicle_id)! }));
 
 	const yearCostByVehicle = Object.fromEntries(
 		yearFinance.map((e) => [e.vehicleId, { totalCents: e.totalCents, currency: e.currency }])

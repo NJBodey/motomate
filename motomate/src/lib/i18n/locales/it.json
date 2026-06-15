@@ -250,7 +250,7 @@
 				"timeline": "Cronologia",
 				"maintenance": "Manutenzione",
 				"documents": "Documenti",
-				"finance": "Finanza",
+				"finance": "Spese",
 				"settings": "Impostazioni",
 				"travels": "Viaggi"
 			},
@@ -289,7 +289,7 @@
 					"odometer": "Odometro",
 					"notes": "Note",
 					"travels": "Viaggi",
-					"finance": "Finanze",
+					"finance": "Spese",
 					"usage": "Utilizzo",
 					"reminders": "Promemoria"
 				},
@@ -651,7 +651,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanze",
+		"title": "Spese",
 		"subtitle": "Traccia le spese",
 		"totalSpent": "Totale speso per la tua {name}",
 		"addExpense": "Aggiungi",
@@ -1114,7 +1114,7 @@
 			"maintenanceDesc": "Olio, pneumatici o riparazioni",
 			"mileage": "Chilometraggio",
 			"mileageDesc": "Numero sul tuo cruscotto",
-			"finance": "Finanze",
+			"finance": "Spese",
 			"financeDesc": "Carburante, assicurazione o ricambi",
 			"usage": "Utilizzo",
 			"usageDesc": "Ore o lettura sul tuo contatore"
@@ -1213,7 +1213,7 @@
 	},
 	"insights": {
 		"title": "Statistiche",
-		"subtitle": "Chilometraggio e costi nel tempo",
+		"subtitle": "Quanti chilometri hai percorso e quanto hai speso",
 		"vehicles": {
 			"all": "Tutti i veicoli"
 		},
@@ -1227,17 +1227,21 @@
 			"title": "Chilometraggio",
 			"modOdometer": "Odometro",
 			"modDelta": "Al mese",
-			"allFleetNote": "Visualizzazione delle letture combinate"
+			"allFleetNote": "Visualizzazione delle letture combinate",
+			"summary": "Percorsi {km} nel periodo selezionato.",
+			"showServices": "Eventi di servizio",
+			"viewLog": "Vedi il registro manutenzione"
 		},
 		"costs": {
-			"title": "Costi",
+			"title": "Spese",
 			"modMonthly": "Mensile",
-			"modCumulative": "Cumulativo"
+			"modCumulative": "Cumulativo",
+			"viewDetails": "Vedi le spese"
 		},
 		"empty": {
 			"title": "Nessun dato ancora",
-			"mileage": "Registra le letture del chilometraggio per vedere il tuo andamento.",
-			"costs": "Aggiungi spese per vedere il tuo andamento dei costi."
+			"mileage": "Registra le letture del chilometraggio per vedere quanti km hai percorso.",
+			"costs": "Aggiungi spese per vedere quanto hai speso."
 		}
 	}
 }

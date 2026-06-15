@@ -78,7 +78,8 @@
 		"magicLink": {
 			"verifying": "A iniciar sessão…",
 			"invalid": "Este link é inválido ou expirou.",
-			"retry": "Solicitar novo link"
+			"retry": "Solicitar novo link",
+			"title": "Link mágico"
 		}
 	},
 	"onboarding": {
@@ -250,7 +251,7 @@
 				"timeline": "Linha do tempo",
 				"maintenance": "Manutencao",
 				"documents": "Documentos",
-				"finance": "Financas",
+				"finance": "Despesas",
 				"settings": "Configuracoes",
 				"travels": "Viagens"
 			},
@@ -289,7 +290,7 @@
 					"odometer": "Odômetro",
 					"notes": "Notas",
 					"travels": "Viagens",
-					"finance": "Finanças",
+					"finance": "Despesas",
 					"usage": "Uso",
 					"reminders": "Lembretes"
 				},
@@ -650,7 +651,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanças",
+		"title": "Despesas",
 		"subtitle": "Acompanhe despesas",
 		"totalSpent": "Total gasto no seu {name}",
 		"addExpense": "Adicionar",
@@ -1113,7 +1114,7 @@
 			"maintenanceDesc": "Óleo, pneus ou reparações",
 			"mileage": "Quilometragem",
 			"mileageDesc": "Número no seu painel",
-			"finance": "Finanças",
+			"finance": "Despesas",
 			"financeDesc": "Combustível, seguro ou peças",
 			"usage": "Uso",
 			"usageDesc": "Horas ou leitura no contador"
@@ -1212,7 +1213,7 @@
 	},
 	"insights": {
 		"title": "Estatísticas",
-		"subtitle": "Quilometragem e custos ao longo do tempo",
+		"subtitle": "Quantos quilómetros percorreu e quanto gastou",
 		"vehicles": {
 			"all": "Todos os veículos"
 		},
@@ -1226,17 +1227,21 @@
 			"title": "Quilometragem",
 			"modOdometer": "Odómetro",
 			"modDelta": "Por mês",
-			"allFleetNote": "A mostrar leituras combinadas"
+			"allFleetNote": "A mostrar leituras combinadas",
+			"showServices": "Eventos de serviço",
+			"summary": "Percorridos {km} no período selecionado.",
+			"viewLog": "Ver registo de manutenção"
 		},
 		"costs": {
-			"title": "Custos",
+			"title": "Despesas",
 			"modMonthly": "Mensal",
-			"modCumulative": "Cumulativo"
+			"modCumulative": "Cumulativo",
+			"viewDetails": "Ver detalhes das despesas"
 		},
 		"empty": {
 			"title": "Sem dados ainda",
-			"mileage": "Registe leituras do odómetro para ver a sua tendência de quilometragem.",
-			"costs": "Adicione despesas para ver a sua tendência de custos."
+			"mileage": "Registe leituras do odómetro para ver quantos quilómetros percorreu.",
+			"costs": "Adicione despesas para ver o que gastou."
 		}
 	}
 }

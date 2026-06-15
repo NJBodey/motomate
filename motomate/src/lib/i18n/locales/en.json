@@ -295,7 +295,7 @@
 					"usage": "Usage",
 					"notes": "Notes",
 					"travels": "Travels",
-					"finance": "Finance",
+					"finance": "Spending",
 					"reminders": "Reminders"
 				},
 				"reminder": {
@@ -501,7 +501,7 @@
 				"timeline": "Timeline",
 				"maintenance": "Maintenance",
 				"documents": "Documents",
-				"finance": "Finance",
+				"finance": "Spending",
 				"travels": "Travels",
 				"settings": "Settings"
 			},
@@ -651,7 +651,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finance",
+		"title": "Spending",
 		"subtitle": "Track expenses",
 		"totalSpent": "Total spent on your {name}",
 		"addExpense": "Add",
@@ -1105,7 +1105,7 @@
 			"mileageDesc": "Number on your dash",
 			"usage": "Usage",
 			"usageDesc": "Hours or reading on your meter",
-			"finance": "Finance",
+			"finance": "Spending",
 			"financeDesc": "Fuel, insurance, or parts"
 		},
 		"notifications": {
@@ -1213,7 +1213,7 @@
 	},
 	"insights": {
 		"title": "Insights",
-		"subtitle": "Mileage and costs over time",
+		"subtitle": "How far you've ridden and what you've spent",
 		"vehicles": {
 			"all": "All vehicles"
 		},
@@ -1227,17 +1227,21 @@
 			"title": "Mileage",
 			"modOdometer": "Odometer",
 			"modDelta": "Per month",
-			"allFleetNote": "Showing combined readings"
+			"allFleetNote": "Showing combined readings",
+			"summary": "Ridden {km} in the selected period.",
+			"showServices": "Service events",
+			"viewLog": "View maintenance log"
 		},
 		"costs": {
-			"title": "Costs",
+			"title": "Spending",
 			"modMonthly": "Monthly",
-			"modCumulative": "Cumulative"
+			"modCumulative": "Cumulative",
+			"viewDetails": "View spending"
 		},
 		"empty": {
 			"title": "No data yet",
-			"mileage": "Log odometer readings to see your mileage trend.",
-			"costs": "Add expenses to see your cost trend."
+			"mileage": "Log odometer readings to see how far you've ridden.",
+			"costs": "Add expenses to see what you've spent."
 		}
 	}
 }

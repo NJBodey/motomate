@@ -250,7 +250,7 @@
 				"timeline": "Tijdlijn",
 				"maintenance": "Onderhoud",
 				"documents": "Documenten",
-				"finance": "Financieel",
+				"finance": "Uitgaven",
 				"settings": "Instellingen",
 				"travels": "Routes"
 			},
@@ -289,7 +289,7 @@
 					"odometer": "Kilometerstand",
 					"notes": "Notities",
 					"travels": "Routes",
-					"finance": "Financieel",
+					"finance": "Uitgaven",
 					"usage": "Draaiuren",
 					"reminders": "Herinneringen"
 				},
@@ -475,7 +475,7 @@
 						"download": "PDF downloaden",
 						"downloading": "Bezig...",
 						"cancel": "Annuleren",
-						"includeFinance": "Financieel overzicht meenemen"
+						"includeFinance": "Uitgavenoverzicht meenemen"
 					},
 					"pdf": {
 						"generatedOn": "Gegenereerd op",
@@ -650,7 +650,7 @@
 		}
 	},
 	"finance": {
-		"title": "Financiën",
+		"title": "Uitgaven",
 		"subtitle": "Houd uitgaven bij",
 		"totalSpent": "Totaal besteed aan je {name}",
 		"addExpense": "Toevoegen",
@@ -1113,7 +1113,7 @@
 			"maintenanceDesc": "Olie, banden of reparaties",
 			"mileage": "Kilometerstand",
 			"mileageDesc": "Nummer op je dashboard",
-			"finance": "Financiën",
+			"finance": "Uitgaven",
 			"financeDesc": "Brandstof, onderdelen of andere kosten",
 			"usage": "Draaiuren",
 			"usageDesc": "Uren of stand op je teller"
@@ -1212,7 +1212,7 @@
 	},
 	"insights": {
 		"title": "Statistieken",
-		"subtitle": "Kilometerstand en kosten over tijd",
+		"subtitle": "Hoe ver je hebt gereden en wat je hebt uitgegeven",
 		"vehicles": {
 			"all": "Alle voertuigen"
 		},
@@ -1226,17 +1226,21 @@
 			"title": "Kilometerstand",
 			"modOdometer": "Teller",
 			"modDelta": "Per maand",
-			"allFleetNote": "Gecombineerde afstandswaarden worden getoond"
+			"allFleetNote": "Gecombineerde afstandswaarden worden getoond",
+			"summary": "{km} gereden in de geselecteerde periode.",
+			"showServices": "Servicegebeurtenissen",
+			"viewLog": "Bekijk onderhoudslogboek"
 		},
 		"costs": {
-			"title": "Kosten",
+			"title": "Uitgaven",
 			"modMonthly": "Maandelijks",
-			"modCumulative": "Cumulatief"
+			"modCumulative": "Cumulatief",
+			"viewDetails": "Uitgaven bekijken"
 		},
 		"empty": {
 			"title": "Nog geen gegevens",
-			"mileage": "Log kilometerstandlezingen om je kilometertrend te zien.",
-			"costs": "Voeg uitgaven toe om je kostentrend te zien."
+			"mileage": "Log kilometerstandlezingen om te zien hoe ver je hebt gereden.",
+			"costs": "Voeg uitgaven toe om te zien wat je hebt uitgegeven."
 		}
 	}
 }

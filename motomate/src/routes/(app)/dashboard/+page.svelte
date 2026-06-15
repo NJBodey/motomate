@@ -75,7 +75,6 @@
 <svelte:head><title>Dashboard &middot; MotoMate</title></svelte:head>
 
 <div class="dashboard">
-	<!-- Greeting hero -->
 	<div class="dash-greeting">
 		<h1 class="greeting-text">{greeting}.</h1>
 		<p
@@ -95,7 +94,6 @@
 		</p>
 	</div>
 
-	<!-- Attention needed -->
 	{#if attentionItems.length > 0}
 		<section class="dash-section">
 			<h2 class="section-eyebrow">{$_('dashboard.sections.needsAttention')}</h2>
@@ -120,7 +118,6 @@
 		</section>
 	{/if}
 
-	<!-- Garage -->
 	{#if data.vehicles.length > 0}
 		<section class="dash-section">
 			<div class="section-header">
@@ -170,7 +167,6 @@
 		</section>
 	{/if}
 
-	<!-- Recent activity -->
 	{#if data.recentLogs.length > 0}
 		<section class="dash-section">
 			<h2 class="section-eyebrow">{$_('dashboard.sections.recentActivity')}</h2>
@@ -207,7 +203,6 @@
 		</section>
 	{/if}
 
-	<!-- This year -->
 	{#if data.vehicles.length > 0}
 		<section class="dash-section">
 			<div class="section-header">
@@ -224,9 +219,7 @@
 								{vehicle.name}</span
 							>
 							<span class="year-cost mono">
-								{yearCost.totalCents > 0
-									? formatCurrency(yearCost.totalCents, yearCost.currency, currentLocale)
-									: $_('dashboard.yearCost.none')}
+								{formatCurrency(yearCost.totalCents, yearCost.currency, currentLocale)}
 							</span>
 							<svg
 								class="year-arrow"
@@ -245,7 +238,6 @@
 		</section>
 	{/if}
 
-	<!-- Empty state -->
 	{#if data.vehicles.length === 0}
 		<section class="dash-section">
 			<div class="empty">
@@ -280,7 +272,7 @@
 		color: var(--text);
 		letter-spacing: -0.02em;
 		line-height: var(--leading-tight);
-		margin: 0 0 0.5rem;
+		margin: 0 0 var(--space-2);
 	}
 	.status-summary {
 		font-size: var(--text-base);
@@ -362,6 +354,12 @@
 	}
 	.entry:hover {
 		opacity: 0.75;
+	}
+
+	.entry:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: -1px;
+		border-radius: 4px;
 	}
 
 	.entry-avatar {
@@ -456,6 +454,12 @@
 	.year-entry:hover {
 		opacity: 0.75;
 	}
+
+	.year-entry:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: -1px;
+		border-radius: 4px;
+	}
 	.year-vehicle {
 		flex: 1;
 		font-size: var(--text-sm);
@@ -484,22 +488,22 @@
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		padding: 4rem var(--space-5);
+		padding: var(--space-10) var(--space-5);
 	}
 	.empty-icon {
 		font-size: 3rem;
-		margin-bottom: 1rem;
+		margin-bottom: var(--space-4);
 	}
 	.empty-title {
 		font-size: var(--text-lg);
 		font-weight: 600;
 		color: var(--text);
-		margin: 0 0 0.5rem;
+		margin: 0 0 var(--space-2);
 	}
 	.empty-desc {
 		font-size: var(--text-sm);
 		color: var(--text-muted);
-		margin: 0 0 1.5rem;
+		margin: 0 0 var(--space-5);
 		line-height: var(--leading-base);
 	}
 	.btn-primary {

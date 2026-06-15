@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import Modal from '$lib/components/ui/Modal.svelte';
 	import { _ } from '$lib/i18n';
 	import type { Travel } from '$lib/db/schema.js';
 
@@ -119,167 +118,202 @@
 	);
 </script>
 
-<Modal
-	{open}
-	title={mode === 'create' ? $_('travels.form.createTitle') : $_('travels.form.editTitle')}
-	{onclose}
->
-	<div class="form-scroll">
-		<form
-			id="travel-form"
-			method="POST"
-			action={mode === 'create' ? '?/create' : '?/edit'}
-			enctype="multipart/form-data"
-			use:enhance={({ formData }) => {
-				// Inject selected files into formData
-				for (const [i, file] of Object.entries(selectedFiles)) {
-					if (file) formData.set(`gpx_file_${i}`, file);
-				}
-				submitting = true;
-				return async ({ update }) => {
-					await update();
-					submitting = false;
-				};
-			}}
-		>
-			<input type="hidden" name="vehicle_id" value={vehicleId} />
-			{#if mode === 'edit' && travel}
-				<input type="hidden" name="id" value={travel.id} />
-			{/if}
-			{#each Object.entries(removedSlots) as [slotIdx, docId]}
-				<input type="hidden" name="remove_gpx_slot_{slotIdx}" value={docId} />
-			{/each}
-			{#each Object.entries(selectedExistingIds) as [i, docId]}
-				<input type="hidden" name="gpx_existing_doc_{i}" value={docId} />
-			{/each}
-			{#if excludedDays.length > 0}
-				<input type="hidden" name="excluded_gpx_days" value={JSON.stringify(excludedDays)} />
-			{/if}
+{#if open}
+	<div class="sheet-backdrop" onclick={onclose} aria-hidden="true"></div>
+	<div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="travel-sheet-title">
+		<div class="sheet-header">
+			<h2 id="travel-sheet-title" class="sheet-title">
+				{mode === 'create' ? $_('travels.form.createTitle') : $_('travels.form.editTitle')}
+			</h2>
+			<button class="sheet-close" onclick={onclose} aria-label="Close">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 16 16"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					aria-hidden="true"
+				>
+					<path d="M3 3l10 10M13 3L3 13" />
+				</svg>
+			</button>
+		</div>
+		<div class="form-scroll">
+			<form
+				id="travel-form"
+				method="POST"
+				action={mode === 'create' ? '?/create' : '?/edit'}
+				enctype="multipart/form-data"
+				use:enhance={({ formData }) => {
+					// Inject selected files into formData
+					for (const [i, file] of Object.entries(selectedFiles)) {
+						if (file) formData.set(`gpx_file_${i}`, file);
+					}
+					submitting = true;
+					return async ({ update }) => {
+						await update();
+						submitting = false;
+					};
+				}}
+			>
+				<input type="hidden" name="vehicle_id" value={vehicleId} />
+				{#if mode === 'edit' && travel}
+					<input type="hidden" name="id" value={travel.id} />
+				{/if}
+				{#each Object.entries(removedSlots) as [slotIdx, docId]}
+					<input type="hidden" name="remove_gpx_slot_{slotIdx}" value={docId} />
+				{/each}
+				{#each Object.entries(selectedExistingIds) as [i, docId]}
+					<input type="hidden" name="gpx_existing_doc_{i}" value={docId} />
+				{/each}
+				{#if excludedDays.length > 0}
+					<input type="hidden" name="excluded_gpx_days" value={JSON.stringify(excludedDays)} />
+				{/if}
 
-			<!-- Title -->
-			<div class="form-group">
-				<label for="tf-title" class="field-label">{$_('travels.form.title')}</label>
-				<input
-					id="tf-title"
-					type="text"
-					name="title"
-					value={travel?.title ?? ''}
-					placeholder={$_('travels.form.titlePlaceholder')}
-					maxlength="200"
-					class="input"
-					required
-				/>
-			</div>
-
-			<!-- Start date + Duration -->
-			<div class="form-row">
-				<div class="form-group" style="margin-bottom:0">
-					<label for="tf-date" class="field-label">{$_('travels.form.startDate')}</label>
+				<!-- Title -->
+				<div class="form-group">
+					<label for="tf-title" class="field-label">{$_('travels.form.title')}</label>
 					<input
-						id="tf-date"
-						type="date"
-						name="start_date"
-						value={startDate}
+						id="tf-title"
+						type="text"
+						name="title"
+						value={travel?.title ?? ''}
+						placeholder={$_('travels.form.titlePlaceholder')}
+						maxlength="200"
 						class="input"
 						required
-						oninput={(e) => {
-							startDate = (e.target as HTMLInputElement).value;
-						}}
 					/>
 				</div>
+
+				<!-- Start date + Duration -->
+				<div class="form-row">
+					<div class="form-group" style="margin-bottom:0">
+						<label for="tf-date" class="field-label">{$_('travels.form.startDate')}</label>
+						<input
+							id="tf-date"
+							type="date"
+							name="start_date"
+							value={startDate}
+							class="input"
+							required
+							oninput={(e) => {
+								startDate = (e.target as HTMLInputElement).value;
+							}}
+						/>
+					</div>
+					<div class="form-group" style="margin-bottom:0">
+						<label for="tf-days" class="field-label">{$_('travels.form.duration')}</label>
+						<input
+							id="tf-days"
+							type="number"
+							name="duration_days"
+							min="1"
+							max="365"
+							value={durationDays}
+							class="input"
+							oninput={(e) => {
+								durationDays = parseInt((e.target as HTMLInputElement).value) || 1;
+							}}
+						/>
+					</div>
+				</div>
+
+				<!-- Expenses -->
+				<div class="form-group">
+					<label for="tf-expenses" class="field-label">
+						{$_('travels.form.expenses')}
+						<span class="label-hint">{$_('common.optional')}</span>
+					</label>
+					<div class="input-group">
+						<span class="input-group-prefix">{currency}</span>
+						<input
+							id="tf-expenses"
+							type="number"
+							name="total_expenses"
+							min="0"
+							step="0.01"
+							value={defaultExpenses}
+							placeholder="0.00"
+							class="input input--mono input-group-field"
+						/>
+					</div>
+				</div>
+
+				<!-- Remark -->
+				<div class="form-group">
+					<label for="tf-remark" class="field-label">
+						{$_('travels.form.remark')}
+						<span class="label-hint">{$_('common.optional')}</span>
+					</label>
+					<textarea
+						id="tf-remark"
+						name="remark"
+						rows="2"
+						maxlength="2000"
+						placeholder={$_('travels.form.remarkPlaceholder')}
+						class="input input--textarea">{travel?.remark ?? ''}</textarea
+					>
+				</div>
+
+				<!-- GPX routes -->
 				<div class="form-group" style="margin-bottom:0">
-					<label for="tf-days" class="field-label">{$_('travels.form.duration')}</label>
-					<input
-						id="tf-days"
-						type="number"
-						name="duration_days"
-						min="1"
-						max="365"
-						value={durationDays}
-						class="input"
-						oninput={(e) => {
-							durationDays = parseInt((e.target as HTMLInputElement).value) || 1;
-						}}
-					/>
-				</div>
-			</div>
+					<span class="field-label">{$_('travels.form.gpxFiles')}</span>
 
-			<!-- Expenses -->
-			<div class="form-group">
-				<label for="tf-expenses" class="field-label">
-					{$_('travels.form.expenses')}
-					<span class="label-hint">{$_('common.optional')}</span>
-				</label>
-				<div class="input-group">
-					<span class="input-group-prefix">{currency}</span>
-					<input
-						id="tf-expenses"
-						type="number"
-						name="total_expenses"
-						min="0"
-						step="0.01"
-						value={defaultExpenses}
-						placeholder="0.00"
-						class="input input--mono input-group-field"
-					/>
-				</div>
-			</div>
-
-			<!-- Remark -->
-			<div class="form-group">
-				<label for="tf-remark" class="field-label">
-					{$_('travels.form.remark')}
-					<span class="label-hint">{$_('common.optional')}</span>
-				</label>
-				<textarea
-					id="tf-remark"
-					name="remark"
-					rows="2"
-					maxlength="2000"
-					placeholder={$_('travels.form.remarkPlaceholder')}
-					class="input input--textarea">{travel?.remark ?? ''}</textarea
-				>
-			</div>
-
-			<!-- GPX routes -->
-			<div class="form-group" style="margin-bottom:0">
-				<span class="field-label">{$_('travels.form.gpxFiles')}</span>
-
-				<!-- Per-day slots: show saved file or upload zone -->
-				<div class="gpx-slots">
-					{#each Array.from({ length: slots }, (_, i) => i) as i}
-						{@const existingDoc = existingGpxDocs.find((d) => d.index === i)}
-						{@const isRemoved = removedSlots[i] !== undefined}
-						{@const newFile = selectedFiles[i]}
-						<div class="gpx-slot">
-							<span class="gpx-slot-day">
-								{$_('travels.form.gpxSlot', { values: { n: i + 1 } })}
-								{#if slotDate(i)}<span class="gpx-slot-date">{slotDate(i)}</span>{/if}
-							</span>
-							{#if existingDoc && !isRemoved}
-								<!-- Saved file: chip with download + remove + exclude toggle -->
-								<div class="gpx-slot-row">
-									<div class="file-chip">
-										<span class="file-chip-icon" aria-hidden="true">
-											<svg
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-											>
-												<polyline points="3 17 8 12 13 15 21 7" />
-											</svg>
-										</span>
-										<span class="file-chip-name">{existingDoc.title || existingDoc.name}</span>
-										{#if existingDoc.url}
-											<a
-												href={existingDoc.url}
-												download
-												class="file-chip-action"
-												aria-label="Download {existingDoc.name}"
-												title="Download"
+					<!-- Per-day slots: show saved file or upload zone -->
+					<div class="gpx-slots">
+						{#each Array.from({ length: slots }, (_, i) => i) as i}
+							{@const existingDoc = existingGpxDocs.find((d) => d.index === i)}
+							{@const isRemoved = removedSlots[i] !== undefined}
+							{@const newFile = selectedFiles[i]}
+							<div class="gpx-slot">
+								<span class="gpx-slot-day">
+									{$_('travels.form.gpxSlot', { values: { n: i + 1 } })}
+									{#if slotDate(i)}<span class="gpx-slot-date">{slotDate(i)}</span>{/if}
+								</span>
+								{#if existingDoc && !isRemoved}
+									<!-- Saved file: chip with download + remove + exclude toggle -->
+									<div class="gpx-slot-row">
+										<div class="file-chip">
+											<span class="file-chip-icon" aria-hidden="true">
+												<svg
+													width="14"
+													height="14"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+												>
+													<polyline points="3 17 8 12 13 15 21 7" />
+												</svg>
+											</span>
+											<span class="file-chip-name">{existingDoc.title || existingDoc.name}</span>
+											{#if existingDoc.url}
+												<a
+													href={existingDoc.url}
+													download
+													class="file-chip-action"
+													aria-label="Download {existingDoc.name}"
+													title="Download"
+												>
+													<svg
+														width="14"
+														height="14"
+														viewBox="0 0 24 24"
+														fill="none"
+														stroke="currentColor"
+														stroke-width="2"
+													>
+														<path d="M12 5v14M5 19h14M19 12l-7 7-7-7" />
+													</svg>
+												</a>
+											{/if}
+											<button
+												type="button"
+												class="file-chip-remove"
+												onclick={() => removeExistingGpx(i, existingDoc.id)}
+												aria-label="Remove {existingDoc.name}"
 											>
 												<svg
 													width="14"
@@ -289,280 +323,342 @@
 													stroke="currentColor"
 													stroke-width="2"
 												>
-													<path d="M12 5v14M5 19h14M19 12l-7 7-7-7" />
+													<path d="M18 6L6 18M6 6l12 12" />
 												</svg>
-											</a>
+											</button>
+										</div>
+										<button
+											type="button"
+											class="exclude-toggle"
+											class:exclude-toggle--excluded={excludedDays.includes(i)}
+											title={excludedDays.includes(i)
+												? $_('travels.map.showDay')
+												: $_('travels.map.hideDay')}
+											onclick={() => toggleExcludedDay(i)}
+										>
+											<svg
+												width="14"
+												height="14"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+											>
+												{#if excludedDays.includes(i)}
+													<path
+														d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+													/>
+													<line x1="1" y1="1" x2="23" y2="23" />
+												{:else}
+													<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+													<circle cx="12" cy="12" r="3" />
+												{/if}
+											</svg>
+										</button>
+									</div>
+								{:else if newFile}
+									<!-- Newly selected file -->
+									<div class="gpx-slot-row">
+										<div class="file-chip">
+											<span class="file-chip-icon" aria-hidden="true">
+												<svg
+													width="14"
+													height="14"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+												>
+													<polyline points="3 17 8 12 13 15 21 7" />
+												</svg>
+											</span>
+											<span class="file-chip-name">{newFile.name}</span>
+											<button
+												type="button"
+												class="file-chip-remove"
+												onclick={() => clearSlotFile(i)}
+												aria-label="Remove file"
+											>
+												<svg
+													width="14"
+													height="14"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+												>
+													<path d="M18 6L6 18M6 6l12 12" />
+												</svg>
+											</button>
+										</div>
+										<button
+											type="button"
+											class="exclude-toggle"
+											class:exclude-toggle--excluded={excludedDays.includes(i)}
+											title={excludedDays.includes(i)
+												? $_('travels.map.showDay')
+												: $_('travels.map.hideDay')}
+											onclick={() => toggleExcludedDay(i)}
+										>
+											<svg
+												width="14"
+												height="14"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+											>
+												{#if excludedDays.includes(i)}
+													<path
+														d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+													/>
+													<line x1="1" y1="1" x2="23" y2="23" />
+												{:else}
+													<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+													<circle cx="12" cy="12" r="3" />
+												{/if}
+											</svg>
+										</button>
+									</div>
+								{:else if selectedExistingIds[i]}
+									<!-- Borrowed existing doc from library -->
+									{@const borrowedDoc = availableRouteDocs.find(
+										(d) => d.id === selectedExistingIds[i]
+									)}
+									<div class="gpx-slot-row">
+										<div class="file-chip">
+											<span class="file-chip-icon" aria-hidden="true">
+												<svg
+													width="14"
+													height="14"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+												>
+													<polyline points="3 17 8 12 13 15 21 7" />
+												</svg>
+											</span>
+											<span class="file-chip-name">{borrowedDoc?.title || borrowedDoc?.name}</span>
+											<button
+												type="button"
+												class="file-chip-remove"
+												onclick={() => clearSelectedExisting(i)}
+												aria-label="Remove selection"
+											>
+												<svg
+													width="14"
+													height="14"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+												>
+													<path d="M18 6L6 18M6 6l12 12" />
+												</svg>
+											</button>
+										</div>
+										<button
+											type="button"
+											class="exclude-toggle"
+											class:exclude-toggle--excluded={excludedDays.includes(i)}
+											title={excludedDays.includes(i)
+												? $_('travels.map.showDay')
+												: $_('travels.map.hideDay')}
+											onclick={() => toggleExcludedDay(i)}
+										>
+											<svg
+												width="14"
+												height="14"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+											>
+												{#if excludedDays.includes(i)}
+													<path
+														d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+													/>
+													<line x1="1" y1="1" x2="23" y2="23" />
+												{:else}
+													<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+													<circle cx="12" cy="12" r="3" />
+												{/if}
+											</svg>
+										</button>
+									</div>
+								{:else if slotPickMode[i]}
+									<!-- Library picker: select dropdown -->
+									<div class="gpx-pick-row">
+										<select
+											class="gpx-pick-select"
+											onchange={(e) => {
+												const val = (e.target as HTMLSelectElement).value;
+												if (val) {
+													selectedExistingIds = { ...selectedExistingIds, [i]: val };
+												}
+												slotPickMode = { ...slotPickMode, [i]: false };
+											}}
+										>
+											<option value="">{$_('travels.form.gpxPickPlaceholder')}</option>
+											{#each availableRouteDocs as doc}
+												<option value={doc.id}>{doc.title || doc.name}</option>
+											{/each}
+										</select>
+										<button
+											type="button"
+											class="gpx-pick-cancel"
+											onclick={() => (slotPickMode = { ...slotPickMode, [i]: false })}
+										>
+											{$_('common.cancel')}
+										</button>
+									</div>
+								{:else}
+									<!-- Empty slot: upload zone + optional pick-from-library -->
+									<div class="gpx-slot-options">
+										<label class="upload-slot" for="gpx-slot-{i}">
+											<svg
+												class="upload-slot-icon"
+												width="14"
+												height="14"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+											>
+												<path d="M12 5v14M5 12l7-7 7 7" />
+											</svg>
+											<span>{$_('travels.form.gpxChoose')}</span>
+											<input
+												id="gpx-slot-{i}"
+												type="file"
+												name="gpx_file_{i}"
+												accept=".gpx,application/gpx+xml"
+												class="upload-slot-input"
+												onchange={(e) => handleSlotFileChange(i, e)}
+											/>
+										</label>
+										{#if availableRouteDocs.length > 0}
+											<button
+												type="button"
+												class="gpx-pick-trigger"
+												onclick={() => (slotPickMode = { ...slotPickMode, [i]: true })}
+											>
+												{$_('travels.form.gpxPickExisting')}
+											</button>
 										{/if}
-										<button
-											type="button"
-											class="file-chip-remove"
-											onclick={() => removeExistingGpx(i, existingDoc.id)}
-											aria-label="Remove {existingDoc.name}"
-										>
-											<svg
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-											>
-												<path d="M18 6L6 18M6 6l12 12" />
-											</svg>
-										</button>
 									</div>
-									<button
-										type="button"
-										class="exclude-toggle"
-										class:exclude-toggle--excluded={excludedDays.includes(i)}
-										title={excludedDays.includes(i)
-											? $_('travels.map.showDay')
-											: $_('travels.map.hideDay')}
-										onclick={() => toggleExcludedDay(i)}
-									>
-										<svg
-											width="14"
-											height="14"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-										>
-											{#if excludedDays.includes(i)}
-												<path
-													d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-												/>
-												<line x1="1" y1="1" x2="23" y2="23" />
-											{:else}
-												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-												<circle cx="12" cy="12" r="3" />
-											{/if}
-										</svg>
-									</button>
-								</div>
-							{:else if newFile}
-								<!-- Newly selected file -->
-								<div class="gpx-slot-row">
-									<div class="file-chip">
-										<span class="file-chip-icon" aria-hidden="true">
-											<svg
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-											>
-												<polyline points="3 17 8 12 13 15 21 7" />
-											</svg>
-										</span>
-										<span class="file-chip-name">{newFile.name}</span>
-										<button
-											type="button"
-											class="file-chip-remove"
-											onclick={() => clearSlotFile(i)}
-											aria-label="Remove file"
-										>
-											<svg
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-											>
-												<path d="M18 6L6 18M6 6l12 12" />
-											</svg>
-										</button>
-									</div>
-									<button
-										type="button"
-										class="exclude-toggle"
-										class:exclude-toggle--excluded={excludedDays.includes(i)}
-										title={excludedDays.includes(i)
-											? $_('travels.map.showDay')
-											: $_('travels.map.hideDay')}
-										onclick={() => toggleExcludedDay(i)}
-									>
-										<svg
-											width="14"
-											height="14"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-										>
-											{#if excludedDays.includes(i)}
-												<path
-													d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-												/>
-												<line x1="1" y1="1" x2="23" y2="23" />
-											{:else}
-												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-												<circle cx="12" cy="12" r="3" />
-											{/if}
-										</svg>
-									</button>
-								</div>
-							{:else if selectedExistingIds[i]}
-								<!-- Borrowed existing doc from library -->
-								{@const borrowedDoc = availableRouteDocs.find(
-									(d) => d.id === selectedExistingIds[i]
-								)}
-								<div class="gpx-slot-row">
-									<div class="file-chip">
-										<span class="file-chip-icon" aria-hidden="true">
-											<svg
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-											>
-												<polyline points="3 17 8 12 13 15 21 7" />
-											</svg>
-										</span>
-										<span class="file-chip-name">{borrowedDoc?.title || borrowedDoc?.name}</span>
-										<button
-											type="button"
-											class="file-chip-remove"
-											onclick={() => clearSelectedExisting(i)}
-											aria-label="Remove selection"
-										>
-											<svg
-												width="14"
-												height="14"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-											>
-												<path d="M18 6L6 18M6 6l12 12" />
-											</svg>
-										</button>
-									</div>
-									<button
-										type="button"
-										class="exclude-toggle"
-										class:exclude-toggle--excluded={excludedDays.includes(i)}
-										title={excludedDays.includes(i)
-											? $_('travels.map.showDay')
-											: $_('travels.map.hideDay')}
-										onclick={() => toggleExcludedDay(i)}
-									>
-										<svg
-											width="14"
-											height="14"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-										>
-											{#if excludedDays.includes(i)}
-												<path
-													d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-												/>
-												<line x1="1" y1="1" x2="23" y2="23" />
-											{:else}
-												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-												<circle cx="12" cy="12" r="3" />
-											{/if}
-										</svg>
-									</button>
-								</div>
-							{:else if slotPickMode[i]}
-								<!-- Library picker: select dropdown -->
-								<div class="gpx-pick-row">
-									<select
-										class="gpx-pick-select"
-										onchange={(e) => {
-											const val = (e.target as HTMLSelectElement).value;
-											if (val) {
-												selectedExistingIds = { ...selectedExistingIds, [i]: val };
-											}
-											slotPickMode = { ...slotPickMode, [i]: false };
-										}}
-									>
-										<option value="">{$_('travels.form.gpxPickPlaceholder')}</option>
-										{#each availableRouteDocs as doc}
-											<option value={doc.id}>{doc.title || doc.name}</option>
-										{/each}
-									</select>
-									<button
-										type="button"
-										class="gpx-pick-cancel"
-										onclick={() => (slotPickMode = { ...slotPickMode, [i]: false })}
-									>
-										{$_('common.cancel')}
-									</button>
-								</div>
-							{:else}
-								<!-- Empty slot: upload zone + optional pick-from-library -->
-								<div class="gpx-slot-options">
-									<label class="upload-slot" for="gpx-slot-{i}">
-										<svg
-											class="upload-slot-icon"
-											width="14"
-											height="14"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-										>
-											<path d="M12 5v14M5 12l7-7 7 7" />
-										</svg>
-										<span>{$_('travels.form.gpxChoose')}</span>
-										<input
-											id="gpx-slot-{i}"
-											type="file"
-											name="gpx_file_{i}"
-											accept=".gpx,application/gpx+xml"
-											class="upload-slot-input"
-											onchange={(e) => handleSlotFileChange(i, e)}
-										/>
-									</label>
-									{#if availableRouteDocs.length > 0}
-										<button
-											type="button"
-											class="gpx-pick-trigger"
-											onclick={() => (slotPickMode = { ...slotPickMode, [i]: true })}
-										>
-											{$_('travels.form.gpxPickExisting')}
-										</button>
-									{/if}
-								</div>
-							{/if}
-						</div>
-					{/each}
+								{/if}
+							</div>
+						{/each}
+					</div>
+
+					<p class="field-hint">{$_('travels.form.gpxHint')}</p>
 				</div>
 
-				<p class="field-hint">{$_('travels.form.gpxHint')}</p>
-			</div>
-
-			<!-- Actions -->
-			<div class="form-actions">
-				<button type="submit" class="btn-primary" disabled={submitting}>
-					{submitting
-						? $_('common.saving')
-						: mode === 'create'
-							? $_('travels.form.submit.create')
-							: $_('travels.form.submit.edit')}
-				</button>
-				<button type="button" class="btn-cancel" onclick={onclose}>
-					{$_('common.cancel')}
-				</button>
-			</div>
-		</form>
+				<!-- Actions -->
+				<div class="form-actions">
+					<button type="submit" class="btn-primary" disabled={submitting}>
+						{submitting
+							? $_('common.saving')
+							: mode === 'create'
+								? $_('travels.form.submit.create')
+								: $_('travels.form.submit.edit')}
+					</button>
+					<button type="button" class="btn-cancel" onclick={onclose}>
+						{$_('common.cancel')}
+					</button>
+				</div>
+			</form>
+		</div>
 	</div>
-</Modal>
+{/if}
 
 <style>
+	.sheet-backdrop {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.4);
+		z-index: 440;
+		animation: fadeIn 0.2s ease;
+	}
+	.sheet-panel {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: min(520px, 100vw);
+		background: var(--bg);
+		border-left: 1px solid var(--border);
+		z-index: 450;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		animation: slideIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.sheet-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--space-5) var(--space-5) var(--space-4);
+		border-bottom: 1px solid var(--border);
+		flex-shrink: 0;
+	}
+	.sheet-title {
+		font-size: var(--text-md);
+		font-weight: 600;
+		color: var(--text);
+		margin: 0;
+	}
+	.sheet-close {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: var(--text-muted);
+		padding: var(--space-1);
+		border-radius: 6px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition:
+			color 0.1s,
+			background 0.1s;
+	}
+	.sheet-close:hover {
+		color: var(--text);
+		background: var(--bg-muted);
+	}
+	.sheet-close:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 1px;
+	}
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	@keyframes slideIn {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.sheet-backdrop,
+		.sheet-panel {
+			animation: none;
+		}
+	}
 	.form-scroll {
-		max-height: calc(85vh - 160px);
+		flex: 1;
 		overflow-y: auto;
 		overflow-x: hidden;
-		padding-right: var(--space-1);
+		padding: var(--space-5);
 	}
 	.form-group {
 		display: flex;

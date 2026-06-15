@@ -250,7 +250,7 @@
 				"timeline": "Zeitleiste",
 				"maintenance": "Wartung",
 				"documents": "Dokumente",
-				"finance": "Finanzen",
+				"finance": "Ausgaben",
 				"travels": "Fahrten",
 				"settings": "Einstellungen"
 			},
@@ -289,7 +289,7 @@
 					"odometer": "Kilometerstand",
 					"notes": "Notizen",
 					"travels": "Fahrten",
-					"finance": "Finanzen",
+					"finance": "Ausgaben",
 					"usage": "Verbrauch",
 					"reminders": "Erinnerungen"
 				},
@@ -650,7 +650,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanzen",
+		"title": "Ausgaben",
 		"subtitle": "Ausgaben verfolgen",
 		"totalSpent": "Gesamtausgaben für dein {name}",
 		"addExpense": "Hinzufügen",
@@ -1113,7 +1113,7 @@
 			"maintenanceDesc": "Öl, Reifen oder Reparaturen",
 			"mileage": "Kilometerstand",
 			"mileageDesc": "Zahl auf Ihrem Tacho",
-			"finance": "Finanzen",
+			"finance": "Ausgaben",
 			"financeDesc": "Kraftstoff, Versicherung oder Teile",
 			"usage": "Verbrauch",
 			"usageDesc": "Stunden oder Stand am Zähler"
@@ -1212,7 +1212,7 @@
 	},
 	"insights": {
 		"title": "Statistiken",
-		"subtitle": "Kilometerstand und Kosten im Zeitverlauf",
+		"subtitle": "Wie weit du gefahren bist und was du ausgegeben hast",
 		"vehicles": {
 			"all": "Alle Fahrzeuge"
 		},
@@ -1226,17 +1226,21 @@
 			"title": "Kilometerstand",
 			"modOdometer": "Tachometer",
 			"modDelta": "Pro Monat",
-			"allFleetNote": "Kombinierte Ablesungen werden angezeigt"
+			"allFleetNote": "Kombinierte Ablesungen werden angezeigt",
+			"summary": "{km} in der gewählten Periode gefahren.",
+			"showServices": "Serviceereignisse",
+			"viewLog": "Wartungsprotokoll ansehen"
 		},
 		"costs": {
-			"title": "Kosten",
+			"title": "Ausgaben",
 			"modMonthly": "Monatlich",
-			"modCumulative": "Kumuliert"
+			"modCumulative": "Kumuliert",
+			"viewDetails": "Ausgaben anzeigen"
 		},
 		"empty": {
 			"title": "Noch keine Daten",
-			"mileage": "Erfasse Kilometerstände, um deinen Kilometertrend zu sehen.",
-			"costs": "Füge Ausgaben hinzu, um deinen Kostentrend zu sehen."
+			"mileage": "Erfasse Kilometerstände, um zu sehen, wie weit du gefahren bist.",
+			"costs": "Füge Ausgaben hinzu, um zu sehen, was du ausgegeben hast."
 		}
 	}
 }

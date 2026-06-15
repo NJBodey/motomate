@@ -8,7 +8,8 @@
 		height = 200,
 		locale = 'en',
 		ariaLabel = 'Bar chart',
-		onbarclick
+		onbarclick,
+		clickHint
 	}: {
 		bars: { label: string; value: number }[];
 		formatValue?: (v: number) => string;
@@ -17,6 +18,7 @@
 		locale?: string;
 		ariaLabel?: string;
 		onbarclick?: (label: string) => void;
+		clickHint?: string;
 	} = $props();
 
 	const W = 600;
@@ -32,7 +34,8 @@
 	const barW = $derived(bars.length > 0 ? (INNER_W / bars.length) * 0.65 : 0);
 
 	function toX(i: number): number {
-		return PAD.left + (i / Math.max(bars.length - 1, 1)) * INNER_W;
+		const slotW = INNER_W / Math.max(bars.length, 1);
+		return PAD.left + slotW * i + slotW / 2;
 	}
 
 	function toY(v: number): number {
@@ -139,8 +142,10 @@
 			{@const px = toX(i)}
 			{@const py = toY(bar.value)}
 			{@const bh = Math.max(0, baseline - py)}
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<rect
 				role={onbarclick ? 'button' : 'graphics-symbol'}
+				tabindex={onbarclick ? 0 : undefined}
 				aria-label={bar.label}
 				x={px - barW / 2}
 				y={py}
@@ -166,6 +171,9 @@
 		>
 			<span class="tooltip-label">{tooltipData.label}</span>
 			<span class="tooltip-value">{tooltipData.value}</span>
+			{#if onbarclick && clickHint}
+				<span class="tooltip-hint">{clickHint}</span>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -202,5 +210,11 @@
 		font-weight: 600;
 		color: var(--text);
 		font-variant-numeric: tabular-nums;
+	}
+
+	.tooltip-hint {
+		font-size: var(--text-xs);
+		color: var(--text-subtle);
+		font-style: italic;
 	}
 </style>

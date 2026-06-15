@@ -40,7 +40,8 @@
 		<div class="sheet-body">
 			{#if sheet.formComponent}
 				{@const Cmp = sheet.formComponent}
-				<Cmp data={sheet.formData} />
+				{@const props = (sheet.formData ?? {}) as Record<string, unknown>}
+				<Cmp {...props} />
 			{/if}
 		</div>
 	</div>
