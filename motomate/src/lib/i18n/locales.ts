@@ -10,6 +10,17 @@ import ro from './locales/ro.json';
 export const locales = { en, de, fr, es, it, nl, pt, ro };
 export const supportedLocales = Object.keys(locales) as (keyof typeof locales)[];
 
+export const SUPPORTED_LANGUAGES = [
+	{ code: 'en', label: 'English' },
+	{ code: 'de', label: 'Deutsch' },
+	{ code: 'fr', label: 'Français' },
+	{ code: 'it', label: 'Italiano' },
+	{ code: 'es', label: 'Español' },
+	{ code: 'nl', label: 'Nederlands' },
+	{ code: 'pt', label: 'Português' },
+	{ code: 'ro', label: 'Română' }
+] as const;
+
 export function getLocale<T>(map: Record<string, T>, locale: string): T {
 	return map[locale in map ? locale : 'en'];
 }

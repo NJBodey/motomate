@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
-	import { locale } from '$lib/i18n';
+	import { readStoredLocale, setLocale } from '$lib/i18n';
+	import { SUPPORTED_LANGUAGES } from '$lib/i18n/locales.js';
 	import { setContext, untrack } from 'svelte';
 	import 'altcha/i18n';
 	import type {} from 'altcha/types/svelte';
@@ -43,28 +44,6 @@
 		{ id: 'dark', label: 'Dark', icon: Moon },
 		{ id: 'system', label: 'System', icon: Monitor }
 	] as const;
-
-	const languages = [
-		{ code: 'en', label: 'English' },
-		{ code: 'de', label: 'Deutsch' },
-		{ code: 'fr', label: 'Français' },
-		{ code: 'it', label: 'Italiano' },
-		{ code: 'es', label: 'Español' },
-		{ code: 'nl', label: 'Nederlands' },
-		{ code: 'pt', label: 'Português' },
-		{ code: 'ro', label: 'Română' }
-	];
-
-	function readStoredLocale(): string {
-		const stored = localStorage.getItem('locale');
-		if (stored) return stored;
-		const supported = languages.map((l) => l.code);
-		for (const lang of navigator.languages ?? [navigator.language]) {
-			const code = lang.split('-')[0].toLowerCase();
-			if (supported.includes(code)) return code;
-		}
-		return 'en';
-	}
 
 	// Initialise synchronously so the component renders correctly on the first pass.
 	// Starting with dummy defaults and correcting in $effect causes a double-render flash.
@@ -119,9 +98,7 @@
 
 	function setLanguage(code: string) {
 		currentLocale = code;
-		locale.set(code);
-		localStorage.setItem('locale', code);
-		document.cookie = `locale=${code}; path=/; max-age=31536000; SameSite=Lax`;
+		setLocale(code);
 		langMenuOpen = false;
 	}
 </script>
@@ -180,7 +157,7 @@
 					</button>
 					{#if langMenuOpen}
 						<div class="lang-dropdown" role="menu">
-							{#each languages as lang}
+							{#each SUPPORTED_LANGUAGES as lang (lang.code)}
 								<button
 									role="menuitem"
 									class="lang-item"
