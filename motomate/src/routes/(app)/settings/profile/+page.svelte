@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { User } from '$lib/db/schema.js';
 	import { _ } from '$lib/i18n';
+	import { SUPPORTED_LANGUAGES } from '$lib/i18n/locales.js';
 	import {
 		DEFAULT_ODOMETER_UNIT,
 		DISTANCE_UNITS,
@@ -165,8 +166,10 @@
 		<label class="field">
 			<span class="field-label">{$_('settings.profile.language')}</span>
 			<select name="locale" class="input">
-				{#each [['en', 'English'], ['de', 'Deutsch'], ['fr', 'Français'], ['it', 'Italiano'], ['es', 'Español'], ['nl', 'Nederlands'], ['pt', 'Português']] as [val, label]}
-					<option value={val} selected={data.user.settings.locale === val}>{label}</option>
+				{#each SUPPORTED_LANGUAGES as lang (lang.code)}
+					<option value={lang.code} selected={data.user.settings.locale === lang.code}
+						>{lang.label}</option
+					>
 				{/each}
 			</select>
 		</label>

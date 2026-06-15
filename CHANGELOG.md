@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- Fix: new locales are now properly recognized in the frontend
+
 ## 0.3.2
 
 - Romanian (ro) locale is now available, contributed by @gg64nou (#46)
