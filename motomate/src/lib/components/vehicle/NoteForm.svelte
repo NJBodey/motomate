@@ -55,7 +55,6 @@
 			placeholder={$_('vehicle.forms.placeholders.note')}
 			maxlength="400"
 			class="input"
-			autofocus
 		/>
 	</label>
 

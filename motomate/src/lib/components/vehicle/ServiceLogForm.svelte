@@ -99,7 +99,6 @@
 				min="0"
 				class="input mono"
 				required
-				autofocus
 			/>
 		</label>
 	</div>

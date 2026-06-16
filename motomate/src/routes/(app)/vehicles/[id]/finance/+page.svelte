@@ -411,7 +411,7 @@
 		<p class="section-sub">{$_('finance.totalSpent', { values: { name: data.vehicle.name } })}</p>
 	</div>
 	<div class="page-actions">
-		<a href="/insights?v={data.vehicle.id}" class="insights-link">{$_('layout.nav.insights')} →</a>
+		<a href="/insights?v={data.vehicle.id}" class="btn-ghost">{$_('layout.nav.insights')} →</a>
 		<button
 			type="button"
 			class="btn-primary"
@@ -1396,17 +1396,6 @@
 		gap: var(--space-2);
 		align-items: center;
 		flex-shrink: 0;
-	}
-	.insights-link {
-		font-size: var(--text-sm);
-		color: var(--text-subtle);
-		text-decoration: none;
-		font-weight: 500;
-		white-space: nowrap;
-		transition: color 0.15s;
-	}
-	.insights-link:hover {
-		color: var(--accent);
 	}
 	.btn-primary {
 		padding: 0.5rem 1rem;

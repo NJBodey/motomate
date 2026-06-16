@@ -84,7 +84,6 @@
 				min="0"
 				class="input mono"
 				required
-				autofocus
 			/>
 		</label>
 		<label class="field">
