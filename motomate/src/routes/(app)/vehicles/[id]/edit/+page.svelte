@@ -149,13 +149,20 @@
 		>
 			<label class="field">
 				<span class="field-label">{currentReadingLabel}</span>
-				<input
-					name="odometer"
-					type="number"
-					min="0"
-					bind:value={odometerInput}
-					class="input mono"
-				/>
+				<div class="field-input-group">
+					<input
+						name="odometer"
+						type="number"
+						min="0"
+						bind:value={odometerInput}
+						class="input mono"
+					/>
+					<span
+						class="input-suffix"
+						title="{vehicleUnitTitle} · {$_('vehicle.edit.measurementUnit.locked')}"
+						aria-hidden="true">{data.vehicle.odometer_unit}</span
+					>
+				</div>
 			</label>
 			<button type="submit" class="btn-primary" disabled={!odometerChanged}
 				>{$_('vehicle.edit.odometer.update')}</button
@@ -350,19 +357,6 @@
 					{$_('vehicle.edit.settings.archive.btnArchive')}
 				</button>
 			{/if}
-		</div>
-	</section>
-
-	<div class="divider"></div>
-
-	<!-- Measurement unit -->
-	<section class="edit-section">
-		<h2 class="section-label">{$_('vehicle.edit.measurementUnit.title')}</h2>
-		<div class="settings-box">
-			<div>
-				<div class="settings-title">{vehicleUnitTitle}</div>
-				<div class="settings-desc">{$_('vehicle.edit.measurementUnit.locked')}</div>
-			</div>
 		</div>
 	</section>
 
@@ -637,6 +631,36 @@
 		border-radius: 0 10px 10px 0;
 		flex: 1;
 		height: 48px;
+	}
+	.input-suffix {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.75rem 0.875rem;
+		background: var(--bg-muted);
+		border: 1px solid var(--border);
+		border-left: none;
+		border-radius: 0 10px 10px 0;
+		font-size: var(--text-sm);
+		font-weight: 500;
+		color: var(--text-muted);
+		font-family: var(--font-mono);
+		min-width: 44px;
+		height: 48px;
+		box-sizing: border-box;
+		cursor: help;
+		user-select: none;
+	}
+	.input:has(+ .input-suffix) {
+		border-radius: 10px 0 0 10px;
+		flex: 1;
+		height: 48px;
+	}
+	.field-input-group:hover .input-suffix {
+		border-color: var(--border-strong);
+	}
+	.field-input-group:focus-within .input-suffix {
+		border-color: var(--accent);
 	}
 	.req {
 		color: var(--status-overdue);
