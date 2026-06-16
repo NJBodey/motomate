@@ -503,6 +503,7 @@
 				"documents": "Documents",
 				"finance": "Spending",
 				"travels": "Travels",
+				"notes": "Notes",
 				"settings": "Settings"
 			},
 			"pinnedDoc": {
@@ -519,6 +520,34 @@
 				"noResults": "No results for \"{q}\"",
 				"searchPlaceholder": "Search documents...",
 				"customLabel": "Custom label"
+			}
+		},
+		"notes": {
+			"pageTitle": "Notes · {name}",
+			"title": "Notes",
+			"subtitle": "Anything worth keeping, not tied to a service or ride",
+			"subtitleEmpty": "Anything worth keeping, not tied to a service or ride",
+			"new": "New note",
+			"edit": "Edit note",
+			"untitled": "Untitled note",
+			"saved": "Note saved",
+			"empty": {
+				"title": "No notes yet",
+				"desc": "Keep track of anything that matters: quirks, mods, reminders, or just thoughts."
+			},
+			"delete": {
+				"title": "Delete note",
+				"desc": "This note will be permanently deleted.",
+				"confirm": "Delete",
+				"cancel": "Keep it"
+			},
+			"form": {
+				"title": "Title",
+				"titlePlaceholder": "Optional title…",
+				"content": "Content",
+				"contentPlaceholder": "Write in Markdown…",
+				"docSearch": "Search documents",
+				"docSearchEmpty": "No documents match"
 			}
 		}
 	},

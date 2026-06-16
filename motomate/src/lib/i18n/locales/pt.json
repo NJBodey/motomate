@@ -253,7 +253,8 @@
 				"documents": "Documentos",
 				"finance": "Despesas",
 				"settings": "Configuracoes",
-				"travels": "Viagens"
+				"travels": "Viagens",
+				"notes": "Notas"
 			},
 			"pinnedDoc": {
 				"pin": "Fixar documento",
@@ -520,6 +521,34 @@
 				"locked": "Bloqueada após criação"
 			},
 			"usageUpdated": "Uso atualizado"
+		},
+		"notes": {
+			"pageTitle": "Notas · {name}",
+			"title": "Notas",
+			"subtitle": "Tudo o que vale a pena guardar, sem estar ligado a um serviço ou viagem.",
+			"subtitleEmpty": "Tudo o que vale a pena guardar, sem estar ligado a um serviço ou viagem.",
+			"new": "Nova nota",
+			"edit": "Editar nota",
+			"untitled": "Sem título",
+			"saved": "Nota guardada",
+			"empty": {
+				"title": "Ainda sem notas",
+				"desc": "Regista o que importa: peculiaridades, modificações, lembretes ou apenas pensamentos."
+			},
+			"delete": {
+				"title": "Eliminar nota",
+				"desc": "Esta nota será eliminada permanentemente.",
+				"confirm": "Eliminar",
+				"cancel": "Manter"
+			},
+			"form": {
+				"title": "Título",
+				"titlePlaceholder": "Título opcional…",
+				"content": "Conteúdo",
+				"contentPlaceholder": "Escreve em Markdown…",
+				"docSearch": "Pesquisar documentos",
+				"docSearchEmpty": "Nenhum documento encontrado"
+			}
 		}
 	},
 	"maintenance": {

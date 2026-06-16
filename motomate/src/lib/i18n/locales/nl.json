@@ -252,7 +252,8 @@
 				"documents": "Documenten",
 				"finance": "Uitgaven",
 				"settings": "Instellingen",
-				"travels": "Routes"
+				"travels": "Routes",
+				"notes": "Notities"
 			},
 			"pinnedDoc": {
 				"pin": "Document vastzetten",
@@ -519,6 +520,34 @@
 				"locked": "Eenheid kan je niet meer aanpassen na het aanmaken van je voertuig."
 			},
 			"usageUpdated": "Draaiuren bijgewerkt"
+		},
+		"notes": {
+			"pageTitle": "Notities · {name}",
+			"title": "Notities",
+			"subtitle": "Alles wat het waard is om te bewaren, los van de tijdlijn",
+			"subtitleEmpty": "Alles wat het waard is om te bewaren, los van de tijdlijn",
+			"new": "Nieuwe notitie",
+			"edit": "Notitie bewerken",
+			"untitled": "Naamloos",
+			"saved": "Notitie opgeslagen",
+			"empty": {
+				"title": "Nog geen notities",
+				"desc": "Houd bij wat belangrijk is: eigenaardigheden, aanpassingen, herinneringen of gewoon gedachten."
+			},
+			"delete": {
+				"title": "Notitie verwijderen",
+				"desc": "Deze notitie wordt permanent verwijderd.",
+				"confirm": "Verwijderen",
+				"cancel": "Behouden"
+			},
+			"form": {
+				"title": "Titel",
+				"titlePlaceholder": "Optionele titel…",
+				"content": "Inhoud",
+				"contentPlaceholder": "Schrijf in Markdown…",
+				"docSearch": "Documenten zoeken",
+				"docSearchEmpty": "Geen documenten gevonden"
+			}
 		}
 	},
 	"maintenance": {

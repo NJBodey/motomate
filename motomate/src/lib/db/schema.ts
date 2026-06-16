@@ -499,6 +499,37 @@ export const odometer_logs = sqliteTable(
 	})
 );
 
+export const vehicle_notes = sqliteTable(
+	'vehicle_notes',
+	{
+		id: text('id').primaryKey(),
+		vehicle_id: text('vehicle_id')
+			.notNull()
+			.references(() => vehicles.id, { onDelete: 'cascade' }),
+		user_id: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		title: text('title'),
+		content: text('content').notNull().default(''),
+		doc_refs: text('doc_refs', { mode: 'json' })
+			.$type<string[]>()
+			.notNull()
+			.default(sql`'[]'`),
+		created_at: text('created_at')
+			.notNull()
+			.default(sql`(datetime('now'))`),
+		updated_at: text('updated_at')
+			.notNull()
+			.default(sql`(datetime('now'))`)
+	},
+	(table) => ({
+		vehicleCreated: index('idx_vehicle_notes_vehicle_created').on(
+			table.vehicle_id,
+			table.created_at
+		)
+	})
+);
+
 export const push_subscriptions = sqliteTable('push_subscriptions', {
 	id: text('id').primaryKey(),
 	user_id: text('user_id')
@@ -557,7 +588,8 @@ export const vehiclesRelations = relations(vehicles, ({ one, many }) => ({
 	service_logs: many(service_logs),
 	odometer_logs: many(odometer_logs),
 	documents: many(documents),
-	travels: many(travels)
+	travels: many(travels),
+	vehicle_notes: many(vehicle_notes)
 }));
 
 export const travelsRelations = relations(travels, ({ one }) => ({
@@ -613,6 +645,11 @@ export const financeTransactionsRelations = relations(finance_transactions, ({ o
 	user: one(users, { fields: [finance_transactions.user_id], references: [users.id] })
 }));
 
+export const vehicleNotesRelations = relations(vehicle_notes, ({ one }) => ({
+	vehicle: one(vehicles, { fields: [vehicle_notes.vehicle_id], references: [vehicles.id] }),
+	user: one(users, { fields: [vehicle_notes.user_id], references: [users.id] })
+}));
+
 export const apiKeysRelations = relations(api_keys, ({ one }) => ({
 	user: one(users, { fields: [api_keys.user_id], references: [users.id] })
 }));
@@ -646,3 +683,5 @@ export type Travel = typeof travels.$inferSelect;
 export type InsertTravel = typeof travels.$inferInsert;
 export type ApiKey = typeof api_keys.$inferSelect;
 export type InsertApiKey = typeof api_keys.$inferInsert;
+export type VehicleNote = typeof vehicle_notes.$inferSelect;
+export type InsertVehicleNote = typeof vehicle_notes.$inferInsert;

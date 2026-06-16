@@ -112,6 +112,19 @@ const spec = {
 					created_at: { type: 'string', format: 'date-time' }
 				}
 			},
+			VehicleNote: {
+				type: 'object',
+				properties: {
+					id: { type: 'string' },
+					vehicle_id: { type: 'string' },
+					user_id: { type: 'string' },
+					title: { type: 'string', nullable: true },
+					content: { type: 'string' },
+					doc_refs: { type: 'array', items: { type: 'string' } },
+					created_at: { type: 'string', format: 'date-time' },
+					updated_at: { type: 'string', format: 'date-time' }
+				}
+			},
 			Error: {
 				type: 'object',
 				required: ['error', 'code'],
@@ -746,6 +759,160 @@ const spec = {
 								}
 							}
 						}
+					}
+				}
+			}
+		},
+		'/vehicles/{id}/notes': {
+			get: {
+				tags: ['Notes'],
+				summary: 'List notes',
+				description:
+					'All notes for this vehicle, newest first. Notes may contain Markdown and embedded document reference links.',
+				operationId: 'listVehicleNotes',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'limit', in: 'query', schema: { type: 'integer', default: 50, maximum: 200 } },
+					{ name: 'offset', in: 'query', schema: { type: 'integer', default: 0 } }
+				],
+				responses: {
+					'200': {
+						description: 'Notes list',
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									properties: {
+										data: { type: 'array', items: { $ref: '#/components/schemas/VehicleNote' } },
+										total: { type: 'integer' }
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			post: {
+				tags: ['Notes'],
+				summary: 'Create a note',
+				description:
+					'Add a Markdown note to this vehicle. Use `doc_refs` to track which document IDs are referenced in the note content.',
+				operationId: 'createVehicleNote',
+				parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+				requestBody: {
+					required: true,
+					content: {
+						'application/json': {
+							schema: {
+								type: 'object',
+								required: ['content'],
+								properties: {
+									title: { type: 'string', maxLength: 200, nullable: true },
+									content: { type: 'string', maxLength: 50000 },
+									doc_refs: {
+										type: 'array',
+										items: { type: 'string' },
+										description: 'Document IDs referenced in the note content.'
+									}
+								}
+							}
+						}
+					}
+				},
+				responses: {
+					'201': {
+						description: 'Note created',
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									properties: { data: { $ref: '#/components/schemas/VehicleNote' } }
+								}
+							}
+						}
+					},
+					'400': {
+						description: 'Validation error',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					}
+				}
+			}
+		},
+		'/vehicles/{id}/notes/{noteId}': {
+			get: {
+				tags: ['Notes'],
+				summary: 'Get a note',
+				operationId: 'getVehicleNote',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'noteId', in: 'path', required: true, schema: { type: 'string' } }
+				],
+				responses: {
+					'200': {
+						description: 'Note',
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									properties: { data: { $ref: '#/components/schemas/VehicleNote' } }
+								}
+							}
+						}
+					},
+					'404': {
+						description: 'Not found',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					}
+				}
+			},
+			patch: {
+				tags: ['Notes'],
+				summary: 'Update a note',
+				operationId: 'updateVehicleNote',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'noteId', in: 'path', required: true, schema: { type: 'string' } }
+				],
+				requestBody: {
+					required: true,
+					content: {
+						'application/json': {
+							schema: {
+								type: 'object',
+								properties: {
+									title: { type: 'string', maxLength: 200, nullable: true },
+									content: { type: 'string', maxLength: 50000 },
+									doc_refs: { type: 'array', items: { type: 'string' } }
+								}
+							}
+						}
+					}
+				},
+				responses: {
+					'200': { description: 'Updated' },
+					'400': {
+						description: 'Validation error',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					},
+					'404': {
+						description: 'Not found',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					}
+				}
+			},
+			delete: {
+				tags: ['Notes'],
+				summary: 'Delete a note',
+				operationId: 'deleteVehicleNote',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'noteId', in: 'path', required: true, schema: { type: 'string' } }
+				],
+				responses: {
+					'200': { description: 'Deleted' },
+					'404': {
+						description: 'Not found',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
 					}
 				}
 			}

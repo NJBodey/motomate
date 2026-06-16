@@ -6,12 +6,14 @@ class SheetStore {
 	formData = $state<unknown>(undefined);
 	title = $state('');
 	hint = $state('');
+	wide = $state(false);
 
-	openSheet(component: Component<any>, title: string, data?: unknown) {
+	openSheet(component: Component<any>, title: string, data?: unknown, wide = false) {
 		this.formComponent = component;
 		this.formData = data;
 		this.title = title;
 		this.hint = '';
+		this.wide = wide;
 		this.open = true;
 	}
 
@@ -21,6 +23,7 @@ class SheetStore {
 		this.formData = undefined;
 		this.title = '';
 		this.hint = '';
+		this.wide = false;
 		callback?.();
 	}
 }

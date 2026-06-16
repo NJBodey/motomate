@@ -19,7 +19,13 @@
 {#if sheet.open}
 	<div class="sheet-backdrop" onclick={handleBackdrop} aria-hidden="true"></div>
 
-	<div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+	<div
+		class="sheet-panel"
+		class:sheet-panel--wide={sheet.wide}
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="sheet-title"
+	>
 		<div class="sheet-drag-handle" aria-hidden="true"></div>
 		<div class="sheet-header">
 			<div class="sheet-title-area">
@@ -73,6 +79,10 @@
 		flex-direction: column;
 		overflow: hidden;
 		animation: slideInRight 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.sheet-panel--wide {
+		width: min(680px, 100vw);
 	}
 
 	.sheet-drag-handle {

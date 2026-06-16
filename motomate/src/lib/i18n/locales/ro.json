@@ -503,7 +503,8 @@
 				"documents": "Documente",
 				"finance": "Cheltuieli",
 				"travels": "Călătorii",
-				"settings": "Setări"
+				"settings": "Setări",
+				"notes": "Note"
 			},
 			"pinnedDoc": {
 				"pin": "Fixează document",
@@ -519,6 +520,34 @@
 				"noResults": "Niciun rezultat pentru „{q}”",
 				"searchPlaceholder": "Caută documente...",
 				"customLabel": "Etichetă personalizată"
+			}
+		},
+		"notes": {
+			"pageTitle": "Note · {name}",
+			"title": "Note",
+			"subtitle": "Tot ce merită păstrat, fără a fi legat de un service sau o cursă.",
+			"subtitleEmpty": "Tot ce merită păstrat, fără a fi legat de un service sau o cursă.",
+			"new": "Notă nouă",
+			"edit": "Editează nota",
+			"untitled": "Fără titlu",
+			"saved": "Notă salvată",
+			"empty": {
+				"title": "Nicio notă deocamdată",
+				"desc": "Ține evidența a ceea ce contează: particularități, modificări, mementouri sau doar gânduri."
+			},
+			"delete": {
+				"title": "Șterge nota",
+				"desc": "Această notă va fi ștearsă permanent.",
+				"confirm": "Șterge",
+				"cancel": "Păstrează"
+			},
+			"form": {
+				"title": "Titlu",
+				"titlePlaceholder": "Titlu opțional…",
+				"content": "Conținut",
+				"contentPlaceholder": "Scrie în Markdown…",
+				"docSearch": "Căutare documente",
+				"docSearchEmpty": "Niciun document găsit"
 			}
 		}
 	},

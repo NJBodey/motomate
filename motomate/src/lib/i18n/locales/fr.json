@@ -252,7 +252,8 @@
 				"documents": "Documents",
 				"finance": "Dépenses",
 				"settings": "Parametres",
-				"travels": "Voyages"
+				"travels": "Voyages",
+				"notes": "Notes"
 			},
 			"pinnedDoc": {
 				"pin": "Epingler un document",
@@ -519,6 +520,34 @@
 				"locked": "Verrouillée après création"
 			},
 			"usageUpdated": "Usage mis à jour"
+		},
+		"notes": {
+			"pageTitle": "Notes · {name}",
+			"title": "Notes",
+			"subtitle": "Tout ce qui vaut la peine d'être conservé, sans lien avec un service ou un trajet.",
+			"subtitleEmpty": "Tout ce qui vaut la peine d'être conservé, sans lien avec un service ou un trajet.",
+			"new": "Nouvelle note",
+			"edit": "Modifier la note",
+			"untitled": "Sans titre",
+			"saved": "Note enregistrée",
+			"empty": {
+				"title": "Aucune note pour l'instant",
+				"desc": "Note ce qui compte : particularités, modifications, rappels ou simples réflexions."
+			},
+			"delete": {
+				"title": "Supprimer la note",
+				"desc": "Cette note sera supprimée définitivement.",
+				"confirm": "Supprimer",
+				"cancel": "Garder"
+			},
+			"form": {
+				"title": "Titre",
+				"titlePlaceholder": "Titre optionnel…",
+				"content": "Contenu",
+				"contentPlaceholder": "Rédige en Markdown…",
+				"docSearch": "Rechercher des documents",
+				"docSearchEmpty": "Aucun document trouvé"
+			}
 		}
 	},
 	"maintenance": {

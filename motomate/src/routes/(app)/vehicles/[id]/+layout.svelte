@@ -109,6 +109,11 @@
 			href: `/vehicles/${vehicle.id}/finance`
 		},
 		{
+			id: 'notes',
+			labelKey: 'vehicle.layout.tabs.notes',
+			href: `/vehicles/${vehicle.id}/notes`
+		},
+		{
 			id: 'travels',
 			labelKey: 'vehicle.layout.tabs.travels',
 			href: `/vehicles/${vehicle.id}/travels`

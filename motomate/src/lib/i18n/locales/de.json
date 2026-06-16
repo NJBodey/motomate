@@ -252,7 +252,8 @@
 				"documents": "Dokumente",
 				"finance": "Ausgaben",
 				"travels": "Fahrten",
-				"settings": "Einstellungen"
+				"settings": "Einstellungen",
+				"notes": "Notizen"
 			},
 			"pinnedDoc": {
 				"pin": "Dokument anheften",
@@ -519,6 +520,34 @@
 				"locked": "Nach Erstellung gesperrt"
 			},
 			"usageUpdated": "Verbrauch aktualisiert"
+		},
+		"notes": {
+			"pageTitle": "Notizen · {name}",
+			"title": "Notizen",
+			"subtitle": "Alles, was es wert ist, nicht an einen Service oder eine Fahrt gebunden zu sein.",
+			"subtitleEmpty": "Alles, was es wert ist, nicht an einen Service oder eine Fahrt gebunden zu sein.",
+			"new": "Neue Notiz",
+			"edit": "Notiz bearbeiten",
+			"untitled": "Ohne Titel",
+			"saved": "Notiz gespeichert",
+			"empty": {
+				"title": "Noch keine Notizen",
+				"desc": "Halte alles fest, was wichtig ist: Eigenheiten, Umbauten, Erinnerungen oder einfach Gedanken."
+			},
+			"delete": {
+				"title": "Notiz löschen",
+				"desc": "Diese Notiz wird dauerhaft gelöscht.",
+				"confirm": "Löschen",
+				"cancel": "Behalten"
+			},
+			"form": {
+				"title": "Titel",
+				"titlePlaceholder": "Optionaler Titel…",
+				"content": "Inhalt",
+				"contentPlaceholder": "In Markdown schreiben…",
+				"docSearch": "Dokumente suchen",
+				"docSearchEmpty": "Keine Dokumente gefunden"
+			}
 		}
 	},
 	"maintenance": {
