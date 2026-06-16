@@ -22,6 +22,7 @@ export const GET: RequestHandler = async ({ locals }) => {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MotoMate API</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <style>
     :root { color-scheme: ${theme === 'dark' ? 'dark' : 'light'}; }
     body { margin: 0; font-family: Inter, system-ui, sans-serif; }
