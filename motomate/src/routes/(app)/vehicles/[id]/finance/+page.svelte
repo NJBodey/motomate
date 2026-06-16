@@ -42,7 +42,7 @@
 			openAddForm();
 			const url = new URL(page.url);
 			url.searchParams.delete('quick');
-			replaceState(url, page.state);
+			tick().then(() => replaceState(url, page.state));
 		}
 	});
 

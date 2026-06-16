@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { replaceState, beforeNavigate } from '$app/navigation';
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
 	import type { PageData } from './$types';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -171,7 +171,7 @@
 			openSheet(quick);
 			const url = new URL(page.url);
 			url.searchParams.delete('quick');
-			replaceState(url, page.state);
+			tick().then(() => replaceState(url, page.state));
 		}
 	});
 

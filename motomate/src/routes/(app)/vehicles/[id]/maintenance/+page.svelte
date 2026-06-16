@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll, beforeNavigate, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
@@ -51,7 +51,7 @@
 			loggingTracker = logId;
 			const url = new URL(page.url);
 			url.searchParams.delete('log');
-			replaceState(url, page.state);
+			tick().then(() => replaceState(url, page.state));
 			setTimeout(() => {
 				document.querySelector(`[data-log-form="${logId}"]`)?.scrollIntoView({
 					behavior: 'smooth',
