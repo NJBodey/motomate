@@ -135,13 +135,19 @@ export const users = sqliteTable('users', {
 		.default(sql`(datetime('now'))`)
 });
 
-export const sessions = sqliteTable('sessions', {
-	id: text('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	expiresAt: integer('expires_at').notNull() // unix timestamp!
-});
+export const sessions = sqliteTable(
+	'sessions',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		expiresAt: integer('expires_at').notNull()
+	},
+	(t) => ({
+		userIdx: index('idx_sessions_user').on(t.userId)
+	})
+);
 
 export const magic_link_tokens = sqliteTable('magic_link_tokens', {
 	id: text('id').primaryKey(),
@@ -530,17 +536,23 @@ export const vehicle_notes = sqliteTable(
 	})
 );
 
-export const push_subscriptions = sqliteTable('push_subscriptions', {
-	id: text('id').primaryKey(),
-	user_id: text('user_id')
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	endpoint: text('endpoint').notNull().unique(),
-	keys: text('keys', { mode: 'json' }).$type<PushKeys>().notNull(),
-	created_at: text('created_at')
-		.notNull()
-		.default(sql`(datetime('now'))`)
-});
+export const push_subscriptions = sqliteTable(
+	'push_subscriptions',
+	{
+		id: text('id').primaryKey(),
+		user_id: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		endpoint: text('endpoint').notNull().unique(),
+		keys: text('keys', { mode: 'json' }).$type<PushKeys>().notNull(),
+		created_at: text('created_at')
+			.notNull()
+			.default(sql`(datetime('now'))`)
+	},
+	(t) => ({
+		userIdx: index('idx_push_subscriptions_user').on(t.user_id)
+	})
+);
 
 export type ApiKeyScope = 'read' | 'read_write';
 

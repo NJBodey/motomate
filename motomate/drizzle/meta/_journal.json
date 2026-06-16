@@ -57,6 +57,13 @@
 			"when": 1781609144291,
 			"tag": "0007_nostalgic_mauler",
 			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "6",
+			"when": 1781629228663,
+			"tag": "0008_blue_reaper",
+			"breakpoints": true
 		}
 	]
 }

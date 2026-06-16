@@ -21,8 +21,7 @@ async function warnIfRegistrationOpen(): Promise<void> {
 		const { hasAnyUser } = await import('$lib/db/repositories/users.js');
 		if ((await hasAnyUser()) && env.AUTH_ALLOW_REGISTRATION !== 'false') {
 			console.warn(
-				'[MotoMate] WARNING: Users exist but AUTH_ALLOW_REGISTRATION is not set to "false". ' +
-					'Set AUTH_ALLOW_REGISTRATION=false in your .env to prevent unauthorized registration.'
+				`${new Date().toLocaleString('sv')} [MotoMate] WARNING: Users exist but AUTH_ALLOW_REGISTRATION is not set to "false". Set AUTH_ALLOW_REGISTRATION=false in your .env to prevent unauthorized registration.`
 			);
 		}
 	} catch {
