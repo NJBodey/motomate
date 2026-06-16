@@ -54,6 +54,7 @@ export type PagePrefs = {
 	global?: {
 		addMenuOrder?: Array<'service' | 'odometer' | 'note' | 'finance'>;
 	};
+	drafts?: Record<string, Record<string, unknown>>;
 };
 
 export type UserSettings = {

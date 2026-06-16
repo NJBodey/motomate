@@ -4,17 +4,21 @@
 	import { sheet } from '$lib/stores/sheet.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
 	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
+	import { drafts } from '$lib/stores/drafts.svelte.js';
+	import DraftBanner from '$lib/components/ui/DraftBanner.svelte';
 
 	let {
 		odometerUnit,
 		currentOdometer,
 		today,
-		editData
+		editData,
+		vehicleId
 	}: {
 		odometerUnit: 'km' | 'mi' | 'h';
 		currentOdometer: number;
 		today: string;
 		editData?: { id: string; odometer: number; recorded_at: string; remark?: string };
+		vehicleId: string;
 	} = $props();
 
 	$effect(() => {
@@ -32,11 +36,43 @@
 			: $_('vehicle.forms.fields.odometer', { values: { unit: unitLabel } })
 	);
 
-	let odoValue = $state(
-		untrack(() => (editData ? String(editData.odometer) : String(currentOdometer)))
+	const _initDraft = untrack(() =>
+		!editData && vehicleId ? drafts.get(vehicleId, 'odometer') : null
 	);
+
+	let odoValue = $state(
+		untrack(
+			() =>
+				(_initDraft?.fields.odometer as string) ??
+				(editData ? String(editData.odometer) : String(currentOdometer))
+		)
+	);
+	let recordedAt = $state(
+		untrack(() => (_initDraft?.fields.recorded_at as string) ?? editData?.recorded_at ?? today)
+	);
+	let remarkValue = $state(
+		untrack(() => (_initDraft?.fields.remark as string) ?? editData?.remark ?? '')
+	);
+	let showDraftBanner = $state(untrack(() => !!_initDraft && !editData));
 	let odoDirty = $state(false);
 	let submitting = $state(false);
+
+	function saveDraft() {
+		if (!vehicleId || editData) return;
+		drafts.save(vehicleId, 'odometer', {
+			odometer: odoValue,
+			recorded_at: recordedAt,
+			remark: remarkValue
+		});
+		sheet.hint = $_('draft.autosaved');
+	}
+	function discardDraft() {
+		if (vehicleId) drafts.clear(vehicleId, 'odometer');
+		showDraftBanner = false;
+		odoValue = String(currentOdometer);
+		recordedAt = today;
+		remarkValue = '';
+	}
 
 	const odoWarning = $derived.by((): string | undefined => {
 		if (!odoDirty || editData) return undefined;
@@ -61,12 +97,19 @@
 		return async ({ result, update }) => {
 			await update();
 			submitting = false;
-			if (result.type === 'success') sheet.closeSheet();
+			if (result.type === 'success') {
+				if (vehicleId && !editData) drafts.clear(vehicleId, 'odometer');
+				sheet.closeSheet();
+			}
 		};
 	}}
 >
 	{#if editData}
 		<input type="hidden" name="id" value={editData.id} />
+	{/if}
+
+	{#if showDraftBanner}
+		<DraftBanner savedAt={_initDraft!.savedAt} onDiscard={discardDraft} />
 	{/if}
 
 	{#if odoWarning}
@@ -80,7 +123,10 @@
 				type="number"
 				name="odometer"
 				bind:value={odoValue}
-				oninput={() => (odoDirty = true)}
+				oninput={() => {
+					odoDirty = true;
+					saveDraft();
+				}}
 				min="0"
 				class="input mono"
 				required
@@ -88,7 +134,13 @@
 		</label>
 		<label class="field">
 			<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-			<input type="date" name="recorded_at" value={editData?.recorded_at ?? today} class="input" />
+			<input
+				type="date"
+				name="recorded_at"
+				bind:value={recordedAt}
+				oninput={saveDraft}
+				class="input"
+			/>
 		</label>
 	</div>
 
@@ -99,7 +151,8 @@
 		<input
 			type="text"
 			name="remark"
-			value={editData?.remark ?? ''}
+			bind:value={remarkValue}
+			oninput={saveDraft}
 			placeholder={$_('vehicle.forms.placeholders.beforeTrip')}
 			maxlength="200"
 			class="input"

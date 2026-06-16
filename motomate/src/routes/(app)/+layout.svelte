@@ -12,6 +12,7 @@
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import AppSheet from '$lib/components/ui/AppSheet.svelte';
 	import { quickAdd } from '$lib/stores/quickAdd.svelte.js';
+	import { drafts } from '$lib/stores/drafts.svelte.js';
 	import { dicebearUri } from '$lib/utils/dicebear.js';
 	import { resolveTheme, readStoredTheme } from '$lib/utils/theme.js';
 
@@ -36,6 +37,12 @@
 		if (data.user?.settings?.locale && !data.demoMode) {
 			setUserLocale(data.user.settings.locale);
 		}
+	});
+
+	$effect(() => {
+		const serverDrafts = (data.user?.settings?.page_prefs as any)?.drafts;
+		const vehicleIds = (data.vehicles ?? []).map((v: any) => v.id as string);
+		drafts.init(serverDrafts, vehicleIds);
 	});
 
 	const navLinks = [

@@ -1243,5 +1243,15 @@
 			"mileage": "Log odometer readings to see how far you've ridden.",
 			"costs": "Add expenses to see what you've spent."
 		}
+	},
+	"draft": {
+		"resuming": "Continuing from {ago}",
+		"discard": "Discard",
+		"fileHint": "Had a file attached — please re-add it",
+		"justNow": "just now",
+		"unitMin": "m ago",
+		"unitHour": "h ago",
+		"unitDay": "d ago",
+		"autosaved": "Autosaved"
 	}
 }

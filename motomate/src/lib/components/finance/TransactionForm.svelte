@@ -5,6 +5,8 @@
 	import { sheet } from '$lib/stores/sheet.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
 	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
+	import { drafts } from '$lib/stores/drafts.svelte.js';
+	import DraftBanner from '$lib/components/ui/DraftBanner.svelte';
 
 	interface DocRecord {
 		id: string;
@@ -22,7 +24,7 @@
 	}
 
 	let {
-		vehicleId: _vehicleId,
+		vehicleId,
 		locale: _locale,
 		currency,
 		odometerUnit,
@@ -38,6 +40,10 @@
 		pagePrefsCategory?: string;
 		editData?: EditData;
 	} = $props();
+
+	const _initDraft = untrack(() =>
+		!editData && vehicleId ? drafts.get(vehicleId, 'finance') : null
+	);
 
 	$effect(() => {
 		waitLocale();
@@ -69,15 +75,39 @@
 		other: 'documents.types.other'
 	});
 
-	let category = $state(untrack(() => editData?.category ?? pagePrefsCategory ?? 'maintenance'));
-	let amount = $state(untrack(() => (editData ? String(editData.amount_cents / 100) : '')));
-	let date = $state(untrack(() => editData?.performed_at ?? new Date().toISOString().slice(0, 10)));
-	let odometer = $state(
-		untrack(() =>
-			editData?.odometer_at_transaction != null ? String(editData.odometer_at_transaction) : ''
+	let category = $state(
+		untrack(
+			() =>
+				(_initDraft?.fields.category as string) ??
+				editData?.category ??
+				pagePrefsCategory ??
+				'maintenance'
 		)
 	);
-	let notes = $state(untrack(() => editData?.notes ?? ''));
+	let amount = $state(
+		untrack(
+			() =>
+				(_initDraft?.fields.amount as string) ??
+				(editData ? String(editData.amount_cents / 100) : '')
+		)
+	);
+	let date = $state(
+		untrack(
+			() =>
+				(_initDraft?.fields.date as string) ??
+				editData?.performed_at ??
+				new Date().toISOString().slice(0, 10)
+		)
+	);
+	let odometer = $state(
+		untrack(
+			() =>
+				(_initDraft?.fields.odometer as string) ??
+				(editData?.odometer_at_transaction != null ? String(editData.odometer_at_transaction) : '')
+		)
+	);
+	let notes = $state(untrack(() => (_initDraft?.fields.notes as string) ?? editData?.notes ?? ''));
+	let showDraftBanner = $state(untrack(() => !!_initDraft && !editData));
 	let submitting = $state(false);
 
 	let attachFile = $state<File | null>(null);
@@ -90,13 +120,35 @@
 	function handleAttachPick(e: Event) {
 		const input = e.target as HTMLInputElement;
 		attachFile = input.files?.[0] ?? null;
+		saveDraft();
 	}
 	function clearAttach() {
 		attachFile = null;
+		saveDraft();
 	}
 	function toggleLink(id: string) {
 		if (newLinkedDocIds.has(id)) newLinkedDocIds.delete(id);
 		else newLinkedDocIds.add(id);
+	}
+	function saveDraft() {
+		if (!vehicleId || editData) return;
+		drafts.save(
+			vehicleId,
+			'finance',
+			{ category, amount, date, odometer, notes },
+			attachFile !== null
+		);
+		sheet.hint = $_('draft.autosaved');
+	}
+	function discardDraft() {
+		if (vehicleId) drafts.clear(vehicleId, 'finance');
+		showDraftBanner = false;
+		category = pagePrefsCategory ?? 'maintenance';
+		amount = '';
+		date = new Date().toISOString().slice(0, 10);
+		odometer = '';
+		notes = '';
+		attachFile = null;
 	}
 </script>
 
@@ -114,11 +166,18 @@
 			submitting = false;
 			attachType = 'other';
 			if (result.type === 'success') {
+				if (vehicleId && !editData) drafts.clear(vehicleId, 'finance');
 				sheet.closeSheet();
 			}
 		};
 	}}
 >
+	{#if showDraftBanner}<DraftBanner
+			savedAt={_initDraft!.savedAt}
+			hasUnsavedFile={_initDraft!.hasUnsavedFile ?? false}
+			onDiscard={discardDraft}
+		/>{/if}
+
 	{#if editData}
 		<input type="hidden" name="id" value={editData.id} />
 	{/if}
@@ -126,7 +185,7 @@
 	<div class="form-row">
 		<label class="field">
 			<span class="field-label">{$_('finance.form.category')}</span>
-			<select name="category" bind:value={category} class="input">
+			<select name="category" bind:value={category} onchange={saveDraft} class="input">
 				{#each categoryOptions as opt (opt.value)}
 					<option value={opt.value}>{opt.label}</option>
 				{/each}
@@ -139,6 +198,7 @@
 				type="number"
 				name="amount"
 				bind:value={amount}
+				oninput={saveDraft}
 				min="0"
 				step="0.01"
 				placeholder="0.00"
@@ -151,7 +211,7 @@
 	<div class="form-row">
 		<label class="field">
 			<span class="field-label">{$_('finance.form.date')}</span>
-			<input type="date" name="date" bind:value={date} class="input" required />
+			<input type="date" name="date" bind:value={date} oninput={saveDraft} class="input" required />
 		</label>
 
 		<label class="field">
@@ -160,6 +220,7 @@
 				type="number"
 				name="odometer"
 				bind:value={odometer}
+				oninput={saveDraft}
 				min="0"
 				placeholder={$_('finance.form.odometerOptional')}
 				class="input mono"
@@ -173,6 +234,7 @@
 			type="text"
 			name="notes"
 			bind:value={notes}
+			oninput={saveDraft}
 			placeholder="e.g., Motor oil, 4 liters"
 			maxlength="200"
 			class="input"

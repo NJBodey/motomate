@@ -9,7 +9,7 @@ const spec = {
 		title: 'MotoMate API',
 		version: APP_VERSION,
 		description:
-			'Your vehicle data, accessible from scripts, automations, and home integrations.\n\nAuthenticate with an API key from **Settings > Developer**.'
+			'Your digital maintenance journal for your vehicles. All vehicle data, accessible from scripts, automations, and home integrations.\n\nAuthenticate with an API key from **Settings > Developer**.'
 	},
 	servers: [{ url: '/api/v1' }],
 	tags: [

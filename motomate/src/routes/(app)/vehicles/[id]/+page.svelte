@@ -94,6 +94,7 @@
 		menuOpen = false;
 		if (kind === 'service') {
 			sheet.openSheet(ServiceLogForm, $_('vehicle.forms.logService'), {
+				vehicleId: data.vehicle.id,
 				odometerUnit: data.vehicle.odometer_unit,
 				currentOdometer: data.vehicle.current_odometer,
 				today,
@@ -102,12 +103,16 @@
 			});
 		} else if (kind === 'odometer') {
 			sheet.openSheet(OdometerForm, updateReadingTitle, {
+				vehicleId: data.vehicle.id,
 				odometerUnit: data.vehicle.odometer_unit,
 				currentOdometer: data.vehicle.current_odometer,
 				today
 			});
 		} else if (kind === 'note') {
-			sheet.openSheet(NoteForm, $_('vehicle.forms.writeNote'), { today });
+			sheet.openSheet(NoteForm, $_('vehicle.forms.writeNote'), {
+				vehicleId: data.vehicle.id,
+				today
+			});
 		}
 	}
 

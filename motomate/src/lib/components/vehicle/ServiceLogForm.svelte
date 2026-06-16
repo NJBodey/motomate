@@ -1,10 +1,13 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { sheet } from '$lib/stores/sheet.svelte.js';
+	import { drafts } from '$lib/stores/drafts.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
 	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
 	import type { ActiveTracker, TaskTemplate } from '$lib/db/schema.js';
+	import DraftBanner from '$lib/components/ui/DraftBanner.svelte';
 
 	type Tracker = ActiveTracker & { template: TaskTemplate };
 	interface DocRecord {
@@ -18,13 +21,15 @@
 		currentOdometer,
 		today,
 		trackers,
-		allDocs = []
+		allDocs = [],
+		vehicleId
 	}: {
 		odometerUnit: 'km' | 'mi' | 'h';
 		currentOdometer: number;
 		today: string;
 		trackers: Tracker[];
 		allDocs?: DocRecord[];
+		vehicleId?: string;
 	} = $props();
 
 	$effect(() => {
@@ -39,11 +44,49 @@
 			: $_('vehicle.forms.fields.odometer', { values: { unit: unitLabel } })
 	);
 
+	const _initDraft = untrack(() => (vehicleId ? drafts.get(vehicleId, 'service') : null));
+
+	let performedAt = $state(untrack(() => (_initDraft?.fields.performed_at as string) ?? today));
+	let odoAtService = $state(
+		untrack(() => (_initDraft?.fields.odometer_at_service as string) ?? String(currentOdometer))
+	);
+	let notesValue = $state(untrack(() => (_initDraft?.fields.notes as string) ?? ''));
+	let remarkValue = $state(untrack(() => (_initDraft?.fields.remark as string) ?? ''));
+	let costValue = $state(untrack(() => (_initDraft?.fields.cost as string) ?? ''));
+	let showDraftBanner = $state(!!_initDraft);
+
 	let submitting = $state(false);
 	let attachFile = $state<File | null>(null);
 	let attachType = $state('service');
 	let showLinkNew = $state(false);
 	let newLinkedDocIds = new SvelteSet<string>();
+
+	function saveDraft() {
+		if (!vehicleId) return;
+		drafts.save(
+			vehicleId,
+			'service',
+			{
+				performed_at: performedAt,
+				odometer_at_service: odoAtService,
+				notes: notesValue,
+				remark: remarkValue,
+				cost: costValue
+			},
+			attachFile !== null
+		);
+		sheet.hint = $_('draft.autosaved');
+	}
+	function discardDraft() {
+		if (vehicleId) drafts.clear(vehicleId, 'service');
+		showDraftBanner = false;
+		performedAt = today;
+		odoAtService = String(currentOdometer);
+		notesValue = '';
+		remarkValue = '';
+		costValue = '';
+		attachFile = null;
+	}
 
 	const docTypeEntries = Object.entries({
 		service: 'documents.types.service',
@@ -59,9 +102,11 @@
 	function handleAttachPick(e: Event) {
 		const input = e.target as HTMLInputElement;
 		attachFile = input.files?.[0] ?? null;
+		saveDraft();
 	}
 	function clearAttach() {
 		attachFile = null;
+		saveDraft();
 	}
 	function toggleLink(id: string) {
 		if (newLinkedDocIds.has(id)) newLinkedDocIds.delete(id);
@@ -81,21 +126,39 @@
 		return async ({ result, update }) => {
 			await update();
 			submitting = false;
-			if (result.type === 'success') sheet.closeSheet();
+			if (result.type === 'success') {
+				if (vehicleId) drafts.clear(vehicleId, 'service');
+				sheet.closeSheet();
+			}
 		};
 	}}
 >
+	{#if showDraftBanner}
+		<DraftBanner
+			savedAt={_initDraft!.savedAt}
+			hasUnsavedFile={_initDraft!.hasUnsavedFile ?? false}
+			onDiscard={discardDraft}
+		/>
+	{/if}
 	<div class="form-row">
 		<label class="field">
 			<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-			<input type="date" name="performed_at" value={today} class="input" required />
+			<input
+				type="date"
+				name="performed_at"
+				bind:value={performedAt}
+				oninput={saveDraft}
+				class="input"
+				required
+			/>
 		</label>
 		<label class="field">
 			<span class="field-label">{measurementFieldLabel}</span>
 			<input
 				type="number"
 				name="odometer_at_service"
-				value={currentOdometer}
+				bind:value={odoAtService}
+				oninput={saveDraft}
 				min="0"
 				class="input mono"
 				required
@@ -139,6 +202,8 @@
 		<input
 			type="text"
 			name="notes"
+			bind:value={notesValue}
+			oninput={saveDraft}
 			placeholder={$_('vehicle.forms.placeholders.description')}
 			maxlength="200"
 			class="input"
@@ -152,6 +217,8 @@
 		<input
 			type="text"
 			name="remark"
+			bind:value={remarkValue}
+			oninput={saveDraft}
 			placeholder={$_('vehicle.forms.placeholders.additionalDetails')}
 			maxlength="200"
 			class="input"
@@ -165,6 +232,8 @@
 		<input
 			type="number"
 			name="cost"
+			bind:value={costValue}
+			oninput={saveDraft}
 			min="0"
 			step="0.01"
 			placeholder={$_('vehicle.forms.placeholders.cost')}

@@ -5,11 +5,13 @@ class SheetStore {
 	formComponent = $state<Component<any> | undefined>(undefined);
 	formData = $state<unknown>(undefined);
 	title = $state('');
+	hint = $state('');
 
 	openSheet(component: Component<any>, title: string, data?: unknown) {
 		this.formComponent = component;
 		this.formData = data;
 		this.title = title;
+		this.hint = '';
 		this.open = true;
 	}
 
@@ -18,6 +20,7 @@ class SheetStore {
 		this.formComponent = undefined;
 		this.formData = undefined;
 		this.title = '';
+		this.hint = '';
 		callback?.();
 	}
 }

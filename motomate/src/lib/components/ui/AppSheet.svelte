@@ -22,7 +22,10 @@
 	<div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
 		<div class="sheet-drag-handle" aria-hidden="true"></div>
 		<div class="sheet-header">
-			<h2 id="sheet-title" class="sheet-title">{sheet.title}</h2>
+			<div class="sheet-title-area">
+				<h2 id="sheet-title" class="sheet-title">{sheet.title}</h2>
+				{#if sheet.hint}<span class="sheet-hint">{sheet.hint}</span>{/if}
+			</div>
 			<button class="sheet-close" onclick={close} aria-label="Close">
 				<svg
 					width="16"
@@ -85,11 +88,23 @@
 		flex-shrink: 0;
 	}
 
+	.sheet-title-area {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
 	.sheet-title {
 		font-size: var(--text-md);
 		font-weight: 600;
 		color: var(--text);
 		margin: 0;
+	}
+
+	.sheet-hint {
+		font-size: var(--text-xs);
+		color: var(--text-subtle);
+		font-weight: 400;
 	}
 
 	.sheet-close {

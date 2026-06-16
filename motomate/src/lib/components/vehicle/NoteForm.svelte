@@ -1,21 +1,49 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { sheet } from '$lib/stores/sheet.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
+	import { drafts } from '$lib/stores/drafts.svelte.js';
+	import DraftBanner from '$lib/components/ui/DraftBanner.svelte';
 
 	let {
 		today,
-		editData
+		editData,
+		vehicleId
 	}: {
 		today: string;
 		editData?: { id: string; recorded_at: string; remark: string };
+		vehicleId?: string;
 	} = $props();
+
+	const _initDraft = untrack(() => (!editData && vehicleId ? drafts.get(vehicleId, 'note') : null));
+
+	let recordedAt = $state(
+		untrack(() => (_initDraft?.fields.recorded_at as string) ?? editData?.recorded_at ?? today)
+	);
+	let remarkValue = $state(
+		untrack(() => (_initDraft?.fields.remark as string) ?? editData?.remark ?? '')
+	);
+	let showDraftBanner = $state(untrack(() => !!_initDraft && !editData));
 
 	$effect(() => {
 		waitLocale();
 	});
 
 	let submitting = $state(false);
+
+	function saveDraft() {
+		if (!vehicleId || editData) return;
+		drafts.save(vehicleId, 'note', { recorded_at: recordedAt, remark: remarkValue });
+		sheet.hint = $_('draft.autosaved');
+	}
+
+	function discardDraft() {
+		if (vehicleId) drafts.clear(vehicleId, 'note');
+		showDraftBanner = false;
+		recordedAt = today;
+		remarkValue = '';
+	}
 </script>
 
 <form
@@ -27,7 +55,10 @@
 		return async ({ result, update }) => {
 			await update();
 			submitting = false;
-			if (result.type === 'success') sheet.closeSheet();
+			if (result.type === 'success') {
+				if (vehicleId && !editData) drafts.clear(vehicleId, 'note');
+				sheet.closeSheet();
+			}
 		};
 	}}
 >
@@ -35,12 +66,17 @@
 		<input type="hidden" name="id" value={editData.id} />
 	{/if}
 
+	{#if showDraftBanner}
+		<DraftBanner savedAt={_initDraft!.savedAt} onDiscard={discardDraft} />
+	{/if}
+
 	<label class="field">
 		<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
 		<input
 			type="date"
 			name="recorded_at"
-			value={editData?.recorded_at ?? today}
+			bind:value={recordedAt}
+			oninput={saveDraft}
 			class="input"
 			required
 		/>
@@ -51,7 +87,8 @@
 		<input
 			type="text"
 			name="remark"
-			value={editData?.remark ?? ''}
+			bind:value={remarkValue}
+			oninput={saveDraft}
 			placeholder={$_('vehicle.forms.placeholders.note')}
 			maxlength="400"
 			class="input"

@@ -14,7 +14,11 @@ export const PATCH: RequestHandler = async ({ locals, request }) => {
 
 	const merged: PagePrefs = { ...existing };
 	for (const key of Object.keys(incoming) as (keyof PagePrefs)[]) {
-		(merged as any)[key] = { ...(existing[key] ?? {}), ...(incoming[key] ?? {}) };
+		if (key === 'drafts') {
+			(merged as any)[key] = incoming[key]; // full replace — deletions must propagate
+		} else {
+			(merged as any)[key] = { ...(existing[key] ?? {}), ...(incoming[key] ?? {}) };
+		}
 	}
 
 	await updateUserSettings(locals.user.id, { page_prefs: merged });
