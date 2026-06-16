@@ -27,7 +27,9 @@ function isValid(raw: unknown): raw is DraftEntry {
 function writeLocal(id: string, entry: DraftEntry) {
 	try {
 		localStorage.setItem(`${LS_PREFIX}${id}`, JSON.stringify(entry));
-	} catch { /* storage unavailable */ }
+	} catch {
+		/* storage unavailable */
+	}
 }
 
 class DraftStore {
@@ -138,7 +140,9 @@ class DraftStore {
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ page_prefs: { drafts: grouped } })
 			});
-		} catch { /* network unavailable */ }
+		} catch {
+			/* network unavailable */
+		}
 	}
 }
 
