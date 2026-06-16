@@ -20,6 +20,7 @@
 	<div class="sheet-backdrop" onclick={handleBackdrop} aria-hidden="true"></div>
 
 	<div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+		<div class="sheet-drag-handle" aria-hidden="true"></div>
 		<div class="sheet-header">
 			<h2 id="sheet-title" class="sheet-title">{sheet.title}</h2>
 			<button class="sheet-close" onclick={close} aria-label="Close">
@@ -68,7 +69,11 @@
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-		animation: slideIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+		animation: slideInRight 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.sheet-drag-handle {
+		display: none;
 	}
 
 	.sheet-header {
@@ -128,12 +133,54 @@
 		}
 	}
 
-	@keyframes slideIn {
+	@keyframes slideInRight {
 		from {
 			transform: translateX(100%);
 		}
 		to {
 			transform: translateX(0);
+		}
+	}
+
+	@keyframes slideInUp {
+		from {
+			transform: translateY(100%);
+		}
+		to {
+			transform: translateY(0);
+		}
+	}
+
+	@media (max-width: 768px) {
+		.sheet-panel {
+			top: auto;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			max-height: 90dvh;
+			border-left: none;
+			border-top: 1px solid var(--border);
+			border-radius: 14px 14px 0 0;
+			animation: slideInUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+		}
+
+		.sheet-drag-handle {
+			display: block;
+			width: 32px;
+			height: 3px;
+			background: var(--border);
+			border-radius: 2px;
+			margin: var(--space-2) auto 0;
+			flex-shrink: 0;
+		}
+
+		.sheet-header {
+			padding-top: var(--space-4);
+		}
+
+		.sheet-body {
+			padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
 		}
 	}
 
