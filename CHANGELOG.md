@@ -9,6 +9,7 @@
 - The 'Finance' feature has been renamed to 'Spending' across all supported languages (though the api remains unaffected)
 - The dashboard's recent activity feed now displays your most recent entry for each vehicle
 - Minor adjustment to the settings page of your vehicle, the measurement unit section has now been moved to the odometer section
+- Minor adjustment to the top menu, the settings page now lives under the profile icon (on mobile)
 - Fix: the current vehicle is now correctly pre-selected in the mobile menu when logging a new odometer or maintenance entry
 - Security: updated dependencies to address vulnerabilities related to cookie handling and the dev server
 
