@@ -2,12 +2,13 @@
 
 ## 0.4.0
 
-- New insights view showing how far you've ridden and what you've spent. Filter by vehicle and time range, switch between monthly and cumulative cost views, and see service events marked on the mileage chart. Tap a service event to open the maintenance log, or tapshoul a spending bar to jump to your expenses
-- New entries - e.g. for maintenance or spending - will spawn a sidebar instead of a modal 
-- The finance (page) has been renamed to Spending across all supported languages
-- The dashboard recent activity now shows your last entry per vehicle
-- Fix: pre-select current vehicle in the mobile menu for new odometer/maintenance entry 
-- Security: updated dependencies to address cookie handling and dev server vulnerabilities
+- New 'Insights' view showing how far you've ridden and what you've spent. You can filter by vehicle and time range, toggle between monthly and cumulative costs, and see service events directly on your mileage chart. Tapping an event or spending bar jumps directly to the relevant log
+- Creating new entries, such as maintenance or spending, now opens a sidebar instead of a modal
+- Your unfinished entries for specific vehicles are now saved as server-side drafts, so you never lose your progress
+- The 'Finance' page has been renamed to 'Spending' across all supported languages
+- The dashboard's recent activity feed now displays your most recent entry for each vehicle
+- Fix: the current vehicle is now correctly pre-selected in the mobile menu when logging a new odometer or maintenance entry
+- Security: updated dependencies to address vulnerabilities related to cookie handling and the dev server
 
 ## 0.3.1
 
