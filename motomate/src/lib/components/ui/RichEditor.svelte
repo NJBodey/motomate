@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
-	import { Editor } from '@tiptap/core';
+	import { Editor, Extension } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
 	import Link from '@tiptap/extension-link';
 	import { Markdown } from 'tiptap-markdown';
@@ -76,10 +76,20 @@
 
 		const initialContent = untrack(() => content);
 
+		const ctrlASelectAll = Extension.create({
+			name: 'ctrlASelectAll',
+			addKeyboardShortcuts() {
+				return {
+					'Ctrl-a': () => this.editor.commands.selectAll()
+				};
+			}
+		});
+
 		const instance = new Editor({
 			element: editorEl,
 			extensions: [
 				StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+				ctrlASelectAll,
 				Link.configure({
 					openOnClick: false,
 					HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
