@@ -216,16 +216,16 @@ describe('DELETE /vehicles/:id/notes/:noteId', () => {
 
 	it('returns 404 when note not found', async () => {
 		vi.mocked(getNoteById).mockResolvedValue(undefined);
-		expect(
-			(await deleteNoteHandler(event(mockUser, { id: 'v_1', noteId: 'bad' }))).status
-		).toBe(404);
+		expect((await deleteNoteHandler(event(mockUser, { id: 'v_1', noteId: 'bad' }))).status).toBe(
+			404
+		);
 	});
 
 	it('returns 404 when vehicle not found', async () => {
 		vi.mocked(getVehicleById).mockResolvedValue(undefined);
-		expect(
-			(await deleteNoteHandler(event(mockUser, { id: 'bad', noteId: 'n_1' }))).status
-		).toBe(404);
+		expect((await deleteNoteHandler(event(mockUser, { id: 'bad', noteId: 'n_1' }))).status).toBe(
+			404
+		);
 	});
 
 	it('returns 403 for read-only key', async () => {
@@ -236,8 +236,6 @@ describe('DELETE /vehicles/:id/notes/:noteId', () => {
 	});
 
 	it('returns 401 without user', async () => {
-		expect(
-			(await deleteNoteHandler(event(null, { id: 'v_1', noteId: 'n_1' }))).status
-		).toBe(401);
+		expect((await deleteNoteHandler(event(null, { id: 'v_1', noteId: 'n_1' }))).status).toBe(401);
 	});
 });
