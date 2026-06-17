@@ -200,6 +200,16 @@
 	});
 
 	$effect(() => {
+		if (quickAddOpen && browser) {
+			const prev = document.documentElement.style.overflow;
+			document.documentElement.style.overflow = 'hidden';
+			return () => {
+				document.documentElement.style.overflow = prev;
+			};
+		}
+	});
+
+	$effect(() => {
 		if (quickAdd.isOpen && quickAdd.vehicleId) {
 			const vehicle = data.vehicles.find((v: NavVehicle) => v.id === quickAdd.vehicleId);
 			if (vehicle) {
@@ -1524,6 +1534,7 @@
 		z-index: 200;
 		display: flex;
 		align-items: flex-end;
+		touch-action: none;
 	}
 	.quickadd-sheet {
 		width: 100%;
@@ -1532,6 +1543,8 @@
 		padding: 0 0 env(safe-area-inset-bottom);
 		box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.12);
 		outline: none;
+		touch-action: pan-y;
+		overscroll-behavior: contain;
 	}
 	.sheet-handle {
 		width: 36px;
