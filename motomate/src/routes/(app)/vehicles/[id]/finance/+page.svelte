@@ -2121,6 +2121,9 @@
 		.grouped-amount {
 			padding-right: 56px;
 		}
+		.page-actions {
+			flex-direction: row-reverse;
+		}
 	}
 	.btn-ghost {
 		background: transparent;

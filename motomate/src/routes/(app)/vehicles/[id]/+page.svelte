@@ -1761,6 +1761,11 @@
 			height: 44px;
 		}
 	}
+	@media (max-width: 768px) {
+		.page-actions {
+			flex-direction: row-reverse;
+		}
+	}
 	@media (pointer: coarse) {
 		.entry-menu-btn {
 			opacity: 1;
