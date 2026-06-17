@@ -550,8 +550,13 @@
 				"content": "Conținut",
 				"contentPlaceholder": "Scrie în Markdown…",
 				"docSearch": "Căutare documente",
-				"docSearchEmpty": "Niciun document găsit"
-			}
+				"docSearchEmpty": "Niciun document găsit",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Extras"
+			},
+			"searchPlaceholder": "Caută notițe..."
 		}
 	},
 	"maintenance": {

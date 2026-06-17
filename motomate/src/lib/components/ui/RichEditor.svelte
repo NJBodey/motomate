@@ -387,7 +387,12 @@
 		</div>
 	{/if}
 
-	<div bind:this={editorEl} class="editor-content" style="min-height:{minHeight}"></div>
+	<div
+		bind:this={editorEl}
+		class="editor-content"
+		style="min-height:{minHeight}"
+		data-placeholder={placeholder}
+	></div>
 
 	<input type="hidden" {name} value={currentMarkdown} />
 </div>
@@ -673,13 +678,25 @@
 		margin-bottom: 0;
 	}
 
-	:global(.ProseMirror ul),
+	:global(.ProseMirror ul) {
+		padding-left: 1.5rem;
+		margin: 0.5em 0;
+	}
+
 	:global(.ProseMirror ol) {
 		padding-left: 1.5rem;
 		margin: 0.5em 0;
 	}
 
-	:global(.ProseMirror li) {
+	:global(.ProseMirror ul > li) {
+		display: list-item;
+		list-style-type: disc;
+		margin: 0.2em 0;
+	}
+
+	:global(.ProseMirror ol > li) {
+		display: list-item;
+		list-style-type: decimal;
 		margin: 0.2em 0;
 	}
 

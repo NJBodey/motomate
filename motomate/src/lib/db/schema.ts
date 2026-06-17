@@ -43,6 +43,11 @@ export type PagePrefs = {
 		showFinance?: boolean;
 		showReminder?: boolean;
 	};
+	notes?: {
+		sortBy?: 'newest' | 'oldest' | 'name';
+		viewMode?: 'timeline' | 'table';
+		columnVisibility?: Record<string, boolean>;
+	};
 	maintenance_report_pdf?: Record<string, string[]>;
 	insights?: {
 		vehicleId?: string;

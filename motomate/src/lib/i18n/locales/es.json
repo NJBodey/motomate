@@ -549,8 +549,13 @@
 				"content": "Contenido",
 				"contentPlaceholder": "Escribe en Markdown…",
 				"docSearch": "Buscar documentos",
-				"docSearchEmpty": "No hay documentos que coincidan"
-			}
+				"docSearchEmpty": "No hay documentos que coincidan",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Extracto"
+			},
+			"searchPlaceholder": "Buscar notas..."
 		}
 	},
 	"maintenance": {

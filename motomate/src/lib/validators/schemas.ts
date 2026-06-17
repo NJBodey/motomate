@@ -100,6 +100,13 @@ const PagePrefsSchema = z.object({
 			showReminder: z.boolean().optional()
 		})
 		.optional(),
+	notes: z
+		.object({
+			sortBy: z.enum(['newest', 'oldest', 'name']).optional(),
+			viewMode: z.enum(['timeline', 'table']).optional(),
+			columnVisibility: z.record(z.string(), z.boolean()).optional()
+		})
+		.optional(),
 	maintenance_report_pdf: z.record(z.string(), z.array(z.string())).optional(),
 	maintenance_report_opts: z
 		.record(

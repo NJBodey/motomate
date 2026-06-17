@@ -549,8 +549,13 @@
 				"content": "Inhoud",
 				"contentPlaceholder": "Schrijf in Markdown…",
 				"docSearch": "Documenten zoeken",
-				"docSearchEmpty": "Geen documenten gevonden"
-			}
+				"docSearchEmpty": "Geen documenten gevonden",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Fragment"
+			},
+			"searchPlaceholder": "Notities zoeken..."
 		}
 	},
 	"maintenance": {

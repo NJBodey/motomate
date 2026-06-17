@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import { _, waitLocale } from '$lib/i18n';
 	import { sheet } from '$lib/stores/sheet.svelte.js';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
-	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import VehicleNoteForm from '$lib/components/vehicle/VehicleNoteForm.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import ViewToggle from '$lib/components/ui/ViewToggle.svelte';
+	import ColumnPicker from '$lib/components/ui/ColumnPicker.svelte';
 
 	let { data, form }: { data: PageData; form: Record<string, unknown> | null } = $props();
 
@@ -24,7 +26,51 @@
 		});
 	});
 
+	const defaultColVis = { excerpt: true, date: true, documents: true };
+
 	let deletingId = $state<string | null>(null);
+	let searchQuery = $state('');
+	let sortBy = $state<'newest' | 'oldest' | 'name'>(
+		untrack(() => data.page_prefs?.sortBy ?? 'newest')
+	);
+	let notesViewMode = $state<'timeline' | 'table'>(
+		untrack(() => data.page_prefs?.viewMode ?? 'timeline')
+	);
+	let notesColumnVisible = $state<Record<string, boolean>>(
+		untrack(() => data.page_prefs?.columnVisibility ?? defaultColVis)
+	);
+
+	let _prefTimer: ReturnType<typeof setTimeout>;
+	let _pendingPrefs: object | null = null;
+	let _firstRun = true;
+
+	function flushPrefs() {
+		if (!_pendingPrefs) return;
+		const body = JSON.stringify({ page_prefs: { notes: _pendingPrefs } });
+		_pendingPrefs = null;
+		clearTimeout(_prefTimer);
+		fetch('/api/prefs', {
+			method: 'PATCH',
+			keepalive: true,
+			headers: { 'content-type': 'application/json' },
+			body
+		});
+	}
+
+	beforeNavigate(() => flushPrefs());
+
+	$effect(() => {
+		const s = sortBy;
+		const v = notesViewMode;
+		const c = notesColumnVisible;
+		if (_firstRun) {
+			_firstRun = false;
+			return;
+		}
+		_pendingPrefs = { sortBy: s, viewMode: v, columnVisibility: c };
+		clearTimeout(_prefTimer);
+		_prefTimer = setTimeout(flushPrefs, 600);
+	});
 
 	function openNewNote() {
 		sheet.openSheet(
@@ -33,6 +79,25 @@
 			{
 				vehicleId: data.vehicle.id,
 				allDocs: data.docList ?? []
+			},
+			true
+		);
+	}
+
+	function openViewNote(note: (typeof data.notes)[number]) {
+		sheet.openSheet(
+			VehicleNoteForm,
+			note.title || $_('vehicle.notes.untitled'),
+			{
+				vehicleId: data.vehicle.id,
+				allDocs: data.docList ?? [],
+				viewMode: true,
+				editData: {
+					id: note.id,
+					title: note.title,
+					content: note.content,
+					doc_refs: parseDocRefs(note.doc_refs)
+				}
 			},
 			true
 		);
@@ -70,11 +135,16 @@
 
 	function noteExcerpt(content: string): string {
 		const plain = content
-			.replace(/#{1,6}\s/g, '')
+			.replace(/\\$/gm, '')
+			.replace(/\\([\\`*_{}[\]()#+\-.!])/g, '$1')
+			.replace(/#{1,6}\s+/g, '')
 			.replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
+			.replace(/_{1,2}([^_]+)_{1,2}/g, '$1')
 			.replace(/`[^`]+`/g, '')
-			.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-			.replace(/>\s/g, '')
+			.replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+			.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+			.replace(/^>\s*/gm, '')
+			.replace(/^[-*+]\s+/gm, '')
 			.trim();
 		const first = plain.split('\n').find((l) => l.trim().length > 0) ?? '';
 		return first.length > 120 ? first.slice(0, 120) + '…' : first;
@@ -94,6 +164,22 @@
 		const map = new Map((data.docList ?? []).map((d) => [d.id, d]));
 		return refs.map((id) => map.get(id)).filter(Boolean) as (typeof data.docList)[number][];
 	}
+
+	const filteredSortedNotes = $derived.by(() => {
+		let list = [...data.notes];
+		const q = searchQuery.trim().toLowerCase();
+		if (q) {
+			list = list.filter((n) => {
+				const title = (n.title ?? '').toLowerCase();
+				const excerpt = noteExcerpt(n.content).toLowerCase();
+				return title.includes(q) || excerpt.includes(q);
+			});
+		}
+		if (sortBy === 'newest') list.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+		else if (sortBy === 'oldest') list.sort((a, b) => a.updated_at.localeCompare(b.updated_at));
+		else if (sortBy === 'name') list.sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''));
+		return list;
+	});
 </script>
 
 <svelte:head
@@ -123,64 +209,178 @@
 		description={$_('vehicle.notes.empty.desc')}
 	/>
 {:else}
-	<div class="notes-list">
-		{#each data.notes as note (note.id)}
-			{@const docs = resolvedDocRefs(note)}
-			<div class="note-card">
-				<div
-					class="note-body"
-					role="button"
-					tabindex="0"
-					onclick={() => openEditNote(note)}
-					onkeydown={(e) => e.key === 'Enter' && openEditNote(note)}
-				>
-					<div class="note-title">
-						{note.title || $_('vehicle.notes.untitled')}
-					</div>
-					{#if noteExcerpt(note.content)}
-						<div class="note-excerpt">{noteExcerpt(note.content)}</div>
-					{/if}
-					{#if docs.length > 0}
-						<div class="note-doc-refs">
-							{#each docs as doc}
-								<a
-									href="/api/files?key={doc.storage_key}"
-									target="_blank"
-									rel="noopener noreferrer"
-									class="doc-chip"
-									onclick={(e) => e.stopPropagation()}
-								>
-									<span class="doc-chip-type">{$_('documents.types.' + doc.doc_type)}</span>
-									<span class="doc-chip-name">{doc.title || doc.name}</span>
-								</a>
-							{/each}
-						</div>
-					{/if}
-				</div>
-				<div class="note-meta">
-					<span class="note-date">{formatDate(note.updated_at)}</span>
-					<div class="note-actions">
-						<button
-							type="button"
-							class="note-action-btn"
-							onclick={() => openEditNote(note)}
-							aria-label={$_('common.edit')}
-						>
-							{$_('common.edit')}
-						</button>
-						<button
-							type="button"
-							class="note-action-btn note-action-btn--danger"
-							onclick={() => (deletingId = note.id)}
-							aria-label={$_('common.delete')}
-						>
-							{$_('common.delete')}
-						</button>
-					</div>
-				</div>
+	<div class="list-controls">
+		<div class="search-box">
+			<input
+				type="text"
+				class="search-input"
+				placeholder={$_('vehicle.notes.searchPlaceholder')}
+				bind:value={searchQuery}
+			/>
+		</div>
+		<div class="filter-controls">
+			<select class="filter-select" bind:value={sortBy}>
+				<option value="newest">{$_('documents.sort.newest')}</option>
+				<option value="oldest">{$_('documents.sort.oldest')}</option>
+				<option value="name">{$_('documents.sort.name')}</option>
+			</select>
+			<div class="view-controls">
+				<ViewToggle
+					options={[
+						{ value: 'timeline', label: $_('common.timeline') },
+						{ value: 'table', label: $_('common.table') }
+					]}
+					value={notesViewMode}
+					onchange={(v) => (notesViewMode = v as 'timeline' | 'table')}
+				/>
+				{#if notesViewMode === 'table'}
+					<ColumnPicker
+						columns={[
+							{ key: 'excerpt', label: $_('vehicle.notes.col.excerpt'), hideable: true },
+							{ key: 'date', label: $_('finance.col.date'), hideable: true },
+							{ key: 'documents', label: $_('documents.title'), hideable: true }
+						]}
+						visible={notesColumnVisible}
+						onchange={(v) => (notesColumnVisible = v)}
+					/>
+				{/if}
 			</div>
-		{/each}
+		</div>
 	</div>
+
+	{#if notesViewMode === 'timeline'}
+		<div class="notes-list">
+			{#each filteredSortedNotes as note (note.id)}
+				{@const docs = resolvedDocRefs(note)}
+				<div class="note-card">
+					<div
+						class="note-body"
+						role="button"
+						tabindex="0"
+						onclick={() => openViewNote(note)}
+						onkeydown={(e) => e.key === 'Enter' && openViewNote(note)}
+					>
+						<div class="note-title">
+							{note.title || $_('vehicle.notes.untitled')}
+						</div>
+						{#if noteExcerpt(note.content)}
+							<div class="note-excerpt">{noteExcerpt(note.content)}</div>
+						{/if}
+						{#if docs.length > 0}
+							<div class="note-doc-refs">
+								{#each docs as doc}
+									<a
+										href="/api/files?key={doc.storage_key}"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="doc-chip"
+										onclick={(e) => e.stopPropagation()}
+									>
+										<span class="doc-chip-type">{$_('documents.types.' + doc.doc_type)}</span>
+										<span class="doc-chip-name">{doc.title || doc.name}</span>
+									</a>
+								{/each}
+							</div>
+						{/if}
+					</div>
+					<div class="note-meta">
+						<span class="note-date">{formatDate(note.updated_at)}</span>
+						<div class="note-actions">
+							<button
+								type="button"
+								class="note-action-btn"
+								onclick={() => openEditNote(note)}
+								aria-label={$_('common.edit')}
+							>
+								{$_('common.edit')}
+							</button>
+							<button
+								type="button"
+								class="note-action-btn note-action-btn--danger"
+								onclick={() => (deletingId = note.id)}
+								aria-label={$_('common.delete')}
+							>
+								{$_('common.delete')}
+							</button>
+						</div>
+					</div>
+				</div>
+			{/each}
+		</div>
+	{:else}
+		<div class="notes-table-wrap">
+			<table class="notes-table">
+				<thead>
+					<tr>
+						<th class="ntx-th">{$_('vehicle.notes.form.title')}</th>
+						{#if notesColumnVisible.excerpt}
+							<th class="ntx-th">{$_('vehicle.notes.col.excerpt')}</th>
+						{/if}
+						{#if notesColumnVisible.date}
+							<th class="ntx-th">{$_('finance.col.date')}</th>
+						{/if}
+						{#if notesColumnVisible.documents}
+							<th class="ntx-th">{$_('documents.title')}</th>
+						{/if}
+						<th class="ntx-th"></th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each filteredSortedNotes as note (note.id)}
+						{@const docs = resolvedDocRefs(note)}
+						<tr
+							class="ntx-row"
+							onclick={() => openViewNote(note)}
+							role="button"
+							tabindex="0"
+							onkeydown={(e) => e.key === 'Enter' && openViewNote(note)}
+						>
+							<td class="ntx-td ntx-td--title">
+								{note.title || $_('vehicle.notes.untitled')}
+							</td>
+							{#if notesColumnVisible.excerpt}
+								<td class="ntx-td ntx-td--muted">
+									{noteExcerpt(note.content)}
+								</td>
+							{/if}
+							{#if notesColumnVisible.date}
+								<td class="ntx-td ntx-td--mono">
+									{formatDate(note.updated_at)}
+								</td>
+							{/if}
+							{#if notesColumnVisible.documents}
+								<td class="ntx-td">
+									{#if docs.length > 0}
+										<span class="doc-count">{docs.length}</span>
+									{/if}
+								</td>
+							{/if}
+							<td class="ntx-td ntx-td--actions" onclick={(e) => e.stopPropagation()}>
+								<div class="note-actions">
+									<button
+										type="button"
+										class="note-action-btn"
+										onclick={() => openEditNote(note)}
+										aria-label={$_('common.edit')}
+									>
+										{$_('common.edit')}
+									</button>
+									<button
+										type="button"
+										class="note-action-btn note-action-btn--danger"
+										onclick={() => (deletingId = note.id)}
+										aria-label={$_('common.delete')}
+									>
+										{$_('common.delete')}
+									</button>
+								</div>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	{/if}
 {/if}
 
 {#if deletingId}
@@ -258,9 +458,162 @@
 		background: var(--accent-hover);
 	}
 
+	.list-controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		margin: var(--space-6) 0 var(--space-5);
+		align-items: center;
+	}
+
+	.search-box {
+		flex: 1;
+		min-width: 160px;
+	}
+
+	.search-input {
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		background: var(--bg-subtle);
+		color: var(--text);
+		font-size: var(--text-sm);
+		min-height: 40px;
+		box-sizing: border-box;
+	}
+
+	.search-input:focus {
+		outline: 2px solid var(--accent);
+		outline-offset: 1px;
+		border-color: transparent;
+	}
+
+	.filter-controls {
+		display: flex;
+		gap: var(--space-2);
+		align-items: center;
+	}
+
+	.filter-select {
+		padding: 0.375rem 0.625rem;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		background: var(--bg-subtle);
+		color: var(--text);
+		font-size: var(--text-sm);
+		cursor: pointer;
+		min-height: 40px;
+		box-sizing: border-box;
+	}
+
+	.filter-select:focus {
+		outline: 2px solid var(--accent);
+		outline-offset: -1px;
+	}
+
+	.view-controls {
+		display: flex;
+		gap: var(--space-2);
+		align-items: center;
+	}
+
 	.notes-list {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.notes-table-wrap {
+		overflow-x: auto;
+	}
+
+	.notes-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--text-sm);
+	}
+
+	.ntx-th {
+		text-align: left;
+		font-size: var(--text-xs);
+		font-weight: 500;
+		color: var(--text-muted);
+		padding: 0.5rem 0.75rem;
+		border-bottom: 1px solid var(--border);
+		white-space: nowrap;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+	}
+
+	.ntx-th:first-child {
+		padding-left: 0;
+	}
+
+	.ntx-th:last-child {
+		padding-right: 0;
+	}
+
+	.ntx-row {
+		border-bottom: 1px solid var(--border);
+		cursor: pointer;
+		transition: background 0.1s;
+	}
+
+	.ntx-row:hover {
+		background: var(--bg-subtle);
+	}
+
+	.ntx-td {
+		padding: 0.625rem 0.75rem;
+		color: var(--text);
+		vertical-align: middle;
+	}
+
+	.ntx-td:first-child {
+		padding-left: 0;
+	}
+
+	.ntx-td:last-child {
+		padding-right: 0;
+	}
+
+	.ntx-td--title {
+		font-weight: 500;
+		min-width: 140px;
+	}
+
+	.ntx-td--muted {
+		color: var(--text-muted);
+		max-width: 240px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.ntx-td--mono {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		white-space: nowrap;
+	}
+
+	.ntx-td--actions {
+		white-space: nowrap;
+	}
+
+	.doc-count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 20px;
+		height: 20px;
+		background: var(--bg-muted);
+		border-radius: 50%;
+		font-size: var(--text-xs);
+		font-weight: 500;
+		color: var(--text-muted);
+		font-family: var(--font-mono);
 	}
 
 	.note-card {

@@ -477,16 +477,16 @@
 	</ul>
 	<div class="report-section-divider"></div>
 	<label class="tracker-check-label">
-		<input type="checkbox" bind:checked={includeAttachments} />
-		{$_('vehicle.edit.settings.report.modal.includeAttachments')}
-	</label>
-	<label class="tracker-check-label">
 		<input type="checkbox" bind:checked={includeFinance} />
 		{$_('vehicle.edit.settings.report.modal.includeFinance')}
 	</label>
 	<label class="tracker-check-label" class:tracker-check-label--disabled={!data.hasNotes}>
 		<input type="checkbox" bind:checked={includeNotes} disabled={!data.hasNotes} />
 		{$_('vehicle.edit.settings.report.modal.includeNotes')}
+	</label>
+	<label class="tracker-check-label">
+		<input type="checkbox" bind:checked={includeAttachments} />
+		{$_('vehicle.edit.settings.report.modal.includeAttachments')}
 	</label>
 	{#snippet footer()}
 		<button type="button" class="btn-ghost" onclick={() => (showReportModal = false)}>

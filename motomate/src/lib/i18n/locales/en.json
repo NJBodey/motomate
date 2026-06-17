@@ -550,8 +550,13 @@
 				"content": "Content",
 				"contentPlaceholder": "Write in Markdown…",
 				"docSearch": "Search documents",
-				"docSearchEmpty": "No documents match"
-			}
+				"docSearchEmpty": "No documents match",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Excerpt"
+			},
+			"searchPlaceholder": "Search notes..."
 		}
 	},
 	"maintenance": {

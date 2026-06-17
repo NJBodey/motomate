@@ -2,6 +2,7 @@ import PDFDocumentClass from 'pdfkit';
 import { PDFDocument } from 'pdf-lib';
 import { readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { marked } from 'marked';
 import type {
 	Vehicle,
 	ServiceLog,
@@ -613,18 +614,118 @@ function drawAddendumIndex(doc: PDFDoc, entries: AddendumEntry[], t: ReportTrans
 	}
 }
 
-function stripMarkdown(md: string): string {
-	return md
-		.replace(/#{1,6}\s+/g, '')
-		.replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
-		.replace(/_{1,2}([^_]+)_{1,2}/g, '$1')
-		.replace(/`{1,3}[^`]*`{1,3}/g, '')
-		.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-		.replace(/^>\s+/gm, '')
-		.replace(/^[-*+]\s+/gm, '')
-		.replace(/^\d+\.\s+/gm, '')
-		.replace(/\n{3,}/g, '\n\n')
+function stripInline(text: string): string {
+	return text
+		.replace(/\\$/gm, '')
+		.replace(/\\\n/g, ' ')
+		.replace(/\\([\[\]()\\*_`#!])/g, '$1')
+		.replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+		.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+		.replace(/\*\*\*([^*]+)\*\*\*/g, '$1')
+		.replace(/\*\*([^*]+)\*\*/g, '$1')
+		.replace(/\*([^*]+)\*/g, '$1')
+		.replace(/___([^_]+)___/g, '$1')
+		.replace(/__([^_]+)__/g, '$1')
+		.replace(/_([^_]+)_/g, '$1')
+		.replace(/~~([^~]+)~~/g, '$1')
+		.replace(/`[^`]+`/g, '')
+		.replace(/<[^>]+>/g, '')
 		.trim();
+}
+
+function renderMdBlocks(
+	doc: PDFDoc,
+	tokens: ReturnType<typeof marked.lexer>,
+	x: number,
+	width: number,
+	baseSize: number
+): void {
+	for (const token of tokens) {
+		const t = token as Record<string, unknown>;
+		switch (token.type) {
+			case 'heading': {
+				const depth = Math.min((t['depth'] as number) ?? 1, 3);
+				const size = baseSize + (4 - depth) * 0.5;
+				const text = stripInline((t['text'] as string) ?? '');
+				if (!text) break;
+				ensureSpace(doc, size * 2 + 8);
+				doc.y += depth <= 2 ? 6 : 3;
+				doc.fontSize(size).font(FS).fillColor(INK).text(text, x, doc.y, { width });
+				doc.y += 3;
+				break;
+			}
+			case 'paragraph': {
+				const text = stripInline((t['text'] as string) ?? '');
+				if (!text) break;
+				ensureSpace(doc, baseSize * 2);
+				doc.fontSize(baseSize).font(FB).fillColor(INK).text(text, x, doc.y, { width });
+				break;
+			}
+			case 'list': {
+				const ordered = Boolean(t['ordered']);
+				const items = (t['items'] as Array<Record<string, unknown>>) ?? [];
+				for (let i = 0; i < items.length; i++) {
+					const itemText = stripInline((items[i]['text'] as string) ?? '');
+					if (!itemText) continue;
+					ensureSpace(doc, baseSize * 2);
+					const bullet = ordered ? `${i + 1}.` : '•';
+					doc
+						.fontSize(baseSize)
+						.font(FB)
+						.fillColor(INK)
+						.text(`${bullet}  ${itemText}`, x + 4, doc.y, { width: width - 4 });
+				}
+				break;
+			}
+			case 'blockquote': {
+				const text = stripInline((t['text'] as string) ?? '');
+				if (!text) break;
+				ensureSpace(doc, baseSize * 2 + 4);
+				doc.y += 2;
+				doc
+					.save()
+					.moveTo(x, doc.y)
+					.lineTo(x, doc.y + baseSize * 1.4)
+					.strokeColor(RULE)
+					.lineWidth(2)
+					.stroke()
+					.restore();
+				doc
+					.fontSize(baseSize)
+					.font(FB)
+					.fillColor(MUTED)
+					.text(text, x + 8, doc.y, {
+						width: width - 8
+					});
+				doc.y += 2;
+				break;
+			}
+			case 'code': {
+				const text = ((t['text'] as string) ?? '').trim();
+				if (!text) break;
+				ensureSpace(doc, baseSize * 1.5 + 8);
+				doc.y += 3;
+				doc
+					.fontSize(baseSize - 1)
+					.font(FN)
+					.fillColor(MUTED)
+					.text(text, x + 4, doc.y, { width: width - 8 });
+				doc.y += 3;
+				break;
+			}
+			case 'hr': {
+				ensureSpace(doc, 14);
+				doc.y += 4;
+				hRule(doc, doc.y, RULE, 0.3);
+				doc.y += 10;
+				break;
+			}
+			case 'space': {
+				doc.y += 4;
+				break;
+			}
+		}
+	}
 }
 
 function drawNotes(doc: PDFDoc, notes: VehicleNote[], t: ReportTranslations, locale: string): void {
@@ -643,14 +744,12 @@ function drawNotes(doc: PDFDoc, notes: VehicleNote[], t: ReportTranslations, loc
 	);
 
 	for (const note of sorted) {
-		const plainText = stripMarkdown(note.content);
-		if (!plainText && !note.title) continue;
+		if (!note.content?.trim() && !note.title) continue;
 
 		ensureSpace(doc, 44);
-		const entryTop = doc.y;
 
 		if (note.title) {
-			doc.fontSize(10).font(FS).fillColor(INK).text(note.title, ML, entryTop, { width: CW });
+			doc.fontSize(10).font(FS).fillColor(INK).text(note.title, ML, doc.y, { width: CW });
 		}
 
 		const dateStr = fmtDateShort(note.updated_at, locale);
@@ -658,20 +757,12 @@ function drawNotes(doc: PDFDoc, notes: VehicleNote[], t: ReportTranslations, loc
 			.fontSize(9)
 			.font(FN)
 			.fillColor(MUTED)
-			.text(dateStr, ML, note.title ? doc.y + 2 : entryTop, { lineBreak: false });
-
+			.text(dateStr, ML, doc.y + 2, { lineBreak: false });
 		doc.y += 14;
 
-		if (plainText) {
-			const lines = plainText.split('\n');
-			for (const line of lines) {
-				if (!line.trim()) {
-					doc.y += 6;
-					continue;
-				}
-				ensureSpace(doc, 16);
-				doc.fontSize(9).font(FB).fillColor(INK).text(line, ML, doc.y, { width: CW });
-			}
+		if (note.content?.trim()) {
+			const tokens = marked.lexer(note.content);
+			renderMdBlocks(doc, tokens, ML, CW, 9);
 		}
 
 		doc.y += 8;
@@ -758,6 +849,11 @@ export async function buildMaintenanceReport(opts: MaintenanceReportOptions): Pr
 				.map(([id, idx]) => ({ id, idx, doc: docMap.get(id)! }))
 		: [];
 
+	const notes = opts.notes ?? [];
+	if (notes.length > 0) {
+		drawNotes(pdfDoc, notes, t, locale);
+	}
+
 	if (includeAttachments) {
 		const addendumEntries: AddendumEntry[] = orderedAttachments.map(({ id, doc: d }) => ({
 			tag: `[A${attachmentIndex.get(id)}]`,
@@ -765,11 +861,6 @@ export async function buildMaintenanceReport(opts: MaintenanceReportOptions): Pr
 			embeddable: (isImage(d.mime_type) || isPdf(d.mime_type)) && docBuffers.has(id)
 		}));
 		drawAddendumIndex(pdfDoc, addendumEntries, t);
-	}
-
-	const notes = opts.notes ?? [];
-	if (notes.length > 0) {
-		drawNotes(pdfDoc, notes, t, locale);
 	}
 
 	const contentPageCount = pdfDoc.bufferedPageRange().count;

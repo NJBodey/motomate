@@ -549,8 +549,13 @@
 				"content": "Contenu",
 				"contentPlaceholder": "Rédige en Markdown…",
 				"docSearch": "Rechercher des documents",
-				"docSearchEmpty": "Aucun document trouvé"
-			}
+				"docSearchEmpty": "Aucun document trouvé",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Extrait"
+			},
+			"searchPlaceholder": "Rechercher des notes..."
 		}
 	},
 	"maintenance": {

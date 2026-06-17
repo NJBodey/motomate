@@ -16,7 +16,10 @@ const noteSchema = z.object({
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const notes = await getNotesByVehicle(params.id, locals.user!.id);
-	return { notes };
+	return {
+		notes,
+		page_prefs: locals.user!.settings?.page_prefs?.notes ?? null
+	};
 };
 
 export const actions: Actions = {
