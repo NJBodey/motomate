@@ -380,16 +380,19 @@
 	});
 
 	$effect(() => {
-		if (form?.created) {
-			toasts.success($_('finance.transactionAdded'));
-		}
-		if (form?.deleted) {
-			toasts.success($_('finance.transactionDeleted'));
-		}
-		if (form?.edited) {
-			toasts.success($_('finance.transactionUpdated'));
-			editingEntry = null;
-		}
+		const f = form;
+		untrack(() => {
+			if (f?.created) {
+				toasts.success($_('finance.transactionAdded'));
+			}
+			if (f?.deleted) {
+				toasts.success($_('finance.transactionDeleted'));
+			}
+			if (f?.edited) {
+				toasts.success($_('finance.transactionUpdated'));
+				editingEntry = null;
+			}
+		});
 	});
 
 	function scrollOnMount(node: HTMLElement) {

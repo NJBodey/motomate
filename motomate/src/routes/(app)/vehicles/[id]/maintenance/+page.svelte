@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack, tick } from 'svelte';
 	import { enhance } from '$app/forms';
-	import { invalidateAll, beforeNavigate, replaceState } from '$app/navigation';
+	import { beforeNavigate, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { PageData } from './$types';
 	import TrackerCard from '$lib/components/ui/TrackerCard.svelte';
@@ -238,36 +238,37 @@
 	}
 
 	$effect(() => {
-		if (form?.trackerUpdated) {
-			toasts.success($_('maintenance.toasts.trackerUpdated'));
-		}
-		if (form?.trackerDeleted) {
-			toasts.success($_('maintenance.toasts.trackerDeleted'));
-			trackerMenu = null;
-		}
-		if (form?.skipped) {
-			skippingTracker = null;
-		}
-		if (form?.added) {
-			toasts.success($_('maintenance.toasts.taskAdded'));
-			invalidateAll();
-		}
-		if (form?.error) {
-			toasts.error(String(form.error));
-		}
-		if (form?.trackerError) {
-			toasts.error(String(form.trackerError));
-		}
-		if (form?.taskError) {
-			toasts.error(String(form.taskError));
-		}
-		if (form?.defaultsApplied) {
-			toasts.success($_('maintenance.toasts.defaultsApplied'));
-			invalidateAll();
-		}
-		if (form?.defaultsError) {
-			toasts.error(String(form.defaultsError));
-		}
+		const f = form;
+		untrack(() => {
+			if (f?.trackerUpdated) {
+				toasts.success($_('maintenance.toasts.trackerUpdated'));
+			}
+			if (f?.trackerDeleted) {
+				toasts.success($_('maintenance.toasts.trackerDeleted'));
+				trackerMenu = null;
+			}
+			if (f?.skipped) {
+				skippingTracker = null;
+			}
+			if (f?.added) {
+				toasts.success($_('maintenance.toasts.taskAdded'));
+			}
+			if (f?.error) {
+				toasts.error(String(f.error));
+			}
+			if (f?.trackerError) {
+				toasts.error(String(f.trackerError));
+			}
+			if (f?.taskError) {
+				toasts.error(String(f.taskError));
+			}
+			if (f?.defaultsApplied) {
+				toasts.success($_('maintenance.toasts.defaultsApplied'));
+			}
+			if (f?.defaultsError) {
+				toasts.error(String(f.defaultsError));
+			}
+		});
 	});
 
 	$effect(() => {
