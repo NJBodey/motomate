@@ -72,7 +72,7 @@
 		"leaflet-gpx": "^2.2.0",
 		"lucia": "^3.2.2",
 		"marked": "^18.0.5",
-		"nodemailer": "^8.0.7",
+		"nodemailer": "^8.0.9",
 		"oslo": "^1.2.1",
 		"pdf-lib": "^1.17.1",
 		"pdfkit": "^0.18.0",
