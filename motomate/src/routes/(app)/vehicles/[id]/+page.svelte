@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { replaceState, beforeNavigate } from '$app/navigation';
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
 	import type { PageData } from './$types';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import { _, waitLocale } from '$lib/i18n';
 	import { quickAdd } from '$lib/stores/quickAdd.svelte.js';
+	import { sheet } from '$lib/stores/sheet.svelte.js';
+	import TransactionForm from '$lib/components/finance/TransactionForm.svelte';
+	import NoteForm from '$lib/components/vehicle/NoteForm.svelte';
+	import OdometerForm from '$lib/components/vehicle/OdometerForm.svelte';
+	import ServiceLogForm from '$lib/components/vehicle/ServiceLogForm.svelte';
+	import ServiceLogEditForm from '$lib/components/vehicle/ServiceLogEditForm.svelte';
 	import {
 		formatDateShort,
 		formatYearMonth,
@@ -15,7 +20,6 @@
 		formatMeasurement,
 		formatCurrency
 	} from '$lib/utils/format.js';
-	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
 
 	let { data, form }: { data: PageData; form: Record<string, unknown> | null } = $props();
 
@@ -26,15 +30,6 @@
 	const locale = $derived(data.user?.settings?.locale ?? 'en');
 	const unit = $derived(data.vehicle.odometer_unit);
 	const isHoursVehicle = $derived(unit === 'h');
-	const unitLabel = $derived($_(getMeasurementUnitTranslationKey(unit)));
-	const measurementFieldLabel = $derived(
-		isHoursVehicle
-			? $_('vehicle.forms.fields.usage', { values: { unit: unitLabel } })
-			: $_('vehicle.forms.fields.odometer', { values: { unit: unitLabel } })
-	);
-	const currentReadingLabel = $derived(
-		$_('vehicle.forms.fields.currentReading', { values: { unit: unitLabel } })
-	);
 	const updateReadingTitle = $derived(
 		isHoursVehicle ? $_('vehicle.forms.updateUsage') : $_('vehicle.forms.updateOdo')
 	);
@@ -60,9 +55,28 @@
 	const today = new Date().toISOString().slice(0, 10);
 
 	// Log dropdown
+	type MenuKey = 'service' | 'odometer' | 'note' | 'finance';
+	const DEFAULT_MENU_ORDER: MenuKey[] = ['service', 'odometer', 'note', 'finance'];
+
+	function normalizeMenuOrder(stored: string[] | null | undefined): MenuKey[] {
+		if (!stored?.length) return [...DEFAULT_MENU_ORDER];
+		const seen = new Set<string>();
+		const result: MenuKey[] = [];
+		for (const k of stored) {
+			if ((DEFAULT_MENU_ORDER as string[]).includes(k) && !seen.has(k)) {
+				result.push(k as MenuKey);
+				seen.add(k);
+			}
+		}
+		for (const k of DEFAULT_MENU_ORDER) {
+			if (!seen.has(k)) result.push(k);
+		}
+		return result;
+	}
+
 	let menuOpen = $state(false);
-	let activeForm = $state<'service' | 'odometer' | 'note' | null>(null);
-	let submitting = $state(false);
+	let addMenuOrder = $state<MenuKey[]>(untrack(() => normalizeMenuOrder(data.addMenuOrder)));
+	let draggedMenuIdx = $state<number | null>(null);
 	let isMobile = $state(false);
 
 	$effect(() => {
@@ -76,44 +90,98 @@
 		}
 	});
 
-	// Track odometer form input for reactive warning
-	let odoValue = $state('');
-	let odoDirty = $state(false);
-
-	function openForm(kind: 'service' | 'odometer' | 'note') {
+	function openSheet(kind: 'service' | 'odometer' | 'note') {
 		menuOpen = false;
-		activeForm = kind;
-		if (kind === 'odometer') {
-			odoValue = String(data.vehicle.current_odometer);
-			odoDirty = false;
+		if (kind === 'service') {
+			sheet.openSheet(ServiceLogForm, $_('vehicle.forms.logService'), {
+				vehicleId: data.vehicle.id,
+				odometerUnit: data.vehicle.odometer_unit,
+				currentOdometer: data.vehicle.current_odometer,
+				today,
+				trackers: data.trackers,
+				allDocs: data.allDocs ?? []
+			});
+		} else if (kind === 'odometer') {
+			sheet.openSheet(OdometerForm, updateReadingTitle, {
+				vehicleId: data.vehicle.id,
+				odometerUnit: data.vehicle.odometer_unit,
+				currentOdometer: data.vehicle.current_odometer,
+				today
+			});
+		} else if (kind === 'note') {
+			sheet.openSheet(NoteForm, $_('vehicle.forms.writeNote'), {
+				vehicleId: data.vehicle.id,
+				today
+			});
 		}
 	}
 
-	const odoWarning = $derived.by((): string | undefined => {
-		if (!odoDirty) return undefined;
-		const num = Number(odoValue);
-		if (!Number.isInteger(num) || num < 0) return undefined;
-		const current = data.vehicle.current_odometer;
-		if (num === current) return $_('vehicle.forms.warnings.odoSame', { values: { num, unit } });
-		if (num < current) return $_('vehicle.forms.warnings.odoLower', { values: { current, unit } });
-		return undefined;
+	const addMenuConfig = $derived<Record<MenuKey, { label: string; desc: string; href?: string }>>({
+		service: {
+			label: $_('layout.addEntry.maintenance'),
+			desc: $_('layout.addEntry.maintenanceDesc')
+		},
+		odometer: { label: readingMenuLabel, desc: readingMenuDesc },
+		note: { label: $_('vehicle.forms.writeNote'), desc: $_('vehicle.forms.noteDesc') },
+		finance: {
+			label: $_('layout.addEntry.finance'),
+			desc: $_('layout.addEntry.financeDesc')
+		}
 	});
+
+	function handleMenuItemClick(key: MenuKey) {
+		if (key === 'service' || key === 'odometer' || key === 'note') {
+			openSheet(key);
+		} else if (key === 'finance') {
+			menuOpen = false;
+			sheet.openSheet(TransactionForm, $_('finance.form.addTitle'), {
+				vehicleId: data.vehicle.id,
+				locale: data.user?.settings?.locale ?? 'en',
+				currency: data.currency,
+				odometerUnit: data.vehicle.odometer_unit,
+				allDocs: data.allDocs ?? []
+			});
+		}
+	}
+
+	function onMenuDragStart(e: DragEvent, idx: number) {
+		draggedMenuIdx = idx;
+		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+	}
+
+	function onMenuDragOver(e: DragEvent, idx: number) {
+		e.preventDefault();
+		if (draggedMenuIdx === null || draggedMenuIdx === idx) return;
+		const order = [...addMenuOrder];
+		const [moved] = order.splice(draggedMenuIdx, 1);
+		order.splice(idx, 0, moved);
+		addMenuOrder = order;
+		draggedMenuIdx = idx;
+	}
+
+	function onMenuDragEnd() {
+		draggedMenuIdx = null;
+		fetch('/api/prefs', {
+			method: 'PATCH',
+			keepalive: true,
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ page_prefs: { global: { addMenuOrder } } })
+		});
+	}
 
 	// Handle ?quick= param from the mobile FAB quick-add flow
 	$effect(() => {
 		const quick = page.url.searchParams.get('quick');
 		if (quick === 'service' || quick === 'odometer' || quick === 'note') {
-			activeForm = quick;
+			openSheet(quick);
 			const url = new URL(page.url);
 			url.searchParams.delete('quick');
-			replaceState(url, page.state);
+			tick().then(() => replaceState(url, page.state));
 		}
 	});
 
 	// Entry ⋮ menu
 	let entryMenu = $state<string | null>(null);
-	let editingEntry = $state<{ id: string; kind: 'service' | 'odometer' | 'note' } | null>(null);
-	let editSubmitting = $state(false);
 	let deletingEntry = $state<{
 		id: string;
 		kind: 'service' | 'odometer' | 'note' | 'finance';
@@ -122,32 +190,10 @@
 	function toggleEntryMenu(id: string) {
 		entryMenu = entryMenu === id ? null : id;
 	}
-	function startEdit(id: string, kind: 'service' | 'odometer' | 'note') {
-		editingEntry = { id, kind };
-		entryMenu = null;
-		editAttachFile = null;
-		editAttachType = 'service';
-		editShowLink = false;
-	}
 
 	$effect(() => {
-		if (form?.logged || form?.odoUpdated || form?.noteLogged) {
-			activeForm = null;
-			menuOpen = false;
-			attachFile = null;
-			showLinkNew = false;
-			newLinkedDocIds = new Set();
-		}
-		if ((form as any)?.editedLog || (form as any)?.deletedLog) {
-			editingEntry = null;
+		if ((form as any)?.deletedLog) {
 			entryMenu = null;
-		}
-		if ((form as any)?.attachUploaded) {
-			editAttachFile = null;
-			editUploading = false;
-		}
-		if ((form as any)?.linked) {
-			editShowLink = false;
 		}
 	});
 
@@ -398,60 +444,13 @@
 		return data.odoLogs.find((l: (typeof data.odoLogs)[number]) => l.id === id);
 	}
 
-	// Attachment state
-	let attachFile = $state<File | null>(null);
-	let attachType = $state('service');
-	let showLinkNew = $state(false);
-	let newLinkedDocIds = $state(new Set<string>());
-
-	const docTypeEntries = Object.entries({
-		service: 'documents.types.service',
-		quotation: 'documents.types.quotation',
-		papers: 'documents.types.papers',
-		photo: 'documents.types.photo',
-		notes: 'documents.types.notes',
-		other: 'documents.types.other'
-	});
-
-	function handleAttachPick(e: Event) {
-		const input = e.target as HTMLInputElement;
-		attachFile = input.files?.[0] ?? null;
-	}
-	function clearAttach() {
-		attachFile = null;
-	}
-	function toggleNewLink(id: string) {
-		const next = new Set(newLinkedDocIds);
-		if (next.has(id)) next.delete(id);
-		else next.add(id);
-		newLinkedDocIds = next;
-	}
-
-	// Attachment state; edit service log form
-	let editAttachFile = $state<File | null>(null);
-	let editAttachType = $state('service');
-	let editShowLink = $state(false);
-	let editUploading = $state(false);
-
-	function handleEditAttachPick(e: Event) {
-		const input = e.target as HTMLInputElement;
-		editAttachFile = input.files?.[0] ?? null;
-	}
-	function clearEditAttach() {
-		editAttachFile = null;
-	}
-
-	// Document helpers
+	// Document helpers (used for attachment display in timeline)
 	const docMap = $derived(
 		new Map((data.allDocs ?? []).map((d: (typeof data.allDocs)[number]) => [d.id, d]))
 	);
 	function resolvedAttachments(log: (typeof data.logs)[number]) {
 		const ids: string[] = (log.attachments as string[]) ?? [];
 		return ids.map((id) => docMap.get(id)).filter(Boolean) as (typeof data.allDocs)[number][];
-	}
-	function unlinkedDocs(log: (typeof data.logs)[number]) {
-		const ids = new Set<string>((log.attachments as string[]) ?? []);
-		return (data.allDocs ?? []).filter((d: (typeof data.allDocs)[number]) => !ids.has(d.id));
 	}
 </script>
 
@@ -469,572 +468,230 @@
 		</p>
 	</div>
 	<div class="page-actions">
-		{#if activeForm && !isMobile}
-			<button class="btn-ghost" onclick={() => (activeForm = null)}>
-				{$_('common.cancel')}
-			</button>
-		{:else}
-			<!-- Filter button -->
-			<div class="filter-wrap">
-				<button
-					class="btn-ghost btn-icon"
-					class:btn-icon--active={filtersNonDefault}
-					onclick={() => (filterOpen = !filterOpen)}
-					aria-label="Filter entries"
-					aria-expanded={filterOpen}
-				>
-					<svg
-						width="15"
-						height="15"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-					>
-						<line x1="4" y1="21" x2="4" y2="14" />
-						<line x1="4" y1="10" x2="4" y2="3" />
-						<line x1="12" y1="21" x2="12" y2="12" />
-						<line x1="12" y1="8" x2="12" y2="3" />
-						<line x1="20" y1="21" x2="20" y2="16" />
-						<line x1="20" y1="12" x2="20" y2="3" />
-						<line x1="1" y1="14" x2="7" y2="14" />
-						<line x1="9" y1="8" x2="15" y2="8" />
-						<line x1="17" y1="16" x2="23" y2="16" />
-					</svg>
-					{#if filtersNonDefault}
-						<span class="filter-active-dot" aria-hidden="true"></span>
-					{/if}
-				</button>
-				{#if filterOpen}
-					<div
-						class="add-menu-backdrop"
-						role="presentation"
-						onclick={() => (filterOpen = false)}
-					></div>
-					<div class="filter-dropdown">
-						<button
-							class="filter-row"
-							role="checkbox"
-							aria-checked={filters.service}
-							onclick={() => (filters.service = !filters.service)}
-						>
-							<span class="filter-check" class:filter-check--on={filters.service}>
-								{#if filters.service}<svg
-										width="9"
-										height="9"
-										viewBox="0 0 12 12"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
-									>{/if}
-							</span>
-							<span class="filter-label">{$_('vehicle.detail.timeline.filter.service')}</span>
-						</button>
-						<button
-							class="filter-row"
-							role="checkbox"
-							aria-checked={filters.odometer}
-							onclick={() => (filters.odometer = !filters.odometer)}
-						>
-							<span class="filter-check" class:filter-check--on={filters.odometer}>
-								{#if filters.odometer}<svg
-										width="9"
-										height="9"
-										viewBox="0 0 12 12"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
-									>{/if}
-							</span>
-							<span class="filter-label">{readingFilterLabel}</span>
-						</button>
-						<button
-							class="filter-row"
-							role="checkbox"
-							aria-checked={filters.note}
-							onclick={() => (filters.note = !filters.note)}
-						>
-							<span class="filter-check" class:filter-check--on={filters.note}>
-								{#if filters.note}<svg
-										width="9"
-										height="9"
-										viewBox="0 0 12 12"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
-									>{/if}
-							</span>
-							<span class="filter-label">{$_('vehicle.detail.timeline.filter.notes')}</span>
-						</button>
-						<button
-							class="filter-row"
-							role="checkbox"
-							aria-checked={filters.travel}
-							onclick={() => (filters.travel = !filters.travel)}
-						>
-							<span class="filter-check" class:filter-check--on={filters.travel}>
-								{#if filters.travel}<svg
-										width="9"
-										height="9"
-										viewBox="0 0 12 12"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
-									>{/if}
-							</span>
-							<span class="filter-label">{$_('vehicle.detail.timeline.filter.travels')}</span>
-						</button>
-						<div class="filter-divider"></div>
-						<button
-							class="filter-row"
-							role="checkbox"
-							aria-checked={filters.finance}
-							onclick={() => (filters.finance = !filters.finance)}
-						>
-							<span class="filter-check" class:filter-check--on={filters.finance}>
-								{#if filters.finance}<svg
-										width="9"
-										height="9"
-										viewBox="0 0 12 12"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
-									>{/if}
-							</span>
-							<span class="filter-label">{$_('vehicle.detail.timeline.filter.finance')}</span>
-						</button>
-						<button
-							class="filter-row"
-							role="checkbox"
-							aria-checked={filters.reminder}
-							onclick={() => (filters.reminder = !filters.reminder)}
-						>
-							<span class="filter-check" class:filter-check--on={filters.reminder}>
-								{#if filters.reminder}<svg
-										width="9"
-										height="9"
-										viewBox="0 0 12 12"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
-									>{/if}
-							</span>
-							<span class="filter-label">{$_('vehicle.detail.timeline.filter.reminders')}</span>
-						</button>
-					</div>
-				{/if}
-			</div>
-
+		<!-- Filter button -->
+		<div class="filter-wrap">
 			<button
-				class="btn-primary"
-				onclick={() => (isMobile ? quickAdd.open(data.vehicle.id) : (menuOpen = !menuOpen))}
+				class="btn-ghost btn-icon"
+				class:btn-icon--active={filtersNonDefault}
+				onclick={() => (filterOpen = !filterOpen)}
+				aria-label="Filter entries"
+				aria-expanded={filterOpen}
 			>
-				+ {$_('common.add')}
+				<svg
+					width="15"
+					height="15"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+				>
+					<line x1="4" y1="21" x2="4" y2="14" />
+					<line x1="4" y1="10" x2="4" y2="3" />
+					<line x1="12" y1="21" x2="12" y2="12" />
+					<line x1="12" y1="8" x2="12" y2="3" />
+					<line x1="20" y1="21" x2="20" y2="16" />
+					<line x1="20" y1="12" x2="20" y2="3" />
+					<line x1="1" y1="14" x2="7" y2="14" />
+					<line x1="9" y1="8" x2="15" y2="8" />
+					<line x1="17" y1="16" x2="23" y2="16" />
+				</svg>
+				{#if filtersNonDefault}
+					<span class="filter-active-dot" aria-hidden="true"></span>
+				{/if}
 			</button>
-			{#if !isMobile && menuOpen}
-				<div class="add-menu-backdrop" role="presentation" onclick={() => (menuOpen = false)}></div>
-				<div class="add-menu-dropdown">
-					<button class="add-menu-item" onclick={() => openForm('service')}>
-						<span>{$_('layout.addEntry.maintenance')}</span>
-						<span class="add-menu-desc">{$_('layout.addEntry.maintenanceDesc')}</span>
+			{#if filterOpen}
+				<div
+					class="add-menu-backdrop"
+					role="presentation"
+					onclick={() => (filterOpen = false)}
+				></div>
+				<div class="filter-dropdown">
+					<button
+						class="filter-row"
+						role="checkbox"
+						aria-checked={filters.service}
+						onclick={() => (filters.service = !filters.service)}
+					>
+						<span class="filter-check" class:filter-check--on={filters.service}>
+							{#if filters.service}<svg
+									width="9"
+									height="9"
+									viewBox="0 0 12 12"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
+								>{/if}
+						</span>
+						<span class="filter-label">{$_('vehicle.detail.timeline.filter.service')}</span>
 					</button>
-					<button class="add-menu-item" onclick={() => openForm('odometer')}>
-						<span>{readingMenuLabel}</span>
-						<span class="add-menu-desc">{readingMenuDesc}</span>
+					<button
+						class="filter-row"
+						role="checkbox"
+						aria-checked={filters.odometer}
+						onclick={() => (filters.odometer = !filters.odometer)}
+					>
+						<span class="filter-check" class:filter-check--on={filters.odometer}>
+							{#if filters.odometer}<svg
+									width="9"
+									height="9"
+									viewBox="0 0 12 12"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
+								>{/if}
+						</span>
+						<span class="filter-label">{readingFilterLabel}</span>
 					</button>
-					<button class="add-menu-item" onclick={() => openForm('note')}>
-						<span>{$_('vehicle.forms.writeNote')}</span>
-						<span class="add-menu-desc">{$_('vehicle.forms.noteDesc')}</span>
+					<button
+						class="filter-row"
+						role="checkbox"
+						aria-checked={filters.note}
+						onclick={() => (filters.note = !filters.note)}
+					>
+						<span class="filter-check" class:filter-check--on={filters.note}>
+							{#if filters.note}<svg
+									width="9"
+									height="9"
+									viewBox="0 0 12 12"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
+								>{/if}
+						</span>
+						<span class="filter-label">{$_('vehicle.detail.timeline.filter.notes')}</span>
 					</button>
-					{#if filters.finance}
-						<div class="add-menu-divider"></div>
-						<a
-							class="add-menu-item"
-							href="/vehicles/{data.vehicle.id}/finance?quick=finance"
-							onclick={() => (menuOpen = false)}
-						>
-							<span>{$_('layout.addEntry.finance')}</span>
-							<span class="add-menu-desc">{$_('layout.addEntry.financeDesc')}</span>
-						</a>
-					{/if}
+					<button
+						class="filter-row"
+						role="checkbox"
+						aria-checked={filters.travel}
+						onclick={() => (filters.travel = !filters.travel)}
+					>
+						<span class="filter-check" class:filter-check--on={filters.travel}>
+							{#if filters.travel}<svg
+									width="9"
+									height="9"
+									viewBox="0 0 12 12"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
+								>{/if}
+						</span>
+						<span class="filter-label">{$_('vehicle.detail.timeline.filter.travels')}</span>
+					</button>
+					<div class="filter-divider"></div>
+					<button
+						class="filter-row"
+						role="checkbox"
+						aria-checked={filters.finance}
+						onclick={() => (filters.finance = !filters.finance)}
+					>
+						<span class="filter-check" class:filter-check--on={filters.finance}>
+							{#if filters.finance}<svg
+									width="9"
+									height="9"
+									viewBox="0 0 12 12"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
+								>{/if}
+						</span>
+						<span class="filter-label">{$_('vehicle.detail.timeline.filter.finance')}</span>
+					</button>
+					<button
+						class="filter-row"
+						role="checkbox"
+						aria-checked={filters.reminder}
+						onclick={() => (filters.reminder = !filters.reminder)}
+					>
+						<span class="filter-check" class:filter-check--on={filters.reminder}>
+							{#if filters.reminder}<svg
+									width="9"
+									height="9"
+									viewBox="0 0 12 12"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><polyline points="1.5 6.5 4.5 9.5 10.5 2.5" /></svg
+								>{/if}
+						</span>
+						<span class="filter-label">{$_('vehicle.detail.timeline.filter.reminders')}</span>
+					</button>
 				</div>
 			{/if}
+		</div>
+
+		<button
+			class="btn-primary"
+			onclick={() => (isMobile ? quickAdd.open(data.vehicle.id) : (menuOpen = !menuOpen))}
+		>
+			+ {$_('common.add')}
+		</button>
+		{#if !isMobile && menuOpen}
+			<div class="add-menu-backdrop" role="presentation" onclick={() => (menuOpen = false)}></div>
+			<div class="add-menu-dropdown">
+				{#each addMenuOrder as key, i (key)}
+					{@const cfg = addMenuConfig[key]}
+					{#if cfg.href}
+						<a
+							class="add-menu-item"
+							class:add-menu-item--dragging={draggedMenuIdx === i}
+							href={cfg.href}
+							onclick={() => (menuOpen = false)}
+							draggable="true"
+							ondragstart={(e) => onMenuDragStart(e, i)}
+							ondragover={(e) => onMenuDragOver(e, i)}
+							ondragend={onMenuDragEnd}
+						>
+							<span class="drag-handle" aria-hidden="true">⠿</span>
+							<span class="add-menu-content">
+								<span>{cfg.label}</span>
+								<span class="add-menu-desc">{cfg.desc}</span>
+							</span>
+						</a>
+					{:else}
+						<button
+							class="add-menu-item"
+							class:add-menu-item--dragging={draggedMenuIdx === i}
+							onclick={() => handleMenuItemClick(key)}
+							draggable="true"
+							ondragstart={(e) => onMenuDragStart(e, i)}
+							ondragover={(e) => onMenuDragOver(e, i)}
+							ondragend={onMenuDragEnd}
+						>
+							<span class="drag-handle" aria-hidden="true">⠿</span>
+							<span class="add-menu-content">
+								<span>{cfg.label}</span>
+								<span class="add-menu-desc">{cfg.desc}</span>
+							</span>
+						</button>
+					{/if}
+				{/each}
+			</div>
 		{/if}
 	</div>
 </div>
 
 <div class="page-content">
-	{#if activeForm === 'service'}
-		<form
-			method="POST"
-			action="?/logService"
-			enctype="multipart/form-data"
-			class="inline-form"
-			use:enhance={({ formData }) => {
-				if (attachFile) formData.set('attachment_file', attachFile);
-				for (const id of newLinkedDocIds) formData.append('linked_doc_id', id);
-				submitting = true;
-				return async ({ update }) => {
-					await update();
-					submitting = false;
-					attachType = 'service';
-				};
-			}}
-		>
-			<div class="inline-form-title">{$_('vehicle.forms.logService')}</div>
-			{#if (form as any)?.error}
-				<div class="form-err">{(form as any).error}</div>
-			{/if}
-			<div class="form-row">
-				<label class="field">
-					<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-					<input type="date" name="performed_at" value={today} class="input" required />
-				</label>
-				<label class="field">
-					<span class="field-label">{measurementFieldLabel}</span>
-					<input
-						type="number"
-						name="odometer_at_service"
-						value={data.vehicle.current_odometer}
-						min="0"
-						class="input mono"
-						required
-					/>
-				</label>
-			</div>
-			{#if data.trackers.length > 0}
-				<fieldset class="tracker-select">
-					<legend class="field-label"
-						>{$_('vehicle.forms.fields.resetCycle', {
-							values: { optional: $_('vehicle.forms.fields.checkToReset') }
-						})}</legend
-					>
-					<div class="tracker-checkboxes">
-						{#each data.trackers as t}
-							<label class="tracker-checkbox">
-								<input type="checkbox" name="reset_trackers" value={t.id} />
-								<span class="tracker-check-label">
-									<span class="tracker-check-name">{t.template.name}</span>
-									{#if t.reminder_only}
-										<span class="tracker-check-status"
-											>{$_('maintenance.tracker.reminderBadge')}</span
-										>
-									{:else if t.status === 'due'}
-										<span class="tracker-check-status tracker-check-status--due"
-											>{$_('maintenance.tracker.status.due')}</span
-										>
-									{:else if t.status === 'overdue'}
-										<span class="tracker-check-status tracker-check-status--overdue"
-											>{$_('maintenance.tracker.status.overdue')}</span
-										>
-									{/if}
-								</span>
-							</label>
-						{/each}
-					</div>
-				</fieldset>
-			{/if}
-			<label class="field">
-				<span class="field-label">{$_('vehicle.forms.fields.description')}</span>
-				<input
-					type="text"
-					name="notes"
-					placeholder={$_('vehicle.forms.placeholders.description')}
-					maxlength="200"
-					class="input"
-				/>
-			</label>
-			<label class="field">
-				<span class="field-label"
-					>{$_('vehicle.forms.fields.remark', {
-						values: { optional: $_('common.optional') }
-					})}</span
-				>
-				<input
-					type="text"
-					name="remark"
-					placeholder={$_('vehicle.forms.placeholders.additionalDetails')}
-					maxlength="200"
-					class="input"
-				/>
-			</label>
-			<label class="field">
-				<span class="field-label"
-					>{$_('vehicle.forms.fields.cost', { values: { optional: $_('common.optional') } })}</span
-				>
-				<input
-					type="number"
-					name="cost"
-					min="0"
-					step="0.01"
-					placeholder={$_('vehicle.forms.placeholders.cost')}
-					class="input mono"
-				/>
-			</label>
-
-			<div class="form-attachments">
-				<span class="field-label"
-					>{$_('vehicle.forms.fields.attachments', {
-						values: { optional: $_('common.optional') }
-					})}</span
-				>
-				<div class="attach-actions">
-					{#if attachFile}
-						<span class="doc-chip">
-							<span class="doc-chip-name">{attachFile.name}</span>
-							<button
-								type="button"
-								class="doc-chip-remove"
-								onclick={clearAttach}
-								aria-label="Remove">×</button
-							>
-						</span>
-						<select name="attachment_type" class="input attach-type" bind:value={attachType}>
-							{#each docTypeEntries as [val, key]}
-								<option value={val}>{$_(key)}</option>
-							{/each}
-						</select>
-					{:else}
-						<label class="attach-action-btn">
-							<svg
-								width="13"
-								height="13"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								aria-hidden="true"
-								><path
-									d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"
-								/></svg
-							>
-							{$_('vehicle.forms.attachFile')}
-							<input
-								type="file"
-								class="attach-file-input"
-								accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-								onchange={handleAttachPick}
-							/>
-						</label>
-					{/if}
-					<button
-						type="button"
-						class="attach-action-btn"
-						onclick={() => (showLinkNew = !showLinkNew)}
-					>
-						<svg
-							width="13"
-							height="13"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							aria-hidden="true"
-							><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path
-								d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
-							/></svg
-						>
-						{$_('vehicle.forms.linkDocument')}
-					</button>
-				</div>
-				{#if showLinkNew}
-					<div class="link-picker">
-						<div class="link-picker-header">
-							<span class="link-picker-title">{$_('vehicle.forms.attachments.pickerTitle')}</span>
-							<button type="button" class="link-picker-close" onclick={() => (showLinkNew = false)}
-								>×</button
-							>
-						</div>
-						{#if (data.allDocs ?? []).length === 0}
-							<p class="link-picker-empty">{$_('vehicle.forms.attachments.noDocuments')}</p>
-						{:else}
-							<ul class="link-picker-list">
-								{#each data.allDocs as doc}
-									<li>
-										<label class="link-picker-item link-picker-item--check">
-											<input
-												type="checkbox"
-												checked={newLinkedDocIds.has(doc.id)}
-												onchange={() => toggleNewLink(doc.id)}
-											/>
-											<span class="doc-chip-type">{$_('documents.types.' + doc.doc_type)}</span>
-											<span class="link-picker-item-name">{doc.name}</span>
-										</label>
-									</li>
-								{/each}
-							</ul>
-						{/if}
-					</div>
-				{/if}
-				{#if newLinkedDocIds.size > 0}
-					<div class="attach-chips">
-						{#each [...newLinkedDocIds] as id}
-							{@const doc = docMap.get(id)}
-							{#if doc}
-								<span class="doc-chip">
-									<span class="doc-chip-type">{$_('documents.types.' + doc.doc_type)}</span>
-									<span class="doc-chip-name"
-										>{doc.name.length > 24 ? doc.name.slice(0, 24) + '…' : doc.name}</span
-									>
-									<button
-										type="button"
-										class="doc-chip-remove"
-										onclick={() => toggleNewLink(id)}
-										aria-label="Remove">×</button
-									>
-								</span>
-							{/if}
-						{/each}
-					</div>
-				{/if}
-			</div>
-
-			{#if (data as any).demoMode}
-				<p class="demo-form-note">Demo mode: entries are not saved.</p>
-			{/if}
-			<div class="form-actions">
-				<button type="submit" class="btn-primary" disabled={submitting}
-					>{submitting ? $_('common.saving') : $_('vehicle.forms.submit.service')}</button
-				>
-				<button type="button" class="btn-ghost" onclick={() => (activeForm = null)}
-					>{$_('common.cancel')}</button
-				>
-			</div>
-		</form>
-	{/if}
-
-	{#if activeForm === 'odometer'}
-		<form
-			method="POST"
-			action="?/updateOdometer"
-			class="inline-form"
-			use:enhance={() => {
-				submitting = true;
-				return async ({ update }) => {
-					await update();
-					submitting = false;
-				};
-			}}
-		>
-			<div class="inline-form-title">{updateReadingTitle}</div>
-			{#if (form as any)?.odoError}
-				<div class="form-err">{(form as any).odoError}</div>
-			{/if}
-			{#if activeForm === 'odometer' && odoWarning}
-				<div class="form-warning">{odoWarning}</div>
-			{/if}
-			<div class="form-row">
-				<label class="field">
-					<span class="field-label">{currentReadingLabel}</span>
-					<input
-						type="number"
-						name="odometer"
-						bind:value={odoValue}
-						oninput={() => (odoDirty = true)}
-						min="0"
-						class="input mono"
-						required
-					/>
-				</label>
-				<label class="field">
-					<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-					<input type="date" name="recorded_at" value={today} class="input" />
-				</label>
-			</div>
-			<label class="field">
-				<span class="field-label"
-					>{$_('vehicle.forms.fields.remark', {
-						values: { optional: $_('common.optional') }
-					})}</span
-				>
-				<input
-					type="text"
-					name="remark"
-					placeholder={$_('vehicle.forms.placeholders.beforeTrip')}
-					maxlength="200"
-					class="input"
-				/>
-			</label>
-			<div class="form-actions">
-				<button type="submit" class="btn-primary" disabled={submitting}
-					>{submitting ? $_('common.saving') : $_('vehicle.forms.submit.odometer')}</button
-				>
-				<button type="button" class="btn-ghost" onclick={() => (activeForm = null)}
-					>{$_('common.cancel')}</button
-				>
-			</div>
-		</form>
-	{/if}
-
-	{#if activeForm === 'note'}
-		<form
-			method="POST"
-			action="?/logNote"
-			class="inline-form"
-			use:enhance={() => {
-				submitting = true;
-				return async ({ update }) => {
-					await update();
-					submitting = false;
-				};
-			}}
-		>
-			<div class="inline-form-title">{$_('vehicle.forms.writeNote')}</div>
-			{#if (form as any)?.warning}
-				<div class="form-warning">{(form as any).warning}</div>
-			{/if}
-			<div class="form-row">
-				<label class="field">
-					<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-					<input type="date" name="recorded_at" value={today} class="input" />
-				</label>
-			</div>
-			<label class="field">
-				<span class="field-label">{$_('vehicle.forms.fields.notes')}</span>
-				<input
-					type="text"
-					name="remark"
-					placeholder={$_('vehicle.forms.placeholders.note')}
-					maxlength="400"
-					class="input"
-				/>
-			</label>
-			<div class="form-actions">
-				<button type="submit" class="btn-primary" disabled={submitting}
-					>{submitting ? $_('common.saving') : $_('vehicle.forms.submit.note')}</button
-				>
-				<button type="button" class="btn-ghost" onclick={() => (activeForm = null)}
-					>{$_('common.cancel')}</button
-				>
-			</div>
-		</form>
-	{/if}
-
 	<!-- Upcoming section -->
 	{#if upcoming.length > 0}
 		<section class="upcoming-section">
@@ -1188,7 +845,16 @@
 											<button
 												role="menuitem"
 												class="entry-menu-item"
-												onclick={() => startEdit(log.id, 'service')}>{$_('common.edit')}</button
+												onclick={() => {
+													const editLog = serviceLogById(log.id);
+													sheet.openSheet(ServiceLogEditForm, $_('common.edit'), {
+														editLog,
+														trackers: data.trackers,
+														allDocs: data.allDocs ?? [],
+														odometerUnit: data.vehicle.odometer_unit
+													});
+													entryMenu = null;
+												}}>{$_('common.edit')}</button
 											>
 											<button
 												role="menuitem"
@@ -1202,289 +868,6 @@
 									{/if}
 								</div>
 							</div>
-
-							{#if editingEntry?.id === log.id}
-								{@const editLog = serviceLogById(log.id)}
-								{@const currentAttached = resolvedAttachments(log)}
-								<div class="entry-edit-card">
-									<form
-										method="POST"
-										action="?/editServiceLog"
-										class="entry-edit-form"
-										use:enhance={() => {
-											editSubmitting = true;
-											return async ({ update }) => {
-												await update();
-												editSubmitting = false;
-											};
-										}}
-									>
-										{#if (form as any)?.editError}
-											<div class="form-err">{(form as any).editError}</div>
-										{/if}
-										<input type="hidden" name="id" value={log.id} />
-										<div class="form-row">
-											<label class="field">
-												<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-												<input
-													type="date"
-													name="performed_at"
-													value={editLog?.performed_at ?? today}
-													class="input"
-													required
-												/>
-											</label>
-											<label class="field">
-												<span class="field-label">{measurementFieldLabel}</span>
-												<input
-													type="number"
-													name="odometer_at_service"
-													value={editLog?.odometer_at_service}
-													min="0"
-													class="input mono"
-													required
-												/>
-											</label>
-										</div>
-										{#if editLog?.tracker_id || (editLog?.serviced_tracker_ids ?? []).length > 0}
-											<fieldset class="tracker-select">
-												<legend class="field-label">{$_('vehicle.forms.fields.usedTracker')}</legend
-												>
-												<div class="tracker-checkboxes">
-													{#each data.trackers.filter((t) => editLog?.tracker_id === t.id || (editLog?.serviced_tracker_ids ?? []).includes(t.id)) as t}
-														<label class="tracker-checkbox">
-															<input
-																type="checkbox"
-																name="reset_trackers"
-																value={t.id}
-																checked={true}
-																disabled
-															/>
-															<span class="tracker-check-label">
-																<span class="tracker-check-name">{t.template.name}</span>
-																{#if t.status === 'due'}
-																	<span class="tracker-check-status tracker-check-status--due"
-																		>{$_('maintenance.tracker.status.due')}</span
-																	>
-																{:else if t.status === 'overdue'}
-																	<span class="tracker-check-status tracker-check-status--overdue"
-																		>{$_('maintenance.tracker.status.overdue')}</span
-																	>
-																{/if}
-															</span>
-														</label>
-													{/each}
-												</div>
-											</fieldset>
-										{/if}
-										<label class="field">
-											<span class="field-label">{$_('vehicle.forms.fields.description')}</span>
-											<input
-												type="text"
-												name="notes"
-												value={editLog?.notes ?? ''}
-												maxlength="200"
-												class="input"
-											/>
-										</label>
-										<label class="field">
-											<span class="field-label"
-												>{$_('vehicle.forms.fields.remark', {
-													values: { optional: $_('common.optional') }
-												})}</span
-											>
-											<input
-												type="text"
-												name="remark"
-												value={editLog?.remark ?? ''}
-												placeholder={$_('vehicle.forms.placeholders.additionalDetails')}
-												maxlength="200"
-												class="input"
-											/>
-										</label>
-										<label class="field">
-											<span class="field-label"
-												>{$_('vehicle.forms.fields.cost', {
-													values: { optional: $_('common.optional') }
-												})}</span
-											>
-											<input
-												type="number"
-												name="cost"
-												value={editLog?.cost_cents ? editLog.cost_cents / 100 : ''}
-												min="0"
-												step="0.01"
-												placeholder={$_('vehicle.forms.placeholders.cost')}
-												class="input mono"
-											/>
-										</label>
-										<div class="form-actions">
-											<button type="submit" class="btn-primary" disabled={editSubmitting}
-												>{editSubmitting ? $_('common.saving') : $_('common.save')}</button
-											>
-											<button type="button" class="btn-ghost" onclick={() => (editingEntry = null)}
-												>{$_('common.cancel')}</button
-											>
-										</div>
-									</form>
-
-									<!-- Attachment management inside same card, using separate form actions -->
-									<div class="edit-attachments">
-										<span class="field-label"
-											>{$_('vehicle.forms.fields.attachments', {
-												values: { optional: $_('common.optional') }
-											})}</span
-										>
-										{#if currentAttached.length > 0}
-											<div class="attach-chips">
-												{#each currentAttached as doc}
-													<span class="doc-chip">
-														<span class="doc-chip-type"
-															>{$_('documents.types.' + doc.doc_type)}</span
-														>
-														<span class="doc-chip-name"
-															>{doc.name.length > 24 ? doc.name.slice(0, 24) + '…' : doc.name}</span
-														>
-														<form method="POST" action="?/unlinkDocument" use:enhance>
-															<input type="hidden" name="service_log_id" value={log.id} />
-															<input type="hidden" name="document_id" value={doc.id} />
-															<button type="submit" class="doc-chip-remove" aria-label="Remove"
-																>×</button
-															>
-														</form>
-													</span>
-												{/each}
-											</div>
-										{/if}
-										<div class="attach-actions">
-											<form
-												method="POST"
-												action="?/uploadToLog"
-												enctype="multipart/form-data"
-												use:enhance={({ formData }) => {
-													if (editAttachFile) formData.set('file', editAttachFile);
-													editUploading = true;
-													return async ({ update }) => {
-														await update();
-														editUploading = false;
-													};
-												}}
-											>
-												<input type="hidden" name="service_log_id" value={log.id} />
-												{#if editAttachFile}
-													<span class="doc-chip">
-														<span class="doc-chip-name">{editAttachFile.name}</span>
-														<button
-															type="button"
-															class="doc-chip-remove"
-															onclick={clearEditAttach}
-															aria-label="Remove">×</button
-														>
-													</span>
-													<select
-														name="doc_type"
-														class="input attach-type"
-														bind:value={editAttachType}
-													>
-														{#each docTypeEntries as [val, key]}
-															<option value={val}>{$_(key)}</option>
-														{/each}
-													</select>
-													<button type="submit" class="attach-save" disabled={editUploading}>
-														{editUploading
-															? $_('vehicle.forms.attachments.uploading')
-															: $_('common.save')}
-													</button>
-												{:else}
-													<label class="attach-action-btn">
-														<svg
-															width="13"
-															height="13"
-															viewBox="0 0 24 24"
-															fill="none"
-															stroke="currentColor"
-															stroke-width="2"
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															aria-hidden="true"
-															><path
-																d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"
-															/></svg
-														>
-														{$_('vehicle.forms.attachFile')}
-														<input
-															type="file"
-															class="attach-file-input"
-															accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-															onchange={handleEditAttachPick}
-														/>
-													</label>
-												{/if}
-											</form>
-											<button
-												type="button"
-												class="attach-action-btn"
-												onclick={() => (editShowLink = !editShowLink)}
-											>
-												<svg
-													width="13"
-													height="13"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="2"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													aria-hidden="true"
-													><path
-														d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
-													/><path
-														d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
-													/></svg
-												>
-												{$_('vehicle.forms.linkDocument')}
-											</button>
-										</div>
-										{#if editShowLink}
-											{@const available = unlinkedDocs(log)}
-											<div class="link-picker">
-												<div class="link-picker-header">
-													<span class="link-picker-title"
-														>{$_('vehicle.forms.attachments.pickerTitle')}</span
-													>
-													<button
-														type="button"
-														class="link-picker-close"
-														onclick={() => (editShowLink = false)}>×</button
-													>
-												</div>
-												{#if available.length === 0}
-													<p class="link-picker-empty">
-														{$_('vehicle.forms.attachments.noDocuments')}
-													</p>
-												{:else}
-													<ul class="link-picker-list">
-														{#each available as doc}
-															<li>
-																<form method="POST" action="?/linkDocument" use:enhance>
-																	<input type="hidden" name="service_log_id" value={log.id} />
-																	<input type="hidden" name="document_id" value={doc.id} />
-																	<button type="submit" class="link-picker-item">
-																		<span class="doc-chip-type"
-																			>{$_('documents.types.' + doc.doc_type)}</span
-																		>
-																		<span class="link-picker-item-name">{doc.name}</span>
-																	</button>
-																</form>
-															</li>
-														{/each}
-													</ul>
-												{/if}
-											</div>
-										{/if}
-									</div>
-								</div>
-							{/if}
 						{:else if entry.kind === 'note'}
 							{@const log = entry.log}
 							<div class="timeline-entry note-entry">
@@ -1506,7 +889,20 @@
 											<button
 												role="menuitem"
 												class="entry-menu-item"
-												onclick={() => startEdit(log.id, 'note')}>{$_('common.edit')}</button
+												onclick={() => {
+													const odoLog = odoLogById(log.id);
+													sheet.openSheet(NoteForm, $_('common.edit'), {
+														today,
+														editData: odoLog
+															? {
+																	id: log.id,
+																	recorded_at: odoLog.recorded_at,
+																	remark: odoLog.remark ?? ''
+																}
+															: undefined
+													});
+													entryMenu = null;
+												}}>{$_('common.edit')}</button
 											>
 											<button
 												role="menuitem"
@@ -1520,58 +916,6 @@
 									{/if}
 								</div>
 							</div>
-
-							{#if editingEntry?.id === log.id}
-								{@const editLog = odoLogById(log.id)}
-								<form
-									method="POST"
-									action="?/editOdometerLog"
-									class="entry-edit-form"
-									use:enhance={() => {
-										editSubmitting = true;
-										return async ({ update }) => {
-											await update();
-											editSubmitting = false;
-										};
-									}}
-								>
-									{#if (form as any)?.editError}
-										<div class="form-err">{(form as any).editError}</div>
-									{/if}
-									<input type="hidden" name="id" value={log.id} />
-									<div class="form-row">
-										<label class="field">
-											<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-											<input
-												type="date"
-												name="recorded_at"
-												value={editLog?.recorded_at ?? today}
-												class="input"
-												required
-											/>
-										</label>
-									</div>
-									<label class="field">
-										<span class="field-label">{$_('vehicle.forms.fields.notes')}</span>
-										<input
-											type="text"
-											name="remark"
-											value={editLog?.remark ?? ''}
-											placeholder={$_('vehicle.forms.placeholders.writeNote')}
-											maxlength="400"
-											class="input"
-										/>
-									</label>
-									<div class="form-actions">
-										<button type="submit" class="btn-primary" disabled={editSubmitting}
-											>{editSubmitting ? $_('common.saving') : $_('common.save')}</button
-										>
-										<button type="button" class="btn-ghost" onclick={() => (editingEntry = null)}
-											>{$_('common.cancel')}</button
-										>
-									</div>
-								</form>
-							{/if}
 						{:else if entry.kind === 'travel'}
 							{@const t = entry.travel}
 							<div class="timeline-entry travel-entry">
@@ -1620,7 +964,11 @@
 						{:else if entry.kind === 'finance'}
 							{@const tx = entry.tx}
 							<div class="timeline-entry finance-entry">
-								<div class="entry-icon" title="Finance" aria-hidden="true"></div>
+								<div
+									class="entry-icon"
+									title={$_('vehicle.layout.tabs.finance')}
+									aria-hidden="true"
+								></div>
 								<div class="entry-body">
 									<div class="entry-title">
 										{tx.notes ?? $_(`finance.categories.${tx.category}`)}
@@ -1644,11 +992,28 @@
 									>
 									{#if entryMenu === tx.id}
 										<div class="entry-menu-dropdown" role="menu">
-											<a
+											<button
 												role="menuitem"
 												class="entry-menu-item"
-												href="/vehicles/{data.vehicle.id}/finance?edit={tx.id}"
-												onclick={() => (entryMenu = null)}>{$_('common.edit')}</a
+												onclick={() => {
+													entryMenu = null;
+													sheet.openSheet(TransactionForm, $_('finance.form.editTitle'), {
+														vehicleId: data.vehicle.id,
+														locale: data.user?.settings?.locale ?? 'en',
+														currency: data.currency,
+														odometerUnit: data.vehicle.odometer_unit,
+														allDocs: data.allDocs ?? [],
+														editData: {
+															id: tx.id,
+															category: tx.category,
+															amount_cents: tx.amount_cents,
+															performed_at: tx.performed_at,
+															odometer_at_transaction:
+																tx.measurement_at_transaction ?? tx.odometer_at_transaction,
+															notes: tx.notes
+														}
+													});
+												}}>{$_('common.edit')}</button
 											>
 											<button
 												role="menuitem"
@@ -1731,7 +1096,23 @@
 											<button
 												role="menuitem"
 												class="entry-menu-item"
-												onclick={() => startEdit(log.id, 'odometer')}>{$_('common.edit')}</button
+												onclick={() => {
+													const odoLog = odoLogById(log.id);
+													sheet.openSheet(OdometerForm, $_('common.edit'), {
+														odometerUnit: data.vehicle.odometer_unit,
+														currentOdometer: data.vehicle.current_odometer,
+														today,
+														editData: odoLog
+															? {
+																	id: log.id,
+																	odometer: odoLog.odometer,
+																	recorded_at: odoLog.recorded_at,
+																	remark: odoLog.remark ?? undefined
+																}
+															: undefined
+													});
+													entryMenu = null;
+												}}>{$_('common.edit')}</button
 											>
 											<button
 												role="menuitem"
@@ -1745,72 +1126,6 @@
 									{/if}
 								</div>
 							</div>
-
-							{#if editingEntry?.id === log.id}
-								{@const editLog = odoLogById(log.id)}
-								<form
-									method="POST"
-									action="?/editOdometerLog"
-									class="entry-edit-form"
-									use:enhance={() => {
-										editSubmitting = true;
-										return async ({ update }) => {
-											await update();
-											editSubmitting = false;
-										};
-									}}
-								>
-									{#if (form as any)?.editError}
-										<div class="form-err">{(form as any).editError}</div>
-									{/if}
-									<input type="hidden" name="id" value={log.id} />
-									<div class="form-row">
-										<label class="field">
-											<span class="field-label">{measurementFieldLabel}</span>
-											<input
-												type="number"
-												name="odometer"
-												value={editLog?.odometer}
-												min="0"
-												class="input mono"
-												required
-											/>
-										</label>
-										<label class="field">
-											<span class="field-label">{$_('vehicle.forms.fields.date')}</span>
-											<input
-												type="date"
-												name="recorded_at"
-												value={editLog?.recorded_at ?? today}
-												class="input"
-												required
-											/>
-										</label>
-									</div>
-									<label class="field">
-										<span class="field-label"
-											>{$_('vehicle.forms.fields.remark', {
-												values: { optional: $_('common.optional') }
-											})}
-										</span>
-										<input
-											type="text"
-											name="remark"
-											value={editLog?.remark ?? ''}
-											maxlength="200"
-											class="input"
-										/>
-									</label>
-									<div class="form-actions">
-										<button type="submit" class="btn-primary" disabled={editSubmitting}
-											>{editSubmitting ? $_('common.saving') : $_('common.save')}</button
-										>
-										<button type="button" class="btn-ghost" onclick={() => (editingEntry = null)}
-											>{$_('common.cancel')}</button
-										>
-									</div>
-								</form>
-							{/if}
 						{/if}
 					{/each}
 
@@ -1899,157 +1214,9 @@
 		position: relative;
 	}
 
-	/* Inline forms */
-	.inline-form {
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--bg-subtle);
-		padding: 1.25rem 1.5rem;
-		margin-bottom: var(--space-6);
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		animation: slideDown 0.2s ease-out-quart;
-	}
-	@keyframes slideDown {
-		from {
-			opacity: 0;
-			transform: translateY(-0.5rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-	.inline-form-title {
-		font-size: var(--text-base);
-		font-weight: 600;
-		color: var(--text);
-	}
-	.form-row {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-		padding-top: 0.5rem;
-	}
-	.field {
-		display: flex;
-		flex-direction: column;
-		gap: 0.3rem;
-	}
-	.field-label {
-		font-size: var(--text-sm);
-		font-weight: 500;
-		color: var(--text-muted);
-	}
-	.input {
-		padding: 0.5rem 0.75rem;
-		border: 1px solid var(--border-strong);
-		border-radius: 10px;
-		background: var(--bg);
-		color: var(--text);
-		font-size: var(--text-md);
-		width: 100%;
-		font-family: inherit;
-	}
-	.input:focus {
-		outline: 2px solid var(--accent);
-		outline-offset: 1px;
-		border-color: transparent;
-	}
 	.mono {
 		font-family: var(--font-mono);
 		font-variant-numeric: tabular-nums;
-	}
-	.demo-form-note {
-		font-size: var(--text-xs);
-		color: var(--text-subtle);
-		margin: 0 0 0.25rem;
-	}
-	.form-actions {
-		display: flex;
-		gap: 0.5rem;
-		padding-top: 0.25rem;
-	}
-	.form-err {
-		padding: 0.5rem 0.75rem;
-		border-radius: 10px;
-		font-size: var(--text-sm);
-		background: color-mix(in srgb, var(--status-overdue) 8%, transparent);
-		border: 1px solid color-mix(in srgb, var(--status-overdue) 25%, transparent);
-		color: var(--status-overdue);
-	}
-	.form-warning {
-		padding: 0.5rem 0.75rem;
-		border-radius: 10px;
-		font-size: var(--text-sm);
-		background: color-mix(in srgb, var(--status-due) 8%, transparent);
-		border: 1px solid color-mix(in srgb, var(--status-due) 25%, transparent);
-		color: var(--status-due);
-	}
-
-	/* Tracker checkboxes */
-	.tracker-select {
-		border: none;
-		padding: 0;
-		margin: 0;
-	}
-	.tracker-select legend {
-		font-size: var(--text-sm);
-		font-weight: 500;
-		color: var(--text-muted);
-		padding: 0;
-		margin-bottom: 0.5rem;
-	}
-	.tracker-checkboxes {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	.tracker-checkbox {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-		padding: 0.375rem 0.625rem;
-		background: var(--bg-subtle);
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		cursor: pointer;
-		font-size: var(--text-sm);
-		transition:
-			background 0.1s,
-			border-color 0.1s;
-	}
-	.tracker-checkbox:hover {
-		background: var(--bg-muted);
-		border-color: var(--border-strong);
-	}
-	.tracker-checkbox input[type='checkbox'] {
-		width: 1rem;
-		height: 1rem;
-		accent-color: var(--accent);
-	}
-	.tracker-check-label {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-	}
-	.tracker-check-name {
-		color: var(--text);
-	}
-	.tracker-check-status {
-		font-size: var(--text-xs);
-		font-weight: 500;
-		padding: 0.125rem 0.375rem;
-		border-radius: 4px;
-	}
-	.tracker-check-status--due {
-		background: color-mix(in srgb, var(--status-due) 15%, transparent);
-		color: var(--status-due);
-	}
-	.tracker-check-status--overdue {
-		background: color-mix(in srgb, var(--status-overdue) 15%, transparent);
-		color: var(--status-overdue);
 	}
 	.btn-primary {
 		padding: 0.5rem 1rem;
@@ -2194,7 +1361,7 @@
 		border-radius: 8px;
 		box-shadow: 0 4px 16px color-mix(in srgb, var(--text) 12%, transparent);
 		z-index: 20;
-		min-width: 200px;
+		min-width: 240px;
 		padding: 0.375rem;
 		display: flex;
 		flex-direction: column;
@@ -2202,7 +1369,9 @@
 	}
 	.add-menu-item {
 		display: flex;
-		flex-direction: column;
+		flex-direction: row;
+		align-items: center;
+		gap: var(--space-2);
 		padding: 0.625rem 0.75rem;
 		border-radius: 10px;
 		background: none;
@@ -2210,17 +1379,33 @@
 		cursor: pointer;
 		text-align: left;
 		width: 100%;
+		text-decoration: none;
 		transition: background 0.1s;
 	}
 	.add-menu-item:hover {
 		background: var(--bg-muted);
 	}
-	.add-menu-divider {
-		height: 1px;
-		background: var(--border);
-		margin: 0.25rem 0;
+	.add-menu-item--dragging {
+		opacity: 0.4;
 	}
-	.add-menu-item span:first-child {
+	.drag-handle {
+		font-size: 0.875rem;
+		color: var(--text-subtle);
+		cursor: grab;
+		flex-shrink: 0;
+		opacity: 0;
+		transition: opacity 0.1s;
+		user-select: none;
+		line-height: 1;
+	}
+	.add-menu-item:hover .drag-handle {
+		opacity: 1;
+	}
+	.add-menu-content {
+		display: flex;
+		flex-direction: column;
+	}
+	.add-menu-content span:first-child {
 		font-size: var(--text-sm);
 		font-weight: 500;
 		color: var(--text);
@@ -2547,23 +1732,6 @@
 		background: color-mix(in srgb, var(--status-overdue) 8%, transparent);
 	}
 
-	/* Inline edit form (appears below entry) */
-	.entry-edit-card {
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		background: var(--bg-subtle);
-		padding: 1rem 1.25rem;
-		margin: 0 0 0 1.25rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0;
-	}
-	.entry-edit-form {
-		display: flex;
-		flex-direction: column;
-		gap: 0.875rem;
-	}
-
 	/* Collapse toggle */
 	.collapse-toggle {
 		display: inline-block;
@@ -2586,14 +1754,6 @@
 		color: var(--text);
 	}
 
-	@media (max-width: 600px) {
-		.form-row {
-			grid-template-columns: 1fr;
-		}
-		.inline-form {
-			padding: 1rem;
-		}
-	}
 	@media (max-width: 480px) {
 		.entry-menu-btn {
 			opacity: 1;
@@ -2601,73 +1761,15 @@
 			height: 44px;
 		}
 	}
+	@media (max-width: 768px) {
+		.page-actions {
+			flex-direction: row-reverse;
+		}
+	}
 	@media (pointer: coarse) {
 		.entry-menu-btn {
 			opacity: 1;
 		}
-	}
-
-	/* Attachment UI (form + timeline) */
-	.form-attachments {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.attach-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-	.attach-action-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		background: none;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		cursor: pointer;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-		padding: 0.25rem 0.5rem;
-		line-height: 1;
-		transition:
-			border-color 0.1s,
-			color 0.1s;
-	}
-	.attach-action-btn:hover {
-		border-color: var(--border-strong);
-		color: var(--text);
-	}
-	.attach-file-input {
-		display: none;
-	}
-	.attach-type {
-		font-size: var(--text-xs) !important;
-		padding: 0.25rem 0.375rem !important;
-		width: auto !important;
-	}
-	.attach-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.375rem;
-	}
-	.attach-save {
-		padding: 0.25rem 0.75rem;
-		background: var(--accent);
-		color: #fff;
-		border: none;
-		border-radius: 6px;
-		font-size: var(--text-xs);
-		font-weight: 500;
-		cursor: pointer;
-	}
-	.attach-save:hover:not(:disabled) {
-		background: var(--accent-hover);
-	}
-	.attach-save:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
 	}
 
 	/* Entry attachments (timeline read-only) */
@@ -2679,24 +1781,6 @@
 		margin-top: 0.375rem;
 	}
 
-	/* Edit form attachments (inside entry-edit-card) */
-	.edit-attachments {
-		border-top: 1px solid var(--border);
-		margin-top: 0.625rem;
-		padding-top: 0.625rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.link-picker-item--check {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-		cursor: pointer;
-	}
-	.link-picker-item--check input[type='checkbox'] {
-		flex-shrink: 0;
-	}
 	.doc-chip {
 		display: inline-flex;
 		align-items: center;
@@ -2722,20 +1806,6 @@
 		white-space: nowrap;
 		max-width: 150px;
 	}
-	.doc-chip-remove {
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--text-subtle);
-		padding: 0;
-		font-size: 0.85rem;
-		line-height: 1;
-		flex-shrink: 0;
-		margin-left: 1px;
-	}
-	.doc-chip-remove:hover {
-		color: var(--status-overdue);
-	}
 	.doc-chip--link {
 		text-decoration: none;
 		transition:
@@ -2749,79 +1819,5 @@
 	.doc-chip--link .doc-chip-type,
 	.doc-chip--link .doc-chip-name {
 		color: inherit;
-	}
-
-	/* Link picker */
-	.link-picker {
-		margin-top: 0.5rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--bg);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-		overflow: hidden;
-		max-width: min(320px, 90vw);
-	}
-	.link-picker-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.5rem 0.75rem;
-		border-bottom: 1px solid var(--border);
-	}
-	.link-picker-title {
-		font-size: var(--text-sm);
-		font-weight: 500;
-		color: var(--text);
-	}
-	.link-picker-close {
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--text-muted);
-		font-size: 1rem;
-		padding: 0;
-		line-height: 1;
-	}
-	.link-picker-close:hover {
-		color: var(--text);
-	}
-	.link-picker-empty {
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-		padding: 0.75rem;
-		margin: 0;
-	}
-	.link-picker-list {
-		list-style: none;
-		margin: 0;
-		padding: 0.25rem;
-		max-height: 200px;
-		overflow-y: auto;
-	}
-	.link-picker-list li {
-		margin: 0;
-	}
-	.link-picker-item {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-		width: 100%;
-		padding: 0.375rem 0.5rem;
-		background: none;
-		border: none;
-		border-radius: 6px;
-		cursor: pointer;
-		text-align: left;
-		transition: background 0.1s;
-	}
-	.link-picker-item:hover {
-		background: var(--bg-subtle);
-	}
-	.link-picker-item-name {
-		font-size: var(--text-sm);
-		color: var(--text);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 </style>

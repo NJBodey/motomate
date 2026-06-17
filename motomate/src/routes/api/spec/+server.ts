@@ -9,7 +9,7 @@ const spec = {
 		title: 'MotoMate API',
 		version: APP_VERSION,
 		description:
-			'Your vehicle data, accessible from scripts, automations, and home integrations.\n\nAuthenticate with an API key from **Settings > Developer**.'
+			'Your digital maintenance journal for your vehicles. All vehicle data, accessible from scripts, automations, and home integrations.\n\nAuthenticate with an API key from **Settings > Developer**.'
 	},
 	servers: [{ url: '/api/v1' }],
 	tags: [
@@ -22,13 +22,13 @@ const spec = {
 		{ name: 'Maintenance', description: 'All trackers with their current status.' },
 		{ name: 'Service logs', description: 'Read and write your service history.' },
 		{ name: 'Odometer', description: 'Log and retrieve odometer readings.' },
-		{ name: 'Finance', description: 'Expenses, fuel costs, and other transactions.' }
+		{ name: 'Spending', description: 'Expenses, fuel costs, and other transactions.' }
 	],
 	'x-tagGroups': [
 		{ name: 'Account', tags: ['Profile'] },
 		{
 			name: 'Vehicle data',
-			tags: ['Vehicles', 'Attention', 'Maintenance', 'Service logs', 'Odometer', 'Finance']
+			tags: ['Vehicles', 'Attention', 'Maintenance', 'Service logs', 'Odometer', 'Spending']
 		}
 	],
 	components: {
@@ -110,6 +110,19 @@ const spec = {
 					notes: { type: 'string', nullable: true },
 					performed_at: { type: 'string', format: 'date' },
 					created_at: { type: 'string', format: 'date-time' }
+				}
+			},
+			VehicleNote: {
+				type: 'object',
+				properties: {
+					id: { type: 'string' },
+					vehicle_id: { type: 'string' },
+					user_id: { type: 'string' },
+					title: { type: 'string', nullable: true },
+					content: { type: 'string' },
+					doc_refs: { type: 'array', items: { type: 'string' } },
+					created_at: { type: 'string', format: 'date-time' },
+					updated_at: { type: 'string', format: 'date-time' }
 				}
 			},
 			Error: {
@@ -508,7 +521,7 @@ const spec = {
 		},
 		'/vehicles/{id}/finance': {
 			get: {
-				tags: ['Finance'],
+				tags: ['Spending'],
 				summary: 'Expense history',
 				description:
 					'Every cost logged against this vehicle: fuel, parts, insurance, services. The response always includes a `total_cents` that sums all records, not just the current page.',
@@ -543,7 +556,7 @@ const spec = {
 				}
 			},
 			post: {
-				tags: ['Finance'],
+				tags: ['Spending'],
 				summary: 'Add a transaction',
 				description:
 					'Log an expense: a tank of fuel, a new tyre, an insurance premium. Amount in cents; negative values for income such as selling a part. Currency follows your account setting.',
@@ -602,7 +615,7 @@ const spec = {
 		},
 		'/vehicles/{id}/finance/{transactionId}': {
 			delete: {
-				tags: ['Finance'],
+				tags: ['Spending'],
 				summary: 'Remove a transaction',
 				description: 'Remove an expense you logged by mistake.',
 				operationId: 'deleteFinanceTransaction',
@@ -746,6 +759,160 @@ const spec = {
 								}
 							}
 						}
+					}
+				}
+			}
+		},
+		'/vehicles/{id}/notes': {
+			get: {
+				tags: ['Notes'],
+				summary: 'List notes',
+				description:
+					'All notes for this vehicle, newest first. Notes may contain Markdown and embedded document reference links.',
+				operationId: 'listVehicleNotes',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'limit', in: 'query', schema: { type: 'integer', default: 50, maximum: 200 } },
+					{ name: 'offset', in: 'query', schema: { type: 'integer', default: 0 } }
+				],
+				responses: {
+					'200': {
+						description: 'Notes list',
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									properties: {
+										data: { type: 'array', items: { $ref: '#/components/schemas/VehicleNote' } },
+										total: { type: 'integer' }
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			post: {
+				tags: ['Notes'],
+				summary: 'Create a note',
+				description:
+					'Add a Markdown note to this vehicle. Use `doc_refs` to track which document IDs are referenced in the note content.',
+				operationId: 'createVehicleNote',
+				parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+				requestBody: {
+					required: true,
+					content: {
+						'application/json': {
+							schema: {
+								type: 'object',
+								required: ['content'],
+								properties: {
+									title: { type: 'string', maxLength: 200, nullable: true },
+									content: { type: 'string', maxLength: 50000 },
+									doc_refs: {
+										type: 'array',
+										items: { type: 'string' },
+										description: 'Document IDs referenced in the note content.'
+									}
+								}
+							}
+						}
+					}
+				},
+				responses: {
+					'201': {
+						description: 'Note created',
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									properties: { data: { $ref: '#/components/schemas/VehicleNote' } }
+								}
+							}
+						}
+					},
+					'400': {
+						description: 'Validation error',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					}
+				}
+			}
+		},
+		'/vehicles/{id}/notes/{noteId}': {
+			get: {
+				tags: ['Notes'],
+				summary: 'Get a note',
+				operationId: 'getVehicleNote',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'noteId', in: 'path', required: true, schema: { type: 'string' } }
+				],
+				responses: {
+					'200': {
+						description: 'Note',
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									properties: { data: { $ref: '#/components/schemas/VehicleNote' } }
+								}
+							}
+						}
+					},
+					'404': {
+						description: 'Not found',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					}
+				}
+			},
+			patch: {
+				tags: ['Notes'],
+				summary: 'Update a note',
+				operationId: 'updateVehicleNote',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'noteId', in: 'path', required: true, schema: { type: 'string' } }
+				],
+				requestBody: {
+					required: true,
+					content: {
+						'application/json': {
+							schema: {
+								type: 'object',
+								properties: {
+									title: { type: 'string', maxLength: 200, nullable: true },
+									content: { type: 'string', maxLength: 50000 },
+									doc_refs: { type: 'array', items: { type: 'string' } }
+								}
+							}
+						}
+					}
+				},
+				responses: {
+					'200': { description: 'Updated' },
+					'400': {
+						description: 'Validation error',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					},
+					'404': {
+						description: 'Not found',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+					}
+				}
+			},
+			delete: {
+				tags: ['Notes'],
+				summary: 'Delete a note',
+				operationId: 'deleteVehicleNote',
+				parameters: [
+					{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+					{ name: 'noteId', in: 'path', required: true, schema: { type: 'string' } }
+				],
+				responses: {
+					'200': { description: 'Deleted' },
+					'404': {
+						description: 'Not found',
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
 					}
 				}
 			}

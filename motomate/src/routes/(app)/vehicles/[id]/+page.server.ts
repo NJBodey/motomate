@@ -30,8 +30,16 @@ import { runWorkflowChecks } from '$lib/workflow/engine.js';
 import { getTravelsForTimeline } from '$lib/db/repositories/travels.js';
 import {
 	getFinanceTransactionsByVehicle,
+	createFinanceTransaction,
+	updateFinanceTransaction,
 	deleteFinanceTransaction
 } from '$lib/db/repositories/finance-transactions.js';
+
+const VALID_DOC_TYPES = ['service', 'quotation', 'papers', 'photo', 'notes', 'other'] as const;
+type ValidDocType = (typeof VALID_DOC_TYPES)[number];
+function validateDocType(raw: string): ValidDocType {
+	return VALID_DOC_TYPES.includes(raw as ValidDocType) ? (raw as ValidDocType) : 'other';
+}
 
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -58,7 +66,9 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		travelEntries,
 		allDocs,
 		financeEntries,
-		timelinePrefs: locals.user!.settings?.page_prefs?.timeline ?? null
+		currency: (locals.user as any)?.settings?.currency ?? 'EUR',
+		timelinePrefs: locals.user!.settings?.page_prefs?.timeline ?? null,
+		addMenuOrder: locals.user!.settings?.page_prefs?.global?.addMenuOrder ?? null
 	};
 };
 
@@ -407,5 +417,118 @@ export const actions: Actions = {
 		if (!id) return fail(400, { error: 'Missing ID' });
 		await deleteFinanceTransaction(id, params.id, locals.user!.id);
 		return { deletedLog: true };
+	},
+
+	addTransaction: async ({ request, locals, params }) => {
+		const formData = await request.formData();
+		const category = String(formData.get('category') || 'other');
+		const amount = String(formData.get('amount') || '');
+		const date = String(formData.get('date') || '');
+		const odometer = formData.get('odometer') ? Number(formData.get('odometer')) : null;
+		const notes = String(formData.get('notes') || '').trim() || null;
+
+		if (!amount || !date) return fail(400, { error: 'Amount and date are required' });
+		const amountCents = Math.round(parseFloat(amount) * 100);
+		if (isNaN(amountCents) || amountCents <= 0) return fail(400, { error: 'Invalid amount' });
+		if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) return fail(400, { error: 'Invalid date format' });
+
+		const validCategories = [
+			'maintenance',
+			'parts',
+			'accessories',
+			'administrative',
+			'fuel',
+			'other'
+		];
+		if (!validCategories.includes(category)) return fail(400, { error: 'Invalid category' });
+
+		const attachmentFile = formData.get('attachment_file') as File | null;
+		const attachmentDocIds: string[] = [];
+		if (attachmentFile && attachmentFile.size > 0) {
+			if (attachmentFile.size > MAX_ATTACHMENT_SIZE)
+				return fail(400, { error: 'Attachment too large (max 10 MB)' });
+			const key = attachmentStorageKey(locals.user!.id, attachmentFile.name);
+			const buffer = Buffer.from(await attachmentFile.arrayBuffer());
+			try {
+				const storage = getStorage();
+				await storage.put(key, buffer, attachmentFile.type || 'application/octet-stream');
+			} catch {
+				return fail(500, { error: 'Attachment upload failed' });
+			}
+			const docName = String(formData.get('attachment_name') || attachmentFile.name)
+				.trim()
+				.slice(0, 200);
+			const docType = validateDocType(String(formData.get('attachment_type') || 'other'));
+			const doc = await createDocument(locals.user!.id, {
+				vehicle_id: params.id,
+				name: docName,
+				doc_type: docType,
+				storage_key: key,
+				mime_type: attachmentFile.type || 'application/octet-stream',
+				size_bytes: attachmentFile.size
+			});
+			attachmentDocIds.push(doc.id);
+		}
+		const linkedDocIds = formData.getAll('linked_doc_id').map(String).filter(Boolean);
+
+		await createFinanceTransaction(locals.user!.id, {
+			vehicle_id: params.id,
+			category: category as
+				| 'maintenance'
+				| 'parts'
+				| 'accessories'
+				| 'administrative'
+				| 'fuel'
+				| 'other',
+			amount_cents: amountCents,
+			currency: (locals.user as any)?.settings?.currency || 'EUR',
+			notes,
+			performed_at: date,
+			odometer_at_transaction: odometer,
+			attachments: [...attachmentDocIds, ...linkedDocIds]
+		});
+
+		return { created: true };
+	},
+
+	editTransaction: async ({ request, locals, params }) => {
+		const formData = await request.formData();
+		const id = String(formData.get('id') || '');
+		const category = String(formData.get('category') || 'other');
+		const amount = String(formData.get('amount') || '');
+		const date = String(formData.get('date') || '');
+		const odometer = formData.get('odometer') ? Number(formData.get('odometer')) : null;
+		const notes = String(formData.get('notes') || '').trim() || null;
+
+		if (!id || !amount || !date) return fail(400, { error: 'Missing required fields' });
+		const amountCents = Math.round(parseFloat(amount) * 100);
+		if (isNaN(amountCents) || amountCents <= 0) return fail(400, { error: 'Invalid amount' });
+		if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) return fail(400, { error: 'Invalid date format' });
+
+		const validCategories = [
+			'maintenance',
+			'parts',
+			'accessories',
+			'administrative',
+			'fuel',
+			'other'
+		];
+		if (!validCategories.includes(category)) return fail(400, { error: 'Invalid category' });
+
+		await updateFinanceTransaction(id, params.id, locals.user!.id, {
+			category: category as
+				| 'maintenance'
+				| 'parts'
+				| 'accessories'
+				| 'administrative'
+				| 'fuel'
+				| 'other',
+			amount_cents: amountCents,
+			notes,
+			performed_at: date,
+			odometer_at_transaction: odometer
+		});
+
+		return { edited: true };
 	}
 };

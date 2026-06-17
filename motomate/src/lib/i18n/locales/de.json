@@ -14,7 +14,10 @@
 		"close": "Schließen",
 		"saving": "Speichern…",
 		"months": "Mo",
-		"or": "oder"
+		"or": "oder",
+		"columns": "Spalten",
+		"timeline": "Zeitlinie",
+		"table": "Tabelle"
 	},
 	"auth": {
 		"login": {
@@ -201,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Erfordert Aufmerksamkeit",
 			"garage": "Garage",
-			"recentActivity": "Letzte Aktivität"
+			"recentActivity": "Letzte Aktivität",
+			"thisYear": "Dieses Jahr"
+		},
+		"yearCost": {
+			"none": "Keine Ausgaben erfasst"
 		},
 		"viewAll": "Alle anzeigen →",
 		"serviceEntry": "Serviceeintrag",
@@ -243,9 +250,10 @@
 				"timeline": "Zeitleiste",
 				"maintenance": "Wartung",
 				"documents": "Dokumente",
-				"finance": "Finanzen",
+				"finance": "Ausgaben",
 				"travels": "Fahrten",
-				"settings": "Einstellungen"
+				"settings": "Einstellungen",
+				"notes": "Notizen"
 			},
 			"pinnedDoc": {
 				"pin": "Dokument anheften",
@@ -282,7 +290,7 @@
 					"odometer": "Kilometerstand",
 					"notes": "Notizen",
 					"travels": "Fahrten",
-					"finance": "Finanzen",
+					"finance": "Ausgaben",
 					"usage": "Verbrauch",
 					"reminders": "Erinnerungen"
 				},
@@ -468,7 +476,9 @@
 						"download": "PDF herunterladen",
 						"downloading": "Wird geladen...",
 						"cancel": "Abbrechen",
-						"includeFinance": "Kostenübersicht einbeziehen"
+						"includeFinance": "Kosten einbeziehen",
+						"includeAttachments": "Anhänge einbeziehen",
+						"includeNotes": "Notizen einbeziehen"
 					},
 					"pdf": {
 						"generatedOn": "Erstellt am",
@@ -494,7 +504,8 @@
 						"catAdministrative": "Verwaltung",
 						"catFuel": "Kraftstoff",
 						"catOther": "Sonstiges",
-						"documentInApp": "Dieses Dokument ist in Ihrer MotoMate-Dokumentenbibliothek verfuegbar."
+						"documentInApp": "Dieses Dokument ist in Ihrer MotoMate-Dokumentenbibliothek verfuegbar.",
+						"vehicleNotes": "Notizen"
 					}
 				}
 			},
@@ -512,6 +523,39 @@
 				"locked": "Nach Erstellung gesperrt"
 			},
 			"usageUpdated": "Verbrauch aktualisiert"
+		},
+		"notes": {
+			"pageTitle": "Notizen · {name}",
+			"title": "Notizen",
+			"subtitle": "Alles, was es wert ist, nicht an einen Service oder eine Fahrt gebunden zu sein.",
+			"subtitleEmpty": "Alles, was es wert ist, nicht an einen Service oder eine Fahrt gebunden zu sein.",
+			"new": "Notiz hinzufügen",
+			"edit": "Notiz bearbeiten",
+			"untitled": "Ohne Titel",
+			"saved": "Notiz gespeichert",
+			"empty": {
+				"title": "Noch keine Notizen",
+				"desc": "Halte alles fest, was wichtig ist: Eigenheiten, Umbauten, Erinnerungen oder einfach Gedanken."
+			},
+			"delete": {
+				"title": "Notiz löschen",
+				"desc": "Diese Notiz wird dauerhaft gelöscht.",
+				"confirm": "Löschen",
+				"cancel": "Behalten"
+			},
+			"form": {
+				"title": "Titel",
+				"titlePlaceholder": "Optionaler Titel…",
+				"content": "Inhalt",
+				"contentPlaceholder": "In Markdown schreiben…",
+				"docSearch": "Dokumente suchen",
+				"docSearchEmpty": "Keine Dokumente gefunden",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Auszug"
+			},
+			"searchPlaceholder": "Notizen suchen..."
 		}
 	},
 	"maintenance": {
@@ -541,7 +585,11 @@
 			"title": "Servicehistorie",
 			"noHistory": "Noch keine Servicehistorie",
 			"noHistoryDesc": "Protokollieren Sie einen Serviceeintrag, um ihn hier zu sehen.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Aufgabe",
+			"odometer": "Kilometerstand",
+			"cost": "Kosten",
+			"notes": "Notizen"
 		},
 		"editLog": {
 			"date": "Datum",
@@ -639,7 +687,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanzen",
+		"title": "Ausgaben",
 		"subtitle": "Ausgaben verfolgen",
 		"totalSpent": "Gesamtausgaben für dein {name}",
 		"addExpense": "Hinzufügen",
@@ -679,6 +727,7 @@
 		"form": {
 			"addTitle": "Hinzufügen",
 			"editTitle": "Bearbeiten",
+			"switchType": "Stattdessen etwas anderes erfassen",
 			"category": "Kategorie",
 			"amount": "Betrag ({currency})",
 			"date": "Datum",
@@ -705,6 +754,14 @@
 		"empty": {
 			"title": "Keine Ausgaben erfasst",
 			"description": "Fügen Sie Ihre erste Ausgabe hinzu, um mit der Verfolgung zu beginnen."
+		},
+		"col": {
+			"date": "Datum",
+			"category": "Kategorie",
+			"description": "Beschreibung",
+			"odometer": "Kilometerstand",
+			"amount": "Betrag",
+			"attachments": "Anhänge"
 		}
 	},
 	"documents": {
@@ -751,7 +808,15 @@
 		},
 		"view": {
 			"list": "Liste",
+			"table": "Tabelle",
 			"timeline": "Zeitleiste"
+		},
+		"col": {
+			"name": "Name",
+			"type": "Typ",
+			"size": "Größe",
+			"date": "Datum",
+			"expiry": "Ablauf"
 		},
 		"types": {
 			"service": "Service",
@@ -1061,6 +1126,7 @@
 		"nav": {
 			"dashboard": "Übersicht",
 			"garage": "Garage",
+			"insights": "Statistiken",
 			"settings": "Einstellungen",
 			"profile": "Profil"
 		},
@@ -1085,7 +1151,7 @@
 			"maintenanceDesc": "Öl, Reifen oder Reparaturen",
 			"mileage": "Kilometerstand",
 			"mileageDesc": "Zahl auf Ihrem Tacho",
-			"finance": "Finanzen",
+			"finance": "Ausgaben",
 			"financeDesc": "Kraftstoff, Versicherung oder Teile",
 			"usage": "Verbrauch",
 			"usageDesc": "Stunden oder Stand am Zähler"
@@ -1181,5 +1247,48 @@
 			"past": "Vergangen",
 			"upcoming": "Geplant"
 		}
+	},
+	"insights": {
+		"title": "Statistiken",
+		"subtitle": "Wie weit du gefahren bist und was du ausgegeben hast",
+		"vehicles": {
+			"all": "Alle Fahrzeuge"
+		},
+		"timeRange": {
+			"6m": "6 Monate",
+			"1y": "1 Jahr",
+			"2y": "2 Jahre",
+			"all": "Alle"
+		},
+		"mileage": {
+			"title": "Kilometerstand",
+			"modOdometer": "Tachometer",
+			"modDelta": "Pro Monat",
+			"allFleetNote": "Kombinierte Ablesungen werden angezeigt",
+			"summary": "{km} in der gewählten Periode gefahren.",
+			"showServices": "Serviceereignisse",
+			"viewLog": "Wartungsprotokoll ansehen"
+		},
+		"costs": {
+			"title": "Ausgaben",
+			"modMonthly": "Monatlich",
+			"modCumulative": "Kumuliert",
+			"viewDetails": "Ausgaben anzeigen"
+		},
+		"empty": {
+			"title": "Noch keine Daten",
+			"mileage": "Erfasse Kilometerstände, um zu sehen, wie weit du gefahren bist.",
+			"costs": "Füge Ausgaben hinzu, um zu sehen, was du ausgegeben hast."
+		}
+	},
+	"draft": {
+		"resuming": "Fortsetzen von {ago}",
+		"discard": "Verwerfen",
+		"fileHint": "Eine Datei war angehängt — bitte erneut hinzufügen",
+		"justNow": "gerade eben",
+		"unitMin": "Min. zuvor",
+		"unitHour": "Std. zuvor",
+		"unitDay": "Tg. zuvor",
+		"autosaved": "Automatisch gespeichert"
 	}
 }

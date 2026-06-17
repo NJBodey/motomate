@@ -1,4 +1,5 @@
 import type { PageServerLoad } from './$types';
+import { dev } from '$app/environment';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -24,6 +25,16 @@ function readAppVersion(): string {
 
 export const load: PageServerLoad = async ({ url }) => {
 	const currentVersion = readAppVersion();
+
+	if (dev) {
+		try {
+			const raw = readFileSync(resolve(process.cwd(), '../CHANGELOG.md'), 'utf-8');
+			return { raw, currentVersion };
+		} catch {
+			// fall through to remote fetch
+		}
+	}
+
 	const refresh = url.searchParams.has('refresh');
 	if (!refresh && cache && Date.now() - cache.at < TTL) {
 		return { raw: cache.raw, currentVersion };

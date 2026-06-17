@@ -53,6 +53,11 @@
 		background: color-mix(in srgb, var(--status-overdue) 10%, var(--bg));
 	}
 
+	.attention-card:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
 	.card-body {
 		flex: 1;
 		min-width: 0;

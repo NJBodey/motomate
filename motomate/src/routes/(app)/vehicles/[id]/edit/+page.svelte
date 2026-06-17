@@ -30,6 +30,8 @@
 		untrack(() => new Set<string>(data.reportExcludedTrackerIds ?? []))
 	);
 	let includeFinance = $state(true);
+	let includeAttachments = $state(untrack(() => data.includeAttachments ?? true));
+	let includeNotes = $state(untrack(() => data.includeNotes ?? false));
 	let reportDownloading = $state(false);
 
 	async function handleReportDownload() {
@@ -39,11 +41,18 @@
 			method: 'PATCH',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({
-				page_prefs: { maintenance_report_pdf: { [data.vehicle.id]: excluded } }
+				page_prefs: {
+					maintenance_report_pdf: { [data.vehicle.id]: excluded },
+					maintenance_report_opts: { [data.vehicle.id]: { includeAttachments, includeNotes } }
+				}
 			})
 		});
-		const url = `/api/vehicles/${data.vehicle.id}/report${includeFinance ? '' : '?noFinance'}`;
-		window.location.href = url;
+		const params = new URLSearchParams();
+		if (!includeFinance) params.set('noFinance', '1');
+		if (!includeAttachments) params.set('noAttachments', '1');
+		if (includeNotes) params.set('includeNotes', '1');
+		const qs = params.toString();
+		window.location.href = `/api/vehicles/${data.vehicle.id}/report${qs ? '?' + qs : ''}`;
 		reportDownloading = false;
 		showReportModal = false;
 	}
@@ -152,13 +161,20 @@
 		>
 			<label class="field">
 				<span class="field-label">{currentReadingLabel}</span>
-				<input
-					name="odometer"
-					type="number"
-					min="0"
-					bind:value={odometerInput}
-					class="input mono"
-				/>
+				<div class="field-input-group">
+					<input
+						name="odometer"
+						type="number"
+						min="0"
+						bind:value={odometerInput}
+						class="input mono"
+					/>
+					<span
+						class="input-suffix"
+						title="{vehicleUnitTitle} · {$_('vehicle.edit.measurementUnit.locked')}"
+						aria-hidden="true">{data.vehicle.odometer_unit}</span
+					>
+				</div>
 			</label>
 			<button type="submit" class="btn-primary" disabled={!odometerChanged}
 				>{$_('vehicle.edit.odometer.update')}</button
@@ -358,19 +374,6 @@
 
 	<div class="divider"></div>
 
-	<!-- Measurement unit -->
-	<section class="edit-section">
-		<h2 class="section-label">{$_('vehicle.edit.measurementUnit.title')}</h2>
-		<div class="settings-box">
-			<div>
-				<div class="settings-title">{vehicleUnitTitle}</div>
-				<div class="settings-desc">{$_('vehicle.edit.measurementUnit.locked')}</div>
-			</div>
-		</div>
-	</section>
-
-	<div class="divider"></div>
-
 	<!-- Danger zone -->
 	<section class="edit-section">
 		<h2 class="section-label section-label--danger">{$_('vehicle.edit.settings.dangerZone')}</h2>
@@ -479,6 +482,14 @@
 	<label class="tracker-check-label">
 		<input type="checkbox" bind:checked={includeFinance} />
 		{$_('vehicle.edit.settings.report.modal.includeFinance')}
+	</label>
+	<label class="tracker-check-label" class:tracker-check-label--disabled={!data.hasNotes}>
+		<input type="checkbox" bind:checked={includeNotes} disabled={!data.hasNotes} />
+		{$_('vehicle.edit.settings.report.modal.includeNotes')}
+	</label>
+	<label class="tracker-check-label">
+		<input type="checkbox" bind:checked={includeAttachments} />
+		{$_('vehicle.edit.settings.report.modal.includeAttachments')}
 	</label>
 	{#snippet footer()}
 		<button type="button" class="btn-ghost" onclick={() => (showReportModal = false)}>
@@ -641,6 +652,36 @@
 		flex: 1;
 		height: 48px;
 	}
+	.input-suffix {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.75rem 0.875rem;
+		background: var(--bg-muted);
+		border: 1px solid var(--border);
+		border-left: none;
+		border-radius: 0 10px 10px 0;
+		font-size: var(--text-sm);
+		font-weight: 500;
+		color: var(--text-muted);
+		font-family: var(--font-mono);
+		min-width: 44px;
+		height: 48px;
+		box-sizing: border-box;
+		cursor: help;
+		user-select: none;
+	}
+	.input:has(+ .input-suffix) {
+		border-radius: 10px 0 0 10px;
+		flex: 1;
+		height: 48px;
+	}
+	.field-input-group:hover .input-suffix {
+		border-color: var(--border-strong);
+	}
+	.field-input-group:focus-within .input-suffix {
+		border-color: var(--accent);
+	}
 	.req {
 		color: var(--status-overdue);
 	}
@@ -792,6 +833,11 @@
 		accent-color: var(--accent);
 		cursor: pointer;
 		flex-shrink: 0;
+	}
+
+	.tracker-check-label--disabled {
+		color: var(--text-subtle);
+		cursor: default;
 	}
 
 	.report-section-divider {

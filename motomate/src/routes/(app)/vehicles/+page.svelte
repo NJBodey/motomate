@@ -184,5 +184,8 @@
 		.vehicle-list {
 			padding: 0 var(--space-4) var(--space-4);
 		}
+		.page-actions {
+			flex-direction: row-reverse;
+		}
 	}
 </style>

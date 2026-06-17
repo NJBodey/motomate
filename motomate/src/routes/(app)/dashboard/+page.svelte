@@ -75,7 +75,6 @@
 <svelte:head><title>Dashboard &middot; MotoMate</title></svelte:head>
 
 <div class="dashboard">
-	<!-- Greeting hero -->
 	<div class="dash-greeting">
 		<h1 class="greeting-text">{greeting}.</h1>
 		<p
@@ -95,7 +94,6 @@
 		</p>
 	</div>
 
-	<!-- Attention needed -->
 	{#if attentionItems.length > 0}
 		<section class="dash-section">
 			<h2 class="section-eyebrow">{$_('dashboard.sections.needsAttention')}</h2>
@@ -120,7 +118,6 @@
 		</section>
 	{/if}
 
-	<!-- Garage -->
 	{#if data.vehicles.length > 0}
 		<section class="dash-section">
 			<div class="section-header">
@@ -170,7 +167,6 @@
 		</section>
 	{/if}
 
-	<!-- Recent activity -->
 	{#if data.recentLogs.length > 0}
 		<section class="dash-section">
 			<h2 class="section-eyebrow">{$_('dashboard.sections.recentActivity')}</h2>
@@ -207,7 +203,41 @@
 		</section>
 	{/if}
 
-	<!-- Empty state -->
+	{#if data.vehicles.length > 0}
+		<section class="dash-section">
+			<div class="section-header">
+				<h2 class="section-eyebrow">{$_('dashboard.sections.thisYear')}</h2>
+			</div>
+			<div class="year-list">
+				{#each data.vehicles as vehicle (vehicle.id)}
+					{@const yearCost = data.yearCostByVehicle[vehicle.id]}
+					{#if yearCost}
+						<a href="/insights?v={vehicle.id}" class="year-entry">
+							<span class="year-vehicle"
+								>{vehicle.meta?.avatar_emoji ??
+									(vehicle.type === 'scooter' ? '🛵' : vehicle.type === 'bike' ? '🚲' : '🏍')}
+								{vehicle.name}</span
+							>
+							<span class="year-cost mono">
+								{formatCurrency(yearCost.totalCents, yearCost.currency, currentLocale)}
+							</span>
+							<svg
+								class="year-arrow"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg
+							>
+						</a>
+					{/if}
+				{/each}
+			</div>
+		</section>
+	{/if}
+
 	{#if data.vehicles.length === 0}
 		<section class="dash-section">
 			<div class="empty">
@@ -242,7 +272,7 @@
 		color: var(--text);
 		letter-spacing: -0.02em;
 		line-height: var(--leading-tight);
-		margin: 0 0 0.5rem;
+		margin: 0 0 var(--space-2);
 	}
 	.status-summary {
 		font-size: var(--text-base);
@@ -326,6 +356,12 @@
 		opacity: 0.75;
 	}
 
+	.entry:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: -1px;
+		border-radius: 4px;
+	}
+
 	.entry-avatar {
 		font-size: 1.25rem;
 		flex-shrink: 0;
@@ -398,28 +434,76 @@
 		background: var(--status-overdue);
 	}
 
+	/* This year */
+	.year-list {
+		display: flex;
+		flex-direction: column;
+	}
+	.year-entry {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) 0;
+		border-bottom: 1px solid var(--border);
+		text-decoration: none;
+		transition: opacity 0.1s;
+	}
+	.year-entry:first-child {
+		border-top: 1px solid var(--border);
+	}
+	.year-entry:hover {
+		opacity: 0.75;
+	}
+
+	.year-entry:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: -1px;
+		border-radius: 4px;
+	}
+	.year-vehicle {
+		flex: 1;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.year-cost {
+		font-size: var(--text-sm);
+		color: var(--text);
+		font-weight: 500;
+		flex-shrink: 0;
+	}
+	.year-arrow {
+		width: 14px;
+		height: 14px;
+		color: var(--text-subtle);
+		flex-shrink: 0;
+	}
+
 	/* Empty state */
 	.empty {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		padding: 4rem var(--space-5);
+		padding: var(--space-10) var(--space-5);
 	}
 	.empty-icon {
 		font-size: 3rem;
-		margin-bottom: 1rem;
+		margin-bottom: var(--space-4);
 	}
 	.empty-title {
 		font-size: var(--text-lg);
 		font-weight: 600;
 		color: var(--text);
-		margin: 0 0 0.5rem;
+		margin: 0 0 var(--space-2);
 	}
 	.empty-desc {
 		font-size: var(--text-sm);
 		color: var(--text-muted);
-		margin: 0 0 1.5rem;
+		margin: 0 0 var(--space-5);
 		line-height: var(--leading-base);
 	}
 	.btn-primary {

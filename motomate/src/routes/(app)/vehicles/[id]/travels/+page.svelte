@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
 	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
@@ -84,7 +84,7 @@
 			if (t) openEdit(t);
 			const url = new URL(page.url);
 			url.searchParams.delete('edit');
-			replaceState(url, page.state);
+			tick().then(() => replaceState(url, page.state));
 			return;
 		}
 		const deleteId = page.url.searchParams.get('delete');
@@ -93,7 +93,7 @@
 			if (t) deletingTravel = t;
 			const url = new URL(page.url);
 			url.searchParams.delete('delete');
-			replaceState(url, page.state);
+			tick().then(() => replaceState(url, page.state));
 		}
 	});
 
@@ -472,8 +472,18 @@
 		align-items: center;
 		flex-shrink: 0;
 	}
+	@media (max-width: 640px) {
+		.page-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.page-actions {
+			width: 100%;
+		}
+	}
 	.btn-primary {
 		padding: 0.5rem 1rem;
+		min-height: 44px;
 		background: var(--accent);
 		color: #fff;
 		border: none;

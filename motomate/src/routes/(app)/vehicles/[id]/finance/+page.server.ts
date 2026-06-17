@@ -103,9 +103,6 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 	const sortedCategories = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
 	const sortedDescriptions = [...byDescription.entries()].sort((a, b) => b[1] - a[1]);
 
-	// Get recent transactions (last 10)
-	const recentTransactions = allTransactions.slice(0, 10);
-
 	// Calculate total investment (purchase + maintenance)
 	const purchasePriceCents = vehicle.purchase_price_cents || 0;
 	const totalInvestmentCents = purchasePriceCents + totalCents;
@@ -121,7 +118,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		byYear: sortedYears,
 		byCategory: sortedCategories,
 		byDescription: sortedDescriptions,
-		recentTransactions,
+		allTransactions,
 		currency: (vehicle as any).currency || 'EUR',
 		purchasePriceCents,
 		soldPriceCents,

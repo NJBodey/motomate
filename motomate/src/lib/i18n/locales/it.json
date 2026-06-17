@@ -14,7 +14,10 @@
 		"close": "Chiudi",
 		"saving": "Salvataggio…",
 		"months": "m",
-		"or": "o"
+		"or": "o",
+		"columns": "Colonne",
+		"timeline": "Cronologia",
+		"table": "Tabella"
 	},
 	"auth": {
 		"login": {
@@ -201,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Richiede attenzione",
 			"garage": "Garage",
-			"recentActivity": "Attività recente"
+			"recentActivity": "Attività recente",
+			"thisYear": "Quest'anno"
+		},
+		"yearCost": {
+			"none": "Nessuna spesa registrata"
 		},
 		"viewAll": "Visualizza tutto →",
 		"serviceEntry": "Voce di servizio",
@@ -243,9 +250,10 @@
 				"timeline": "Cronologia",
 				"maintenance": "Manutenzione",
 				"documents": "Documenti",
-				"finance": "Finanza",
+				"finance": "Spese",
 				"settings": "Impostazioni",
-				"travels": "Viaggi"
+				"travels": "Viaggi",
+				"notes": "Note"
 			},
 			"pinnedDoc": {
 				"pin": "Aggiungi documento",
@@ -282,7 +290,7 @@
 					"odometer": "Odometro",
 					"notes": "Note",
 					"travels": "Viaggi",
-					"finance": "Finanze",
+					"finance": "Spese",
 					"usage": "Utilizzo",
 					"reminders": "Promemoria"
 				},
@@ -469,7 +477,9 @@
 						"download": "Scarica PDF",
 						"downloading": "Download...",
 						"cancel": "Annulla",
-						"includeFinance": "Includi riepilogo spese"
+						"includeFinance": "Includi spese",
+						"includeAttachments": "Includi allegati",
+						"includeNotes": "Includi note"
 					},
 					"pdf": {
 						"generatedOn": "Generato il",
@@ -495,7 +505,8 @@
 						"catAdministrative": "Amministrativo",
 						"catFuel": "Carburante",
 						"catOther": "Altro",
-						"documentInApp": "Questo documento e disponibile nella tua libreria documenti MotoMate."
+						"documentInApp": "Questo documento e disponibile nella tua libreria documenti MotoMate.",
+						"vehicleNotes": "Note"
 					}
 				}
 			},
@@ -513,6 +524,39 @@
 				"locked": "Bloccata dopo la creazione"
 			},
 			"usageUpdated": "Utilizzo aggiornato"
+		},
+		"notes": {
+			"pageTitle": "Note · {name}",
+			"title": "Note",
+			"subtitle": "Tutto ciò che vale la pena conservare, non legato a un servizio o a un viaggio.",
+			"subtitleEmpty": "Tutto ciò che vale la pena conservare, non legato a un servizio o a un viaggio.",
+			"new": "Aggiungi nota",
+			"edit": "Modifica nota",
+			"untitled": "Senza titolo",
+			"saved": "Nota salvata",
+			"empty": {
+				"title": "Ancora nessuna nota",
+				"desc": "Tieni traccia di ciò che conta: particolarità, modifiche, promemoria o semplici pensieri."
+			},
+			"delete": {
+				"title": "Elimina nota",
+				"desc": "Questa nota verrà eliminata definitivamente.",
+				"confirm": "Elimina",
+				"cancel": "Tieni"
+			},
+			"form": {
+				"title": "Titolo",
+				"titlePlaceholder": "Titolo opzionale…",
+				"content": "Contenuto",
+				"contentPlaceholder": "Scrivi in Markdown…",
+				"docSearch": "Cerca documenti",
+				"docSearchEmpty": "Nessun documento trovato",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Estratto"
+			},
+			"searchPlaceholder": "Cerca note..."
 		}
 	},
 	"maintenance": {
@@ -542,7 +586,11 @@
 			"title": "Storico servizi",
 			"noHistory": "Nessuno storico servizi",
 			"noHistoryDesc": "Registra un intervento di servizio per visualizzarlo qui.",
-			"serviceEntry": "Servizio"
+			"serviceEntry": "Servizio",
+			"task": "Attività",
+			"odometer": "Chilometraggio",
+			"cost": "Costo",
+			"notes": "Note"
 		},
 		"editLog": {
 			"date": "Data",
@@ -640,7 +688,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanze",
+		"title": "Spese",
 		"subtitle": "Traccia le spese",
 		"totalSpent": "Totale speso per la tua {name}",
 		"addExpense": "Aggiungi",
@@ -680,6 +728,7 @@
 		"form": {
 			"addTitle": "Aggiungi",
 			"editTitle": "Modifica",
+			"switchType": "Registra qualcosa di diverso",
 			"category": "Categoria",
 			"amount": "Importo ({currency})",
 			"date": "Data",
@@ -706,6 +755,14 @@
 		"empty": {
 			"title": "Nessuna spesa registrata",
 			"description": "Aggiungi la tua prima spesa per iniziare a tracciare."
+		},
+		"col": {
+			"date": "Data",
+			"category": "Categoria",
+			"description": "Descrizione",
+			"odometer": "Chilometraggio",
+			"amount": "Importo",
+			"attachments": "Allegati"
 		}
 	},
 	"documents": {
@@ -752,7 +809,15 @@
 		},
 		"view": {
 			"list": "Lista",
+			"table": "Tabella",
 			"timeline": "Cronologia"
+		},
+		"col": {
+			"name": "Nome",
+			"type": "Tipo",
+			"size": "Dimensione",
+			"date": "Data",
+			"expiry": "Scadenza"
 		},
 		"types": {
 			"service": "Servizio",
@@ -1062,6 +1127,7 @@
 		"nav": {
 			"dashboard": "Dashboard",
 			"garage": "Garage",
+			"insights": "Statistiche",
 			"settings": "Impostazioni",
 			"profile": "Profilo"
 		},
@@ -1086,7 +1152,7 @@
 			"maintenanceDesc": "Olio, pneumatici o riparazioni",
 			"mileage": "Chilometraggio",
 			"mileageDesc": "Numero sul tuo cruscotto",
-			"finance": "Finanze",
+			"finance": "Spese",
 			"financeDesc": "Carburante, assicurazione o ricambi",
 			"usage": "Utilizzo",
 			"usageDesc": "Ore o lettura sul tuo contatore"
@@ -1182,5 +1248,48 @@
 			"past": "Passati",
 			"upcoming": "Pianificati"
 		}
+	},
+	"insights": {
+		"title": "Statistiche",
+		"subtitle": "Quanti chilometri hai percorso e quanto hai speso",
+		"vehicles": {
+			"all": "Tutti i veicoli"
+		},
+		"timeRange": {
+			"6m": "6 mesi",
+			"1y": "1 anno",
+			"2y": "2 anni",
+			"all": "Sempre"
+		},
+		"mileage": {
+			"title": "Chilometraggio",
+			"modOdometer": "Odometro",
+			"modDelta": "Al mese",
+			"allFleetNote": "Visualizzazione delle letture combinate",
+			"summary": "Percorsi {km} nel periodo selezionato.",
+			"showServices": "Eventi di servizio",
+			"viewLog": "Vedi il registro manutenzione"
+		},
+		"costs": {
+			"title": "Spese",
+			"modMonthly": "Mensile",
+			"modCumulative": "Cumulativo",
+			"viewDetails": "Vedi le spese"
+		},
+		"empty": {
+			"title": "Nessun dato ancora",
+			"mileage": "Registra le letture del chilometraggio per vedere quanti km hai percorso.",
+			"costs": "Aggiungi spese per vedere quanto hai speso."
+		}
+	},
+	"draft": {
+		"resuming": "Riprendendo da {ago}",
+		"discard": "Scarta",
+		"fileHint": "C'era un file allegato — aggiungilo di nuovo",
+		"justNow": "adesso",
+		"unitMin": "min fa",
+		"unitHour": "h fa",
+		"unitDay": "g fa",
+		"autosaved": "Salvato automaticamente"
 	}
 }

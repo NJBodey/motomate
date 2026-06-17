@@ -7,8 +7,12 @@
 	import type { PageData } from './$types';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import ViewToggle from '$lib/components/ui/ViewToggle.svelte';
+	import ColumnPicker from '$lib/components/ui/ColumnPicker.svelte';
+	import DocumentUploadForm from '$lib/components/documents/DocumentUploadForm.svelte';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
+	import { sheet } from '$lib/stores/sheet.svelte.js';
 
 	let {
 		data,
@@ -26,9 +30,6 @@
 	const totalPages = $derived(Math.max(1, Math.ceil((data.total ?? 0) / data.perPage)));
 
 	let isDragging = $state(false);
-	let selectedFile = $state<File | null>(null);
-	let showForm = $state(false);
-	let uploading = $state(false);
 
 	let deletingDoc = $state<{ id: string; name: string; storage_key: string } | null>(null);
 
@@ -42,7 +43,32 @@
 				'newest'
 		)
 	);
-	let viewMode = $state<'list' | 'timeline'>(untrack(() => data.page_prefs?.viewMode ?? 'list'));
+	let viewMode = $state<'table' | 'timeline'>(
+		untrack(() => {
+			const stored = data.page_prefs?.viewMode;
+			if (stored === 'list' || stored === 'table') return 'table';
+			if (stored === 'timeline') return 'timeline';
+			return 'table';
+		})
+	);
+
+	const defaultDocColVis: Record<string, boolean> = {
+		type: true,
+		size: true,
+		date: true,
+		expiry: true
+	};
+	let docColVis = $state<Record<string, boolean>>(
+		untrack(() => data.page_prefs?.columnVisibility ?? defaultDocColVis)
+	);
+
+	const docColumns = [
+		{ key: 'name', label: $_('documents.col.name'), hideable: false },
+		{ key: 'type', label: $_('documents.col.type'), hideable: true },
+		{ key: 'size', label: $_('documents.col.size'), hideable: true },
+		{ key: 'date', label: $_('documents.col.date'), hideable: true },
+		{ key: 'expiry', label: $_('documents.col.expiry'), hideable: true }
+	];
 
 	// Persist view preferences
 	let _prefTimer: ReturnType<typeof setTimeout>;
@@ -67,11 +93,12 @@
 	$effect(() => {
 		const s = sortBy;
 		const v = viewMode;
+		const c = docColVis;
 		if (_firstRun) {
 			_firstRun = false;
 			return;
 		}
-		_pendingPrefs = { sortBy: s, viewMode: v };
+		_pendingPrefs = { sortBy: s, viewMode: v, columnVisibility: c };
 		clearTimeout(_prefTimer);
 		_prefTimer = setTimeout(flushPrefs, 600);
 	});
@@ -168,25 +195,21 @@
 		return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
 	};
 
+	function openUploadSheet(file?: File) {
+		sheet.openSheet(DocumentUploadForm, $_('documents.upload'), {
+			vehicleId: data.vehicle.id,
+			file
+		});
+	}
+
 	function handleDrop(e: DragEvent) {
 		const file = e.dataTransfer?.files[0];
-		if (file) {
-			selectedFile = file;
-			showForm = true;
-		}
+		if (file) openUploadSheet(file);
 	}
 
 	function handleFileSelect(e: Event) {
 		const file = (e.target as HTMLInputElement).files?.[0];
-		if (file) {
-			selectedFile = file;
-			showForm = true;
-		}
-	}
-
-	function cancelUpload() {
-		showForm = false;
-		selectedFile = null;
+		if (file) openUploadSheet(file);
 	}
 
 	function startEditName(docId: string, currentName: string) {
@@ -237,8 +260,6 @@
 		const f = form;
 		untrack(() => {
 			if (f?.uploaded) {
-				showForm = false;
-				selectedFile = null;
 				toasts.success($_('documents.toasts.uploaded'));
 			}
 			if (f?.renamed) {
@@ -262,6 +283,11 @@
 	<div class="page-header-text">
 		<h2 class="section-title">{$_('documents.title')}</h2>
 		<p class="page-sub">{$_('documents.subtitle')}</p>
+	</div>
+	<div class="page-actions">
+		<button type="button" class="btn-primary" onclick={() => openUploadSheet()}>
+			{$_('documents.upload')}
+		</button>
 	</div>
 </div>
 
@@ -302,90 +328,6 @@
 	/>
 </label>
 
-<!-- Upload form -->
-{#if showForm}
-	<form
-		method="POST"
-		action="?/upload"
-		enctype="multipart/form-data"
-		class="upload-form"
-		use:enhance={({ formData, cancel }) => {
-			if (!selectedFile) {
-				cancel();
-				return;
-			}
-			formData.set('file', selectedFile);
-			uploading = true;
-			return async ({ update }) => {
-				await update();
-				uploading = false;
-			};
-		}}
-	>
-		<div class="file-chip">
-			<span class="file-chip-name">{selectedFile?.name ?? $_('documents.selectedFile')}</span>
-			<button
-				type="button"
-				class="file-chip-remove"
-				onclick={cancelUpload}
-				aria-label="Remove file"
-			>
-				<svg
-					width="16"
-					height="16"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg
-				>
-			</button>
-		</div>
-
-		<div class="form-group">
-			<label for="doc-name" class="field-label">{$_('documents.summary')}</label>
-			<input
-				type="text"
-				id="doc-name"
-				name="name"
-				placeholder={$_('documents.summaryPlaceholder')}
-				maxlength="200"
-				class="input"
-				required
-			/>
-		</div>
-
-		<div class="form-row">
-			<div class="field">
-				<label for="doc-type" class="field-label">{$_('documents.category')}</label>
-				<select id="doc-type" name="doc_type" class="input">
-					<option value="service" selected>{$_('documents.types.service')}</option>
-					<option value="quotation">{$_('documents.types.quotation')}</option>
-					<option value="papers">{$_('documents.types.papers')}</option>
-					<option value="photo">{$_('documents.types.photo')}</option>
-					<option value="notes">{$_('documents.types.notes')}</option>
-					<option value="other">{$_('documents.types.other')}</option>
-				</select>
-			</div>
-
-			<div class="field">
-				<label for="expires-at" class="field-label">
-					{$_('documents.expiry')} <span class="label-hint">{$_('documents.expiryOptional')}</span>
-				</label>
-				<input type="date" id="expires-at" name="expires_at" class="input" />
-			</div>
-		</div>
-
-		<div class="form-actions">
-			<button type="submit" class="btn-primary" disabled={uploading}
-				>{uploading ? $_('documents.saving') : $_('documents.saveDocument')}</button
-			>
-			<button type="button" class="btn-cancel" disabled={uploading} onclick={cancelUpload}
-				>{$_('documents.cancel')}</button
-			>
-		</div>
-	</form>
-{/if}
-
 <!-- Filters -->
 <div class="filters">
 	<div class="search-box">
@@ -417,17 +359,18 @@
 			<option value="oldest">{$_('documents.sort.oldest')}</option>
 			<option value="name">{$_('documents.sort.name')}</option>
 		</select>
-		<div class="view-toggle">
-			<button
-				class="view-btn"
-				class:view-btn--active={viewMode === 'list'}
-				onclick={() => (viewMode = 'list')}>{$_('documents.view.list')}</button
-			>
-			<button
-				class="view-btn"
-				class:view-btn--active={viewMode === 'timeline'}
-				onclick={() => (viewMode = 'timeline')}>{$_('documents.view.timeline')}</button
-			>
+		<div class="view-controls">
+			<ViewToggle
+				options={[
+					{ value: 'timeline', label: $_('common.timeline') },
+					{ value: 'table', label: $_('common.table') }
+				]}
+				value={viewMode}
+				onchange={(v) => (viewMode = v as 'table' | 'timeline')}
+			/>
+			{#if viewMode === 'table'}
+				<ColumnPicker columns={docColumns} visible={docColVis} onchange={(v) => (docColVis = v)} />
+			{/if}
 		</div>
 	</div>
 </div>
@@ -441,7 +384,7 @@
 		<p class="empty-title">{$_('documents.empty.title')}</p>
 		<p class="empty-desc">{$_('documents.empty.description')}</p>
 	</div>
-{:else if viewMode === 'list'}
+{:else if viewMode === 'table'}
 	<div class="doc-list">
 		{#each data.docs as doc}
 			<div
@@ -471,11 +414,18 @@
 						</div>
 					{/if}
 					<div class="doc-meta">
-						<span class="doc-type-tag">{docTypeLabels[doc.doc_type] ?? doc.doc_type}</span>
-						<span class="sep">·</span>
-						<span class="doc-meta-fixed">{formatSize(doc.size_bytes)}</span>
-						<span class="sep">·</span>
-						<span class="doc-meta-fixed">{formatDate(doc.created_at)}</span>
+						{#if docColVis.type !== false}
+							<span class="doc-type-tag">{docTypeLabels[doc.doc_type] ?? doc.doc_type}</span>
+						{/if}
+						{#if docColVis.size !== false}
+							{#if docColVis.type !== false}<span class="sep">·</span>{/if}
+							<span class="doc-meta-fixed">{formatSize(doc.size_bytes)}</span>
+						{/if}
+						{#if docColVis.date !== false}
+							{#if docColVis.type !== false || docColVis.size !== false}<span class="sep">·</span
+								>{/if}
+							<span class="doc-meta-fixed">{formatDate(doc.created_at)}</span>
+						{/if}
 						{#if data.serviceLogMap?.[doc.id]}
 							<span class="sep">·</span>
 							<span class="doc-linked-badge"
@@ -493,7 +443,7 @@
 							>
 						{/if}
 					</div>
-					{#if doc.expires_at}
+					{#if doc.expires_at && docColVis.expiry !== false}
 						<div class="doc-expiry">
 							{isExpired(doc.expires_at)
 								? $_('documents.expiryExpired')
@@ -707,111 +657,9 @@
 		display: none;
 	}
 
-	/* Upload form */
-	.upload-form {
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		padding: var(--space-5);
-		margin-bottom: var(--space-5);
-		background: var(--bg-subtle);
-	}
-
-	/* File chip */
-	.file-chip {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		background: var(--bg-muted);
-		padding: 0.75rem 1rem;
-		border-radius: 8px;
-		margin-bottom: 1.25rem;
-		border: 1px solid var(--border);
-	}
-	.file-chip-name {
-		flex: 1;
-		font-size: var(--text-sm);
-		color: var(--text);
-		font-weight: 500;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.file-chip-remove {
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--text-subtle);
-		padding: 0.25rem;
-		line-height: 1;
-		border-radius: 4px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.file-chip-remove:hover {
-		background: var(--border);
-		color: var(--text);
-	}
-
-	.form-row {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: var(--space-3);
-		margin-bottom: var(--space-4);
-	}
-	@media (max-width: 640px) {
-		.form-row {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.form-group {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-1);
-		margin-bottom: var(--space-3);
-	}
-
-	.field {
-		display: flex;
-		flex-direction: column;
-		gap: 0.3rem;
-	}
-	.field-label {
-		font-size: var(--text-sm);
-		font-weight: 500;
-		color: var(--text-muted);
-	}
-	.label-hint {
-		font-weight: 400;
-		color: var(--text-subtle);
-		font-size: var(--text-xs);
-	}
-	.input {
-		padding: 0.75rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--bg);
-		color: var(--text);
-		font-size: var(--text-md);
-		width: 100%;
-		min-height: 48px;
-	}
-	.input:hover {
-		border-color: var(--border-strong);
-	}
-	.input:focus {
-		outline: 2px solid var(--accent);
-		outline-offset: 1px;
-		border-color: var(--accent);
-	}
-	.form-actions {
-		display: flex;
-		gap: var(--space-3);
-		margin-top: var(--space-4);
-	}
 	.btn-primary {
-		padding: 0.75rem 1.25rem;
+		padding: 0.5rem 1rem;
+		min-height: 44px;
 		background: var(--accent);
 		color: #fff;
 		border: none;
@@ -819,7 +667,6 @@
 		font-size: var(--text-sm);
 		font-weight: 500;
 		cursor: pointer;
-		min-height: 48px;
 	}
 	.btn-primary:hover {
 		background: var(--accent-hover);
@@ -828,26 +675,6 @@
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
-	.btn-cancel {
-		padding: 0.75rem 1.25rem;
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		font-size: var(--text-sm);
-		font-weight: 500;
-		cursor: pointer;
-		color: var(--text-muted);
-		min-height: 48px;
-	}
-	.btn-cancel:hover {
-		background: var(--bg-muted);
-		color: var(--text);
-	}
-	.btn-cancel:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
 	/* Filters */
 	.filters {
 		display: flex;
@@ -908,24 +735,10 @@
 		font-weight: normal;
 		font-style: normal;
 	}
-	.view-toggle {
+	.view-controls {
 		display: flex;
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		overflow: hidden;
-	}
-	.view-btn {
-		padding: 0.375rem 0.625rem;
-		min-height: 40px;
-		background: var(--bg-subtle);
-		border: none;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-		cursor: pointer;
-	}
-	.view-btn--active {
-		background: var(--accent);
-		color: #fff;
+		gap: var(--space-2);
+		align-items: center;
 	}
 
 	/* Document list */
@@ -1283,7 +1096,7 @@
 		.filter-controls {
 			width: 100%;
 			display: grid;
-			grid-template-columns: 1fr 1fr 1fr;
+			grid-template-columns: 1fr 1fr auto;
 			gap: 0.5rem;
 			flex-wrap: nowrap !important;
 		}
@@ -1291,12 +1104,10 @@
 			min-height: 44px;
 			width: 100%;
 		}
-		.view-toggle {
+		.view-controls {
 			display: flex;
-		}
-		.view-toggle button {
-			min-height: 44px;
-			padding: 0.5rem 0.75rem;
+			align-items: center;
+			gap: var(--space-2);
 		}
 		.doc-row {
 			align-items: flex-start;

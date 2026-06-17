@@ -14,7 +14,10 @@
 		"close": "Sluiten",
 		"saving": "Opslaan…",
 		"months": "mnd",
-		"or": "of"
+		"or": "of",
+		"columns": "Kolommen",
+		"timeline": "Tijdlijn",
+		"table": "Tabel"
 	},
 	"auth": {
 		"login": {
@@ -201,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Aandacht nodig",
 			"garage": "Garage",
-			"recentActivity": "Recente activiteit"
+			"recentActivity": "Recente activiteit",
+			"thisYear": "Dit jaar"
+		},
+		"yearCost": {
+			"none": "Geen uitgaven geregistreerd"
 		},
 		"viewAll": "Alles bekijken →",
 		"serviceEntry": "Service-invoer",
@@ -243,9 +250,10 @@
 				"timeline": "Tijdlijn",
 				"maintenance": "Onderhoud",
 				"documents": "Documenten",
-				"finance": "Financieel",
+				"finance": "Uitgaven",
 				"settings": "Instellingen",
-				"travels": "Routes"
+				"travels": "Routes",
+				"notes": "Notities"
 			},
 			"pinnedDoc": {
 				"pin": "Document vastzetten",
@@ -282,7 +290,7 @@
 					"odometer": "Kilometerstand",
 					"notes": "Notities",
 					"travels": "Routes",
-					"finance": "Financieel",
+					"finance": "Uitgaven",
 					"usage": "Draaiuren",
 					"reminders": "Herinneringen"
 				},
@@ -468,7 +476,9 @@
 						"download": "PDF downloaden",
 						"downloading": "Bezig...",
 						"cancel": "Annuleren",
-						"includeFinance": "Financieel overzicht meenemen"
+						"includeFinance": "Uitgaven meenemen",
+						"includeAttachments": "Bijlagen meenemen",
+						"includeNotes": "Notities meenemen"
 					},
 					"pdf": {
 						"generatedOn": "Gegenereerd op",
@@ -494,7 +504,8 @@
 						"catAdministrative": "Administratief",
 						"catFuel": "Brandstof",
 						"catOther": "Overig",
-						"documentInApp": "Dit document is beschikbaar in uw MotoMate-documentenbibliotheek."
+						"documentInApp": "Dit document is beschikbaar in uw MotoMate-documentenbibliotheek.",
+						"vehicleNotes": "Notities"
 					}
 				}
 			},
@@ -512,6 +523,39 @@
 				"locked": "Eenheid kan je niet meer aanpassen na het aanmaken van je voertuig."
 			},
 			"usageUpdated": "Draaiuren bijgewerkt"
+		},
+		"notes": {
+			"pageTitle": "Notities · {name}",
+			"title": "Notities",
+			"subtitle": "Alles wat het waard is om te bewaren, los van de tijdlijn",
+			"subtitleEmpty": "Alles wat het waard is om te bewaren, los van de tijdlijn",
+			"new": "Notitie toevoegen",
+			"edit": "Notitie bewerken",
+			"untitled": "Naamloos",
+			"saved": "Notitie opgeslagen",
+			"empty": {
+				"title": "Nog geen notities",
+				"desc": "Houd bij wat belangrijk is: eigenaardigheden, aanpassingen, herinneringen of gewoon gedachten."
+			},
+			"delete": {
+				"title": "Notitie verwijderen",
+				"desc": "Deze notitie wordt permanent verwijderd.",
+				"confirm": "Verwijderen",
+				"cancel": "Behouden"
+			},
+			"form": {
+				"title": "Titel",
+				"titlePlaceholder": "Optionele titel…",
+				"content": "Inhoud",
+				"contentPlaceholder": "Schrijf in Markdown…",
+				"docSearch": "Documenten zoeken",
+				"docSearchEmpty": "Geen documenten gevonden",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Fragment"
+			},
+			"searchPlaceholder": "Notities zoeken..."
 		}
 	},
 	"maintenance": {
@@ -541,7 +585,11 @@
 			"title": "Servicegeschiedenis",
 			"noHistory": "Nog geen servicegeschiedenis",
 			"noHistoryDesc": "Log een service-item om het hier te zien.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Taak",
+			"odometer": "Kilometerstand",
+			"cost": "Kosten",
+			"notes": "Notities"
 		},
 		"editLog": {
 			"date": "Datum",
@@ -639,7 +687,7 @@
 		}
 	},
 	"finance": {
-		"title": "Financiën",
+		"title": "Uitgaven",
 		"subtitle": "Houd uitgaven bij",
 		"totalSpent": "Totaal besteed aan je {name}",
 		"addExpense": "Toevoegen",
@@ -679,6 +727,7 @@
 		"form": {
 			"addTitle": "Toevoegen",
 			"editTitle": "Bewerken",
+			"switchType": "Toch iets anders registreren",
 			"category": "Categorie",
 			"amount": "Bedrag ({currency})",
 			"date": "Datum",
@@ -705,6 +754,14 @@
 		"empty": {
 			"title": "Geen uitgaven geregistreerd",
 			"description": "Voeg je eerste uitgave toe om te beginnen met bijhouden."
+		},
+		"col": {
+			"date": "Datum",
+			"category": "Categorie",
+			"description": "Omschrijving",
+			"odometer": "Kilometerstand",
+			"amount": "Bedrag",
+			"attachments": "Bijlagen"
 		}
 	},
 	"documents": {
@@ -751,7 +808,15 @@
 		},
 		"view": {
 			"list": "Lijst",
+			"table": "Tabel",
 			"timeline": "Tijdlijn"
+		},
+		"col": {
+			"name": "Naam",
+			"type": "Type",
+			"size": "Grootte",
+			"date": "Datum",
+			"expiry": "Vervaldatum"
 		},
 		"types": {
 			"service": "Facturen",
@@ -1061,6 +1126,7 @@
 		"nav": {
 			"dashboard": "Dashboard",
 			"garage": "Garage",
+			"insights": "Statistieken",
 			"settings": "Instellingen",
 			"profile": "Profiel"
 		},
@@ -1080,12 +1146,12 @@
 		"addEntry": {
 			"title": "Item toevoegen",
 			"chooseVehicle": "Kies voertuig",
-			"whatLogging": "Wat ga je registreren?",
+			"whatLogging": "Wat ga je registreren op je tijdlijn?",
 			"maintenance": "Onderhoud",
 			"maintenanceDesc": "Olie, banden of reparaties",
 			"mileage": "Kilometerstand",
 			"mileageDesc": "Nummer op je dashboard",
-			"finance": "Financiën",
+			"finance": "Uitgaven",
 			"financeDesc": "Brandstof, onderdelen of andere kosten",
 			"usage": "Draaiuren",
 			"usageDesc": "Uren of stand op je teller"
@@ -1181,5 +1247,48 @@
 			"past": "Verleden",
 			"upcoming": "Gepland"
 		}
+	},
+	"insights": {
+		"title": "Statistieken",
+		"subtitle": "Hoe ver je hebt gereden en wat je hebt uitgegeven",
+		"vehicles": {
+			"all": "Alle voertuigen"
+		},
+		"timeRange": {
+			"6m": "6 maanden",
+			"1y": "1 jaar",
+			"2y": "2 jaar",
+			"all": "Altijd"
+		},
+		"mileage": {
+			"title": "Kilometerstand",
+			"modOdometer": "Teller",
+			"modDelta": "Per maand",
+			"allFleetNote": "Gecombineerde afstandswaarden worden getoond",
+			"summary": "{km} gereden in de geselecteerde periode.",
+			"showServices": "Servicegebeurtenissen",
+			"viewLog": "Bekijk onderhoudslogboek"
+		},
+		"costs": {
+			"title": "Uitgaven",
+			"modMonthly": "Maandelijks",
+			"modCumulative": "Cumulatief",
+			"viewDetails": "Uitgaven bekijken"
+		},
+		"empty": {
+			"title": "Nog geen gegevens",
+			"mileage": "Log kilometerstandlezingen om te zien hoe ver je hebt gereden.",
+			"costs": "Voeg uitgaven toe om te zien wat je hebt uitgegeven."
+		}
+	},
+	"draft": {
+		"resuming": "Verdergaan van {ago}",
+		"discard": "Verwerpen",
+		"fileHint": "Er was een bestand bijgevoegd — voeg het opnieuw toe",
+		"justNow": "zojuist",
+		"unitMin": "min geleden",
+		"unitHour": "u geleden",
+		"unitDay": "d geleden",
+		"autosaved": "Automatisch opgeslagen"
 	}
 }

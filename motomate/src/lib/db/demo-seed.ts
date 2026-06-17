@@ -2,7 +2,7 @@ import { mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 import { hash } from '@node-rs/argon2';
-import { eq, count } from 'drizzle-orm';
+import { eq, count, and } from 'drizzle-orm';
 import { db } from './index.js';
 import { getUserByEmail } from './repositories/users.js';
 import {
@@ -15,7 +15,8 @@ import {
 	workflow_rules,
 	documents,
 	travels,
-	odometer_logs
+	odometer_logs,
+	vehicle_notes
 } from './schema.js';
 import { generateId } from '../utils/id.js';
 
@@ -158,6 +159,40 @@ async function patchDemoContent(userId: string, vehicleId: string): Promise<void
 	}
 }
 
+async function patchDemoNotes(userId: string, vehicleId: string): Promise<void> {
+	const [{ value: noteCount }] = await db
+		.select({ value: count() })
+		.from(vehicle_notes)
+		.where(eq(vehicle_notes.vehicle_id, vehicleId));
+	if (noteCount > 0) return;
+
+	const pdfDoc = await db.query.documents.findFirst({
+		where: and(eq(documents.vehicle_id, vehicleId), eq(documents.doc_type, 'service'))
+	});
+	const gpxDoc = await db.query.documents.findFirst({
+		where: and(eq(documents.vehicle_id, vehicleId), eq(documents.doc_type, 'route'))
+	});
+
+	await db.insert(vehicle_notes).values([
+		{
+			id: generateId(),
+			vehicle_id: vehicleId,
+			user_id: userId,
+			title: 'Suspension setup',
+			content: `Front preload at position 3 of 5. Rear one click softer than stock for solo riding, add one click for two-up.\n\nDealer noted initial settings at the 1000 km service. See [Dealer service invoice; 1000 km](/api/files?key=demo/dealer-service-1000km.pdf) for the original values.\n\nFork oil last changed at 8000 km. Next change around 20000 km or if dive under braking gets worse?!`,
+			doc_refs: pdfDoc ? [pdfDoc.id] : []
+		},
+		{
+			id: generateId(),
+			vehicle_id: vehicleId,
+			user_id: userId,
+			title: 'Eifel weekend',
+			content: `## Route notes\n\nTwo days, ~450 km. Best in June before it gets too busy. Start early on day two to beat tourist traffic near the Nürburgring.\n\nFuel stop in Adenau. Pistenklause has good food and parking for bikes out front.\n\nFull GPX: [Eifel Route, Germany](/api/files?key=demo/eifel-route.gpx)\n\n## Packing list\n\n- Rain gear (suit or just a rain jacket)\n- Tool kit and tire plugs\n- Cash for toll roads`,
+			doc_refs: gpxDoc ? [gpxDoc.id] : []
+		}
+	]);
+}
+
 async function patchWorkflowRules(userId: string, vehicleId: string): Promise<void> {
 	const existing = await db.query.workflow_rules.findFirst({
 		where: eq(workflow_rules.user_id, userId)
@@ -213,6 +248,7 @@ export async function seedDemo(): Promise<void> {
 		if (vehicle) {
 			await patchWorkflowRules(existing.id, vehicle.id);
 			await patchDemoContent(existing.id, vehicle.id);
+			await patchDemoNotes(existing.id, vehicle.id);
 		}
 		return;
 	}
@@ -417,5 +453,6 @@ export async function seedDemo(): Promise<void> {
 
 	await patchWorkflowRules(userId, vehicleId);
 	await patchDemoContent(userId, vehicleId);
+	await patchDemoNotes(userId, vehicleId);
 	console.log('[motomate] Demo data seeded (demo@motomate.local / password123)');
 }

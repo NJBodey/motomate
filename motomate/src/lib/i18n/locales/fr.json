@@ -14,7 +14,10 @@
 		"close": "Fermer",
 		"saving": "Enregistrement…",
 		"months": "m",
-		"or": "ou"
+		"or": "ou",
+		"columns": "Colonnes",
+		"timeline": "Chronologie",
+		"table": "Tableau"
 	},
 	"auth": {
 		"login": {
@@ -201,7 +204,11 @@
 		"sections": {
 			"needsAttention": "Nécessite attention",
 			"garage": "Garage",
-			"recentActivity": "Activité récente"
+			"recentActivity": "Activité récente",
+			"thisYear": "Cette année"
+		},
+		"yearCost": {
+			"none": "Aucune dépense enregistrée"
 		},
 		"viewAll": "Voir tout →",
 		"serviceEntry": "Entrée de service",
@@ -243,9 +250,10 @@
 				"timeline": "Chronologie",
 				"maintenance": "Entretien",
 				"documents": "Documents",
-				"finance": "Finances",
+				"finance": "Dépenses",
 				"settings": "Parametres",
-				"travels": "Voyages"
+				"travels": "Voyages",
+				"notes": "Notes"
 			},
 			"pinnedDoc": {
 				"pin": "Epingler un document",
@@ -282,7 +290,7 @@
 					"odometer": "Kilométrage",
 					"notes": "Notes",
 					"travels": "Voyages",
-					"finance": "Finances",
+					"finance": "Dépenses",
 					"usage": "Usage",
 					"reminders": "Rappels"
 				},
@@ -468,7 +476,9 @@
 						"download": "Télécharger le PDF",
 						"downloading": "Chargement...",
 						"cancel": "Annuler",
-						"includeFinance": "Inclure le résumé des dépenses"
+						"includeFinance": "Inclure les dépenses",
+						"includeAttachments": "Inclure les pièces jointes",
+						"includeNotes": "Inclure les notes"
 					},
 					"pdf": {
 						"generatedOn": "Généré le",
@@ -494,7 +504,8 @@
 						"catAdministrative": "Administratif",
 						"catFuel": "Carburant",
 						"catOther": "Autre",
-						"documentInApp": "Ce document est disponible dans votre bibliotheque de documents MotoMate."
+						"documentInApp": "Ce document est disponible dans votre bibliotheque de documents MotoMate.",
+						"vehicleNotes": "Notes"
 					}
 				}
 			},
@@ -512,6 +523,39 @@
 				"locked": "Verrouillée après création"
 			},
 			"usageUpdated": "Usage mis à jour"
+		},
+		"notes": {
+			"pageTitle": "Notes · {name}",
+			"title": "Notes",
+			"subtitle": "Tout ce qui vaut la peine d'être conservé, sans lien avec un service ou un trajet.",
+			"subtitleEmpty": "Tout ce qui vaut la peine d'être conservé, sans lien avec un service ou un trajet.",
+			"new": "Ajouter une note",
+			"edit": "Modifier la note",
+			"untitled": "Sans titre",
+			"saved": "Note enregistrée",
+			"empty": {
+				"title": "Aucune note pour l'instant",
+				"desc": "Note ce qui compte : particularités, modifications, rappels ou simples réflexions."
+			},
+			"delete": {
+				"title": "Supprimer la note",
+				"desc": "Cette note sera supprimée définitivement.",
+				"confirm": "Supprimer",
+				"cancel": "Garder"
+			},
+			"form": {
+				"title": "Titre",
+				"titlePlaceholder": "Titre optionnel…",
+				"content": "Contenu",
+				"contentPlaceholder": "Rédige en Markdown…",
+				"docSearch": "Rechercher des documents",
+				"docSearchEmpty": "Aucun document trouvé",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Extrait"
+			},
+			"searchPlaceholder": "Rechercher des notes..."
 		}
 	},
 	"maintenance": {
@@ -541,7 +585,11 @@
 			"title": "Historique des services",
 			"noHistory": "Pas encore d'historique",
 			"noHistoryDesc": "Enregistrez une intervention de service pour la voir ici.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Tâche",
+			"odometer": "Kilométrage",
+			"cost": "Coût",
+			"notes": "Notes"
 		},
 		"editLog": {
 			"date": "Date",
@@ -639,7 +687,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finances",
+		"title": "Dépenses",
 		"subtitle": "Suivez les dépenses",
 		"totalSpent": "Total dépensé pour votre {name}",
 		"addExpense": "Ajouter",
@@ -679,6 +727,7 @@
 		"form": {
 			"addTitle": "Ajouter",
 			"editTitle": "Modifier",
+			"switchType": "Enregistrer autre chose à la place",
 			"category": "Catégorie",
 			"amount": "Montant ({currency})",
 			"date": "Date",
@@ -705,6 +754,14 @@
 		"empty": {
 			"title": "Aucune dépense enregistrée",
 			"description": "Ajoutez votre première dépense pour commencer le suivi."
+		},
+		"col": {
+			"date": "Date",
+			"category": "Catégorie",
+			"description": "Description",
+			"odometer": "Kilométrage",
+			"amount": "Montant",
+			"attachments": "Pièces jointes"
 		}
 	},
 	"documents": {
@@ -751,7 +808,15 @@
 		},
 		"view": {
 			"list": "Liste",
+			"table": "Tableau",
 			"timeline": "Chronologie"
+		},
+		"col": {
+			"name": "Nom",
+			"type": "Type",
+			"size": "Taille",
+			"date": "Date",
+			"expiry": "Expiration"
 		},
 		"types": {
 			"service": "Service",
@@ -1061,6 +1126,7 @@
 		"nav": {
 			"dashboard": "Tableau de bord",
 			"garage": "Garage",
+			"insights": "Statistiques",
 			"settings": "Paramètres",
 			"profile": "Profil"
 		},
@@ -1085,7 +1151,7 @@
 			"maintenanceDesc": "Huile, pneus ou réparations",
 			"mileage": "Kilométrage",
 			"mileageDesc": "Nombre sur votre tableau de bord",
-			"finance": "Finance",
+			"finance": "Dépenses",
 			"financeDesc": "Carburant, assurance ou pièces",
 			"usage": "Usage",
 			"usageDesc": "Heures ou relevé sur votre compteur"
@@ -1181,5 +1247,48 @@
 			"past": "Passés",
 			"upcoming": "Planifiés"
 		}
+	},
+	"insights": {
+		"title": "Statistiques",
+		"subtitle": "Combien de kilomètres vous avez parcourus et ce que vous avez dépensé",
+		"vehicles": {
+			"all": "Tous les véhicules"
+		},
+		"timeRange": {
+			"6m": "6 mois",
+			"1y": "1 an",
+			"2y": "2 ans",
+			"all": "Tout le temps"
+		},
+		"mileage": {
+			"title": "Kilométrage",
+			"modOdometer": "Odomètre",
+			"modDelta": "Par mois",
+			"allFleetNote": "Affichage des relevés combinés",
+			"summary": "{km} parcourus sur la période sélectionnée.",
+			"showServices": "Événements de service",
+			"viewLog": "Voir le journal d'entretien"
+		},
+		"costs": {
+			"title": "Dépenses",
+			"modMonthly": "Mensuel",
+			"modCumulative": "Cumulatif",
+			"viewDetails": "Voir les dépenses"
+		},
+		"empty": {
+			"title": "Pas encore de données",
+			"mileage": "Enregistrez des relevés kilométriques pour voir combien vous avez roulé.",
+			"costs": "Ajoutez des dépenses pour voir ce que vous avez dépensé."
+		}
+	},
+	"draft": {
+		"resuming": "Reprise de {ago}",
+		"discard": "Abandonner",
+		"fileHint": "Un fichier était joint — veuillez le rajouter",
+		"justNow": "à l'instant",
+		"unitMin": "min",
+		"unitHour": "h",
+		"unitDay": "j",
+		"autosaved": "Sauvegardé automatiquement"
 	}
 }

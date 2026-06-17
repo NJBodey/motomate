@@ -4,6 +4,7 @@ import { getServiceLogsByVehicle } from '$lib/db/repositories/service-logs.js';
 import { getTrackersByVehicle, getTemplatesByUser } from '$lib/db/repositories/maintenance.js';
 import { getFinanceTransactionsByVehicle } from '$lib/db/repositories/finance-transactions.js';
 import { getDocumentsByVehicle } from '$lib/db/repositories/documents.js';
+import { getNotesByVehicle } from '$lib/db/repositories/notes.js';
 import { getWorkflowRulesByUser } from '$lib/db/repositories/workflow.js';
 import { getNotifications } from '$lib/workflow/channels/inapp.js';
 import { getStorage } from '$lib/storage/index.js';
@@ -18,15 +19,24 @@ export async function buildExportData(userId: string) {
 
 	const vehicleData = await Promise.all(
 		vehicles.map(async (v) => {
-			const [odometerLogs, serviceLogs, trackers, financeTransactions, documents] =
+			const [odometerLogs, serviceLogs, trackers, financeTransactions, documents, notes] =
 				await Promise.all([
 					getOdometerLogs(v.id, userId),
 					getServiceLogsByVehicle(v.id, userId),
 					getTrackersByVehicle(v.id, userId),
 					getFinanceTransactionsByVehicle(v.id, userId),
-					getDocumentsByVehicle(v.id, userId)
+					getDocumentsByVehicle(v.id, userId),
+					getNotesByVehicle(v.id, userId)
 				]);
-			return { vehicle: v, odometerLogs, serviceLogs, trackers, financeTransactions, documents };
+			return {
+				vehicle: v,
+				odometerLogs,
+				serviceLogs,
+				trackers,
+				financeTransactions,
+				documents,
+				notes
+			};
 		})
 	);
 

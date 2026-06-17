@@ -17,9 +17,23 @@ export type NotificationChannels = {
 };
 
 export type PagePrefs = {
-	maintenance?: { sortBy?: 'status' | 'name' | 'last' };
-	documents?: { sortBy?: 'newest' | 'oldest' | 'name'; viewMode?: 'list' | 'timeline' };
-	finance?: { groupBy?: 'category' | 'year' | 'description' | 'none'; last_category?: string };
+	maintenance?: {
+		sortBy?: 'status' | 'name' | 'last';
+		historyViewMode?: 'timeline' | 'table';
+		historyColumnVisibility?: Record<string, boolean>;
+	};
+	documents?: {
+		sortBy?: 'newest' | 'oldest' | 'name';
+		viewMode?: 'list' | 'table' | 'timeline';
+		columnVisibility?: Record<string, boolean>;
+	};
+	finance?: {
+		groupBy?: 'category' | 'year' | 'description' | 'none';
+		last_category?: string;
+		viewMode?: 'timeline' | 'table';
+		columnVisibility?: Record<string, boolean>;
+		columnOrder?: string[];
+	};
 	travels?: { sortBy?: 'newest' | 'oldest' | 'name'; filterBy?: 'all' | 'past' | 'upcoming' };
 	timeline?: {
 		showService?: boolean;
@@ -29,7 +43,23 @@ export type PagePrefs = {
 		showFinance?: boolean;
 		showReminder?: boolean;
 	};
-	maintenance_report_pdf?: Record<string, string[]>; // vehicle_id > array of tracker_ids to exclude from PDF
+	notes?: {
+		sortBy?: 'newest' | 'oldest' | 'name';
+		viewMode?: 'timeline' | 'table';
+		columnVisibility?: Record<string, boolean>;
+	};
+	maintenance_report_pdf?: Record<string, string[]>;
+	insights?: {
+		vehicleId?: string;
+		timeRange?: '6m' | '1y' | '2y' | 'all';
+		mileageMode?: 'odometer' | 'delta';
+		costMode?: 'monthly' | 'cumulative';
+		showServiceEvents?: boolean;
+	};
+	global?: {
+		addMenuOrder?: Array<'service' | 'odometer' | 'note' | 'finance'>;
+	};
+	drafts?: Record<string, Record<string, unknown>>;
 };
 
 export type UserSettings = {
@@ -110,13 +140,19 @@ export const users = sqliteTable('users', {
 		.default(sql`(datetime('now'))`)
 });
 
-export const sessions = sqliteTable('sessions', {
-	id: text('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	expiresAt: integer('expires_at').notNull() // unix timestamp!
-});
+export const sessions = sqliteTable(
+	'sessions',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		expiresAt: integer('expires_at').notNull()
+	},
+	(t) => ({
+		userIdx: index('idx_sessions_user').on(t.userId)
+	})
+);
 
 export const magic_link_tokens = sqliteTable('magic_link_tokens', {
 	id: text('id').primaryKey(),
@@ -474,17 +510,54 @@ export const odometer_logs = sqliteTable(
 	})
 );
 
-export const push_subscriptions = sqliteTable('push_subscriptions', {
-	id: text('id').primaryKey(),
-	user_id: text('user_id')
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	endpoint: text('endpoint').notNull().unique(),
-	keys: text('keys', { mode: 'json' }).$type<PushKeys>().notNull(),
-	created_at: text('created_at')
-		.notNull()
-		.default(sql`(datetime('now'))`)
-});
+export const vehicle_notes = sqliteTable(
+	'vehicle_notes',
+	{
+		id: text('id').primaryKey(),
+		vehicle_id: text('vehicle_id')
+			.notNull()
+			.references(() => vehicles.id, { onDelete: 'cascade' }),
+		user_id: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		title: text('title'),
+		content: text('content').notNull().default(''),
+		doc_refs: text('doc_refs', { mode: 'json' })
+			.$type<string[]>()
+			.notNull()
+			.default(sql`'[]'`),
+		created_at: text('created_at')
+			.notNull()
+			.default(sql`(datetime('now'))`),
+		updated_at: text('updated_at')
+			.notNull()
+			.default(sql`(datetime('now'))`)
+	},
+	(table) => ({
+		vehicleCreated: index('idx_vehicle_notes_vehicle_created').on(
+			table.vehicle_id,
+			table.created_at
+		)
+	})
+);
+
+export const push_subscriptions = sqliteTable(
+	'push_subscriptions',
+	{
+		id: text('id').primaryKey(),
+		user_id: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		endpoint: text('endpoint').notNull().unique(),
+		keys: text('keys', { mode: 'json' }).$type<PushKeys>().notNull(),
+		created_at: text('created_at')
+			.notNull()
+			.default(sql`(datetime('now'))`)
+	},
+	(t) => ({
+		userIdx: index('idx_push_subscriptions_user').on(t.user_id)
+	})
+);
 
 export type ApiKeyScope = 'read' | 'read_write';
 
@@ -532,7 +605,8 @@ export const vehiclesRelations = relations(vehicles, ({ one, many }) => ({
 	service_logs: many(service_logs),
 	odometer_logs: many(odometer_logs),
 	documents: many(documents),
-	travels: many(travels)
+	travels: many(travels),
+	vehicle_notes: many(vehicle_notes)
 }));
 
 export const travelsRelations = relations(travels, ({ one }) => ({
@@ -588,6 +662,11 @@ export const financeTransactionsRelations = relations(finance_transactions, ({ o
 	user: one(users, { fields: [finance_transactions.user_id], references: [users.id] })
 }));
 
+export const vehicleNotesRelations = relations(vehicle_notes, ({ one }) => ({
+	vehicle: one(vehicles, { fields: [vehicle_notes.vehicle_id], references: [vehicles.id] }),
+	user: one(users, { fields: [vehicle_notes.user_id], references: [users.id] })
+}));
+
 export const apiKeysRelations = relations(api_keys, ({ one }) => ({
 	user: one(users, { fields: [api_keys.user_id], references: [users.id] })
 }));
@@ -621,3 +700,5 @@ export type Travel = typeof travels.$inferSelect;
 export type InsertTravel = typeof travels.$inferInsert;
 export type ApiKey = typeof api_keys.$inferSelect;
 export type InsertApiKey = typeof api_keys.$inferInsert;
+export type VehicleNote = typeof vehicle_notes.$inferSelect;
+export type InsertVehicleNote = typeof vehicle_notes.$inferInsert;

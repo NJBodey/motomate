@@ -14,7 +14,10 @@
 		"close": "Închide",
 		"saving": "Se salvează…",
 		"months": "luni",
-		"or": "sau"
+		"or": "sau",
+		"columns": "Coloane",
+		"table": "Tabel",
+		"timeline": "Cronologie"
 	},
 	"auth": {
 		"login": {
@@ -202,7 +205,8 @@
 		"sections": {
 			"needsAttention": "Necesită atenție",
 			"garage": "Garaj",
-			"recentActivity": "Activitate recentă"
+			"recentActivity": "Activitate recentă",
+			"thisYear": "Anul acesta"
 		},
 		"viewAll": "Vezi tot →",
 		"serviceEntry": "Înregistrare service",
@@ -214,6 +218,9 @@
 			"descriptionOnboarding": "Adaugă prima ta motocicletă sau scuter pentru a începe.",
 			"descriptionActive": "Adaugă un vehicul nou în colecția ta.",
 			"submit": "+ Adaugă vehicul"
+		},
+		"yearCost": {
+			"none": "Nicio cheltuială înregistrată"
 		}
 	},
 	"vehicles": {
@@ -288,7 +295,7 @@
 					"usage": "Utilizare",
 					"notes": "Note",
 					"travels": "Călătorii",
-					"finance": "Finanțe",
+					"finance": "Cheltuieli",
 					"reminders": "Mementouri"
 				},
 				"reminder": {
@@ -442,7 +449,9 @@
 						"download": "Descarcă PDF",
 						"downloading": "Se descarcă...",
 						"cancel": "Anulează",
-						"includeFinance": "Include rezumatul cheltuielilor"
+						"includeFinance": "Include cheltuielile",
+						"includeAttachments": "Include atașamentele",
+						"includeNotes": "Include notițele"
 					},
 					"pdf": {
 						"generatedOn": "Generat la data de",
@@ -468,7 +477,8 @@
 						"catAdministrative": "Administrative",
 						"catFuel": "Combustibil",
 						"catOther": "Altele",
-						"documentInApp": "Acest document este disponibil în biblioteca ta de documente MotoMate."
+						"documentInApp": "Acest document este disponibil în biblioteca ta de documente MotoMate.",
+						"vehicleNotes": "Notițe"
 					}
 				}
 			},
@@ -494,9 +504,10 @@
 				"timeline": "Cronologie",
 				"maintenance": "Întreținere",
 				"documents": "Documente",
-				"finance": "Finanțe",
+				"finance": "Cheltuieli",
 				"travels": "Călătorii",
-				"settings": "Setări"
+				"settings": "Setări",
+				"notes": "Note"
 			},
 			"pinnedDoc": {
 				"pin": "Fixează document",
@@ -513,6 +524,39 @@
 				"searchPlaceholder": "Caută documente...",
 				"customLabel": "Etichetă personalizată"
 			}
+		},
+		"notes": {
+			"pageTitle": "Note · {name}",
+			"title": "Note",
+			"subtitle": "Tot ce merită păstrat, fără a fi legat de un service sau o cursă.",
+			"subtitleEmpty": "Tot ce merită păstrat, fără a fi legat de un service sau o cursă.",
+			"new": "Adaugă notă",
+			"edit": "Editează nota",
+			"untitled": "Fără titlu",
+			"saved": "Notă salvată",
+			"empty": {
+				"title": "Nicio notă deocamdată",
+				"desc": "Ține evidența a ceea ce contează: particularități, modificări, mementouri sau doar gânduri."
+			},
+			"delete": {
+				"title": "Șterge nota",
+				"desc": "Această notă va fi ștearsă permanent.",
+				"confirm": "Șterge",
+				"cancel": "Păstrează"
+			},
+			"form": {
+				"title": "Titlu",
+				"titlePlaceholder": "Titlu opțional…",
+				"content": "Conținut",
+				"contentPlaceholder": "Scrie în Markdown…",
+				"docSearch": "Căutare documente",
+				"docSearchEmpty": "Niciun document găsit",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Extras"
+			},
+			"searchPlaceholder": "Caută notițe..."
 		}
 	},
 	"maintenance": {
@@ -542,7 +586,11 @@
 			"title": "Istoric service",
 			"noHistory": "Niciun istoric de service încă",
 			"noHistoryDesc": "Înregistrează o intervenție de service pentru a o vedea aici.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"cost": "Cost",
+			"notes": "Note",
+			"odometer": "Odometru",
+			"task": "Sarcină"
 		},
 		"editLog": {
 			"date": "Dată",
@@ -640,7 +688,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanțe",
+		"title": "Cheltuieli",
 		"subtitle": "Urmărește cheltuielile",
 		"totalSpent": "Total cheltuit pentru {name}",
 		"addExpense": "Adaugă",
@@ -680,6 +728,7 @@
 		"form": {
 			"addTitle": "Adaugă",
 			"editTitle": "Editează",
+			"switchType": "Înregistrează altceva în schimb",
 			"category": "Categorie",
 			"amount": "Sumă ({currency})",
 			"date": "Dată",
@@ -706,6 +755,14 @@
 		"empty": {
 			"title": "Nicio cheltuială înregistrată",
 			"description": "Adaugă prima ta cheltuială pentru a începe monitorizarea."
+		},
+		"col": {
+			"amount": "Sumă",
+			"attachments": "Documente",
+			"category": "Categorie",
+			"date": "Dată",
+			"description": "Descriere",
+			"odometer": "Odometru"
 		}
 	},
 	"documents": {
@@ -752,7 +809,8 @@
 		},
 		"view": {
 			"list": "Listă",
-			"timeline": "Cronologie"
+			"timeline": "Cronologie",
+			"table": "Tabel"
 		},
 		"types": {
 			"service": "Service",
@@ -771,7 +829,14 @@
 		"nextPage": "Următor",
 		"pageOf": "Pagina {page} din {total}",
 		"linkedBadge": "Asociat · Service {date}",
-		"linkedTravelBadge": "Asociat · Călătorie {title}"
+		"linkedTravelBadge": "Asociat · Călătorie {title}",
+		"col": {
+			"date": "Dată",
+			"expiry": "Expirare",
+			"name": "Nume",
+			"size": "Dimensiune",
+			"type": "Tip"
+		}
 	},
 	"settings": {
 		"title": "Setări",
@@ -1052,7 +1117,8 @@
 			"dashboard": "Panou control",
 			"garage": "Garaj",
 			"settings": "Setări",
-			"profile": "Profil"
+			"profile": "Profil",
+			"insights": "Statistici"
 		},
 		"theme": {
 			"title": "Temă",
@@ -1077,7 +1143,7 @@
 			"mileageDesc": "Valoarea de pe bord",
 			"usage": "Utilizare",
 			"usageDesc": "Orele sau valoarea de pe contor",
-			"finance": "Finanțe",
+			"finance": "Cheltuieli",
 			"financeDesc": "Combustibil, asigurare sau piese"
 		},
 		"notifications": {
@@ -1182,5 +1248,48 @@
 			"title": "Actualizează odometrul",
 			"body": "Te-ai plimbat cu {{vehicle_name}} recent? Actualizează odometrul pentru a păstra acuratețea monitorizării întreținerii."
 		}
+	},
+	"insights": {
+		"costs": {
+			"modCumulative": "Cumulativ",
+			"modMonthly": "Lunar",
+			"title": "Cheltuieli",
+			"viewDetails": "Vezi cheltuielile"
+		},
+		"empty": {
+			"costs": "Adaugă cheltuieli pentru a vedea ce ai cheltuit.",
+			"mileage": "Înregistrează citiri odometru pentru a vedea cât ai parcurs.",
+			"title": "Fără date încă"
+		},
+		"mileage": {
+			"allFleetNote": "Se afișează citiri combinate",
+			"modDelta": "Pe lună",
+			"modOdometer": "Odometru",
+			"showServices": "Evenimente service",
+			"summary": "Parcurși {km} în perioada selectată.",
+			"title": "Kilometraj",
+			"viewLog": "Vezi jurnalul de întreținere"
+		},
+		"subtitle": "Cât ai parcurs și cât ai cheltuit",
+		"timeRange": {
+			"1y": "1 an",
+			"2y": "2 ani",
+			"6m": "6 luni",
+			"all": "Tot timpul"
+		},
+		"title": "Statistici",
+		"vehicles": {
+			"all": "Toate vehiculele"
+		}
+	},
+	"draft": {
+		"resuming": "Continuare din {ago}",
+		"discard": "Renunță",
+		"fileHint": "Era un fișier atașat — te rugăm să îl adaugi din nou",
+		"justNow": "chiar acum",
+		"unitMin": "min în urmă",
+		"unitHour": "h în urmă",
+		"unitDay": "z în urmă",
+		"autosaved": "Salvat automat"
 	}
 }

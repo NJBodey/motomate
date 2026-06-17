@@ -10,7 +10,9 @@
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import ShortcutsModal from '$lib/components/ui/ShortcutsModal.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import AppSheet from '$lib/components/ui/AppSheet.svelte';
 	import { quickAdd } from '$lib/stores/quickAdd.svelte.js';
+	import { drafts } from '$lib/stores/drafts.svelte.js';
 	import { dicebearUri } from '$lib/utils/dicebear.js';
 	import { resolveTheme, readStoredTheme } from '$lib/utils/theme.js';
 
@@ -35,6 +37,12 @@
 		if (data.user?.settings?.locale && !data.demoMode) {
 			setUserLocale(data.user.settings.locale);
 		}
+	});
+
+	$effect(() => {
+		const serverDrafts = (data.user?.settings?.page_prefs as any)?.drafts;
+		const vehicleIds = (data.vehicles ?? []).map((v: any) => v.id as string);
+		drafts.init(serverDrafts, vehicleIds);
 	});
 
 	const navLinks = [
@@ -192,6 +200,16 @@
 	});
 
 	$effect(() => {
+		if (quickAddOpen && browser) {
+			const prev = document.documentElement.style.overflow;
+			document.documentElement.style.overflow = 'hidden';
+			return () => {
+				document.documentElement.style.overflow = prev;
+			};
+		}
+	});
+
+	$effect(() => {
 		if (quickAdd.isOpen && quickAdd.vehicleId) {
 			const vehicle = data.vehicles.find((v: NavVehicle) => v.id === quickAdd.vehicleId);
 			if (vehicle) {
@@ -203,10 +221,20 @@
 	});
 
 	function openQuickAdd() {
-		// Called from bottom nav FAB - original behavior
 		if (data.vehicles.length === 0) {
 			goto('/vehicles/new');
 			return;
+		}
+		// Pre-select vehicle when already on a vehicle page
+		const pathParts = page.url.pathname.split('/');
+		if (pathParts[1] === 'vehicles' && pathParts[2]) {
+			const currentVehicle = data.vehicles.find((v: NavVehicle) => v.id === pathParts[2]);
+			if (currentVehicle) {
+				selectedVehicle = currentVehicle;
+				quickAddStep = 'type';
+				quickAddOpen = true;
+				return;
+			}
 		}
 		if (data.vehicles.length === 1) {
 			selectedVehicle = data.vehicles[0];
@@ -488,28 +516,6 @@
 					{/if}
 				</div>
 
-				<a
-					href="/settings"
-					class="topnav-settings-mobile"
-					class:active={page.url.pathname.startsWith('/settings')}
-					aria-label={$_('layout.nav.settings')}
-				>
-					<svg
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.75"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-					>
-						<circle cx="12" cy="12" r="3" />
-						<path
-							d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-						/>
-					</svg>
-				</a>
-
 				<div class="avatar-menu-container">
 					<button
 						type="button"
@@ -540,6 +546,9 @@
 							in:fly={{ y: 8, duration: 150 }}
 							out:fade={{ duration: 100 }}
 						>
+							<a href="/settings" class="avatar-menu-item" onclick={() => (avatarMenuOpen = false)}
+								>{$_('layout.nav.settings')}</a
+							>
 							<button
 								type="button"
 								class="avatar-menu-item avatar-menu-item--danger"
@@ -867,6 +876,7 @@
 {/if}
 
 <Toast />
+<AppSheet />
 <ShortcutsModal bind:open={shortcutsOpen} />
 <ConfirmDialog
 	open={logoutConfirmOpen}
@@ -1003,46 +1013,6 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-	}
-
-	.topnav-settings-mobile {
-		display: none;
-		width: 42px;
-		height: 42px;
-		align-items: center;
-		justify-content: center;
-		border-radius: 12px;
-		border: 3px solid transparent;
-		color: var(--text-muted);
-		text-decoration: none;
-		transition:
-			background 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-			color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-			border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
-	}
-
-	.topnav-settings-mobile svg {
-		width: 20px;
-		height: 20px;
-	}
-
-	.topnav-settings-mobile:hover {
-		background: var(--bg-muted);
-		color: var(--text);
-	}
-
-	.topnav-settings-mobile:active {
-		background: color-mix(in srgb, var(--accent) 4%, transparent);
-		border-color: color-mix(in srgb, var(--accent) 15%, transparent);
-	}
-
-	.topnav-settings-mobile.active {
-		color: var(--accent);
-		background: var(--accent-subtle);
-	}
-
-	.topnav-settings-mobile.active:hover {
-		background: var(--accent-subtle);
 	}
 
 	.action-item {
@@ -1428,7 +1398,6 @@
 	}
 
 	.topnav-link:focus-visible,
-	.topnav-settings-mobile:focus-visible,
 	.theme-trigger:focus-visible,
 	.topnav-avatar:focus-visible {
 		outline: 2px solid var(--accent);
@@ -1565,6 +1534,7 @@
 		z-index: 200;
 		display: flex;
 		align-items: flex-end;
+		touch-action: none;
 	}
 	.quickadd-sheet {
 		width: 100%;
@@ -1573,6 +1543,8 @@
 		padding: 0 0 env(safe-area-inset-bottom);
 		box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.12);
 		outline: none;
+		touch-action: pan-y;
+		overscroll-behavior: contain;
 	}
 	.sheet-handle {
 		width: 36px;
@@ -1740,9 +1712,6 @@
 	@media (max-width: 768px) {
 		.topnav-links {
 			display: none;
-		}
-		.topnav-settings-mobile {
-			display: flex;
 		}
 		.theme-menu-container {
 			display: none;

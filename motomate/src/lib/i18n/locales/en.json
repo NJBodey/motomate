@@ -14,7 +14,10 @@
 		"close": "Close",
 		"saving": "Saving…",
 		"months": "mo",
-		"or": "or"
+		"or": "or",
+		"columns": "Columns",
+		"timeline": "Timeline",
+		"table": "Table"
 	},
 	"auth": {
 		"login": {
@@ -202,7 +205,11 @@
 		"sections": {
 			"needsAttention": "Needs attention",
 			"garage": "Garage",
-			"recentActivity": "Recent activity"
+			"recentActivity": "Recent activity",
+			"thisYear": "This year"
+		},
+		"yearCost": {
+			"none": "No expenses logged"
 		},
 		"viewAll": "View all →",
 		"serviceEntry": "Service entry",
@@ -288,7 +295,7 @@
 					"usage": "Usage",
 					"notes": "Notes",
 					"travels": "Travels",
-					"finance": "Finance",
+					"finance": "Spending",
 					"reminders": "Reminders"
 				},
 				"reminder": {
@@ -442,7 +449,9 @@
 						"download": "Download PDF",
 						"downloading": "Downloading...",
 						"cancel": "Cancel",
-						"includeFinance": "Include expense summary"
+						"includeFinance": "Include expenses",
+						"includeAttachments": "Include attachments",
+						"includeNotes": "Include notes"
 					},
 					"pdf": {
 						"generatedOn": "Generated on",
@@ -468,7 +477,8 @@
 						"catAdministrative": "Administrative",
 						"catFuel": "Fuel",
 						"catOther": "Other",
-						"documentInApp": "This document is available in your MotoMate document library."
+						"documentInApp": "This document is available in your MotoMate document library.",
+						"vehicleNotes": "Notes"
 					}
 				}
 			},
@@ -494,8 +504,9 @@
 				"timeline": "Timeline",
 				"maintenance": "Maintenance",
 				"documents": "Documents",
-				"finance": "Finance",
+				"finance": "Spending",
 				"travels": "Travels",
+				"notes": "Notes",
 				"settings": "Settings"
 			},
 			"pinnedDoc": {
@@ -513,6 +524,39 @@
 				"searchPlaceholder": "Search documents...",
 				"customLabel": "Custom label"
 			}
+		},
+		"notes": {
+			"pageTitle": "Notes · {name}",
+			"title": "Notes",
+			"subtitle": "Anything worth keeping, not tied to a service or ride",
+			"subtitleEmpty": "Anything worth keeping, not tied to a service or ride",
+			"new": "Add note",
+			"edit": "Edit note",
+			"untitled": "Untitled note",
+			"saved": "Note saved",
+			"empty": {
+				"title": "No notes yet",
+				"desc": "Keep track of anything that matters: quirks, mods, reminders, or just thoughts."
+			},
+			"delete": {
+				"title": "Delete note",
+				"desc": "This note will be permanently deleted.",
+				"confirm": "Delete",
+				"cancel": "Keep it"
+			},
+			"form": {
+				"title": "Title",
+				"titlePlaceholder": "Optional title…",
+				"content": "Content",
+				"contentPlaceholder": "Write in Markdown…",
+				"docSearch": "Search documents",
+				"docSearchEmpty": "No documents match",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Excerpt"
+			},
+			"searchPlaceholder": "Search notes..."
 		}
 	},
 	"maintenance": {
@@ -542,7 +586,11 @@
 			"title": "Service history",
 			"noHistory": "No service history yet",
 			"noHistoryDesc": "Log a service entry to see it here.",
-			"serviceEntry": "Service"
+			"serviceEntry": "Service",
+			"task": "Task",
+			"odometer": "Odometer",
+			"cost": "Cost",
+			"notes": "Notes"
 		},
 		"editLog": {
 			"date": "Date",
@@ -640,7 +688,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finance",
+		"title": "Spending",
 		"subtitle": "Track expenses",
 		"totalSpent": "Total spent on your {name}",
 		"addExpense": "Add",
@@ -680,6 +728,7 @@
 		"form": {
 			"addTitle": "Add",
 			"editTitle": "Edit",
+			"switchType": "Log something else instead",
 			"category": "Category",
 			"amount": "Amount ({currency})",
 			"date": "Date",
@@ -706,6 +755,14 @@
 		"empty": {
 			"title": "No expenses recorded",
 			"description": "Add your first expense to start tracking."
+		},
+		"col": {
+			"date": "Date",
+			"category": "Category",
+			"description": "Description",
+			"odometer": "Odometer",
+			"amount": "Amount",
+			"attachments": "Attachments"
 		}
 	},
 	"documents": {
@@ -752,7 +809,15 @@
 		},
 		"view": {
 			"list": "List",
+			"table": "Table",
 			"timeline": "Timeline"
+		},
+		"col": {
+			"name": "Name",
+			"type": "Type",
+			"size": "Size",
+			"date": "Date",
+			"expiry": "Expiry"
 		},
 		"types": {
 			"service": "Service",
@@ -1051,6 +1116,7 @@
 		"nav": {
 			"dashboard": "Dashboard",
 			"garage": "Garage",
+			"insights": "Insights",
 			"settings": "Settings",
 			"profile": "Profile"
 		},
@@ -1070,14 +1136,14 @@
 		"addEntry": {
 			"title": "Add entry",
 			"chooseVehicle": "Choose a vehicle",
-			"whatLogging": "What are you logging?",
+			"whatLogging": "What are you logging on your timeline?",
 			"maintenance": "Maintenance",
 			"maintenanceDesc": "Oil, tires, or repairs",
 			"mileage": "Mileage",
 			"mileageDesc": "Number on your dash",
 			"usage": "Usage",
 			"usageDesc": "Hours or reading on your meter",
-			"finance": "Finance",
+			"finance": "Spending",
 			"financeDesc": "Fuel, insurance, or parts"
 		},
 		"notifications": {
@@ -1182,5 +1248,48 @@
 			"title": "Update your odometer",
 			"body": "Did you ride {{vehicle_name}} recently? Update the odometer to keep your maintenance trackers accurate."
 		}
+	},
+	"insights": {
+		"title": "Insights",
+		"subtitle": "How far you've ridden and what you've spent",
+		"vehicles": {
+			"all": "All vehicles"
+		},
+		"timeRange": {
+			"6m": "6 months",
+			"1y": "1 year",
+			"2y": "2 years",
+			"all": "All time"
+		},
+		"mileage": {
+			"title": "Mileage",
+			"modOdometer": "Odometer",
+			"modDelta": "Per month",
+			"allFleetNote": "Showing combined readings",
+			"summary": "Ridden {km} in the selected period.",
+			"showServices": "Service events",
+			"viewLog": "View maintenance log"
+		},
+		"costs": {
+			"title": "Spending",
+			"modMonthly": "Monthly",
+			"modCumulative": "Cumulative",
+			"viewDetails": "View spending"
+		},
+		"empty": {
+			"title": "No data yet",
+			"mileage": "Log odometer readings to see how far you've ridden.",
+			"costs": "Add expenses to see what you've spent."
+		}
+	},
+	"draft": {
+		"resuming": "Continuing from {ago}",
+		"discard": "Discard",
+		"fileHint": "Had a file attached — please re-add it",
+		"justNow": "just now",
+		"unitMin": "m ago",
+		"unitHour": "h ago",
+		"unitDay": "d ago",
+		"autosaved": "Autosaved"
 	}
 }

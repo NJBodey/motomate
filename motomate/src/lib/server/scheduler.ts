@@ -1,8 +1,11 @@
 import { runWorkflowChecks } from '$lib/workflow/engine.js';
+import { sqlite } from '$lib/db/index.js';
 
 const DEFAULT_INTERVAL_HOURS = 1;
 const INIT_KEY = Symbol.for('motomate.scheduler.initialized');
 const RUNNING_KEY = Symbol.for('motomate.scheduler.running');
+
+const ts = () => new Date().toLocaleString('sv');
 
 export function initScheduler(): void {
 	const g = globalThis as Record<symbol, boolean>;
@@ -18,7 +21,14 @@ export function initScheduler(): void {
 		try {
 			await runWorkflowChecks();
 		} catch (err) {
-			console.error('[scheduler] workflow check failed:', err);
+			console.error(`${ts()} [MotoMate] Scheduler workflow check failed:`, err);
+		}
+		try {
+			sqlite.pragma('optimize');
+			console.info(`${ts()} [MotoMate] Database OPTIMIZE successful`);
+		} catch (err) {
+			const reason = err instanceof Error ? err.message : String(err);
+			console.error(`${ts()} [MotoMate] Database OPTIMIZE failed (${reason})`);
 		} finally {
 			g[RUNNING_KEY] = false;
 		}
@@ -26,5 +36,5 @@ export function initScheduler(): void {
 
 	setInterval(run, interval).unref();
 	run();
-	console.info(`[scheduler] started, interval=${hours}h`);
+	console.info(`${ts()} [MotoMate] Scheduler started, interval=${hours}h`);
 }

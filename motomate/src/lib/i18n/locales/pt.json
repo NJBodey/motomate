@@ -14,7 +14,10 @@
 		"close": "Fechar",
 		"saving": "A guardar…",
 		"months": "m",
-		"or": "ou"
+		"or": "ou",
+		"columns": "Colunas",
+		"timeline": "Linha do tempo",
+		"table": "Tabela"
 	},
 	"auth": {
 		"login": {
@@ -75,7 +78,8 @@
 		"magicLink": {
 			"verifying": "A iniciar sessão…",
 			"invalid": "Este link é inválido ou expirou.",
-			"retry": "Solicitar novo link"
+			"retry": "Solicitar novo link",
+			"title": "Link mágico"
 		}
 	},
 	"onboarding": {
@@ -201,7 +205,11 @@
 		"sections": {
 			"needsAttention": "Requer atenção",
 			"garage": "Garage",
-			"recentActivity": "Atividade recente"
+			"recentActivity": "Atividade recente",
+			"thisYear": "Este ano"
+		},
+		"yearCost": {
+			"none": "Sem despesas registadas"
 		},
 		"viewAll": "Ver tudo →",
 		"serviceEntry": "Entrada de serviço",
@@ -243,9 +251,10 @@
 				"timeline": "Linha do tempo",
 				"maintenance": "Manutencao",
 				"documents": "Documentos",
-				"finance": "Financas",
+				"finance": "Despesas",
 				"settings": "Configuracoes",
-				"travels": "Viagens"
+				"travels": "Viagens",
+				"notes": "Notas"
 			},
 			"pinnedDoc": {
 				"pin": "Fixar documento",
@@ -282,7 +291,7 @@
 					"odometer": "Odômetro",
 					"notes": "Notas",
 					"travels": "Viagens",
-					"finance": "Finanças",
+					"finance": "Despesas",
 					"usage": "Uso",
 					"reminders": "Lembretes"
 				},
@@ -468,7 +477,9 @@
 						"download": "Baixar PDF",
 						"downloading": "Baixando...",
 						"cancel": "Cancelar",
-						"includeFinance": "Incluir resumo de despesas"
+						"includeFinance": "Incluir despesas",
+						"includeAttachments": "Incluir anexos",
+						"includeNotes": "Incluir notas"
 					},
 					"pdf": {
 						"generatedOn": "Gerado em",
@@ -494,7 +505,8 @@
 						"catAdministrative": "Administrativo",
 						"catFuel": "Combustivel",
 						"catOther": "Outros",
-						"documentInApp": "Este documento esta disponivel na sua biblioteca de documentos MotoMate."
+						"documentInApp": "Este documento esta disponivel na sua biblioteca de documentos MotoMate.",
+						"vehicleNotes": "Notas"
 					}
 				}
 			},
@@ -512,6 +524,39 @@
 				"locked": "Bloqueada após criação"
 			},
 			"usageUpdated": "Uso atualizado"
+		},
+		"notes": {
+			"pageTitle": "Notas · {name}",
+			"title": "Notas",
+			"subtitle": "Tudo o que vale a pena guardar, sem estar ligado a um serviço ou viagem.",
+			"subtitleEmpty": "Tudo o que vale a pena guardar, sem estar ligado a um serviço ou viagem.",
+			"new": "Adicionar nota",
+			"edit": "Editar nota",
+			"untitled": "Sem título",
+			"saved": "Nota guardada",
+			"empty": {
+				"title": "Ainda sem notas",
+				"desc": "Regista o que importa: peculiaridades, modificações, lembretes ou apenas pensamentos."
+			},
+			"delete": {
+				"title": "Eliminar nota",
+				"desc": "Esta nota será eliminada permanentemente.",
+				"confirm": "Eliminar",
+				"cancel": "Manter"
+			},
+			"form": {
+				"title": "Título",
+				"titlePlaceholder": "Título opcional…",
+				"content": "Conteúdo",
+				"contentPlaceholder": "Escreve em Markdown…",
+				"docSearch": "Pesquisar documentos",
+				"docSearchEmpty": "Nenhum documento encontrado",
+				"download": "Download .md"
+			},
+			"col": {
+				"excerpt": "Trecho"
+			},
+			"searchPlaceholder": "Pesquisar notas..."
 		}
 	},
 	"maintenance": {
@@ -541,7 +586,11 @@
 			"title": "Histórico de serviços",
 			"noHistory": "Sem histórico de serviços",
 			"noHistoryDesc": "Registe uma intervenção de serviço para a ver aqui.",
-			"serviceEntry": "Serviço"
+			"serviceEntry": "Serviço",
+			"task": "Tarefa",
+			"odometer": "Odômetro",
+			"cost": "Custo",
+			"notes": "Notas"
 		},
 		"editLog": {
 			"date": "Data",
@@ -639,7 +688,7 @@
 		}
 	},
 	"finance": {
-		"title": "Finanças",
+		"title": "Despesas",
 		"subtitle": "Acompanhe despesas",
 		"totalSpent": "Total gasto no seu {name}",
 		"addExpense": "Adicionar",
@@ -679,6 +728,7 @@
 		"form": {
 			"addTitle": "Adicionar",
 			"editTitle": "Editar",
+			"switchType": "Registar outra coisa em vez disso",
 			"category": "Categoria",
 			"amount": "Valor ({currency})",
 			"date": "Data",
@@ -705,6 +755,14 @@
 		"empty": {
 			"title": "Sem despesas registadas",
 			"description": "Adicione a sua primeira despesa para começar a acompanhar."
+		},
+		"col": {
+			"date": "Data",
+			"category": "Categoria",
+			"description": "Descrição",
+			"odometer": "Odômetro",
+			"amount": "Valor",
+			"attachments": "Anexos"
 		}
 	},
 	"documents": {
@@ -751,7 +809,15 @@
 		},
 		"view": {
 			"list": "Lista",
+			"table": "Tabela",
 			"timeline": "Cronologia"
+		},
+		"col": {
+			"name": "Nome",
+			"type": "Tipo",
+			"size": "Tamanho",
+			"date": "Data",
+			"expiry": "Validade"
 		},
 		"types": {
 			"service": "Serviço",
@@ -1061,6 +1127,7 @@
 		"nav": {
 			"dashboard": "Painel",
 			"garage": "Garage",
+			"insights": "Estatísticas",
 			"settings": "Definições",
 			"profile": "Perfil"
 		},
@@ -1085,7 +1152,7 @@
 			"maintenanceDesc": "Óleo, pneus ou reparações",
 			"mileage": "Quilometragem",
 			"mileageDesc": "Número no seu painel",
-			"finance": "Finanças",
+			"finance": "Despesas",
 			"financeDesc": "Combustível, seguro ou peças",
 			"usage": "Uso",
 			"usageDesc": "Horas ou leitura no contador"
@@ -1181,5 +1248,48 @@
 			"past": "Passados",
 			"upcoming": "Planeados"
 		}
+	},
+	"insights": {
+		"title": "Estatísticas",
+		"subtitle": "Quantos quilómetros percorreu e quanto gastou",
+		"vehicles": {
+			"all": "Todos os veículos"
+		},
+		"timeRange": {
+			"6m": "6 meses",
+			"1y": "1 ano",
+			"2y": "2 anos",
+			"all": "Todo o tempo"
+		},
+		"mileage": {
+			"title": "Quilometragem",
+			"modOdometer": "Odómetro",
+			"modDelta": "Por mês",
+			"allFleetNote": "A mostrar leituras combinadas",
+			"showServices": "Eventos de serviço",
+			"summary": "Percorridos {km} no período selecionado.",
+			"viewLog": "Ver registo de manutenção"
+		},
+		"costs": {
+			"title": "Despesas",
+			"modMonthly": "Mensal",
+			"modCumulative": "Cumulativo",
+			"viewDetails": "Ver detalhes das despesas"
+		},
+		"empty": {
+			"title": "Sem dados ainda",
+			"mileage": "Registe leituras do odómetro para ver quantos quilómetros percorreu.",
+			"costs": "Adicione despesas para ver o que gastou."
+		}
+	},
+	"draft": {
+		"resuming": "Retomar de {ago}",
+		"discard": "Descartar",
+		"fileHint": "Havia um arquivo em anexo — por favor, adicione-o novamente",
+		"justNow": "agora mesmo",
+		"unitMin": "min atrás",
+		"unitHour": "h atrás",
+		"unitDay": "d atrás",
+		"autosaved": "Salvo automaticamente"
 	}
 }

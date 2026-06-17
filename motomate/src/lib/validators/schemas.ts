@@ -71,13 +71,17 @@ const PagePrefsSchema = z.object({
 	documents: z
 		.object({
 			sortBy: z.enum(['newest', 'oldest', 'name']).optional(),
-			viewMode: z.enum(['list', 'timeline']).optional()
+			viewMode: z.enum(['list', 'table', 'timeline']).optional(),
+			columnVisibility: z.record(z.string(), z.boolean()).optional()
 		})
 		.optional(),
 	finance: z
 		.object({
 			groupBy: z.enum(['category', 'year', 'description', 'none']).optional(),
-			last_category: z.string().max(64).optional()
+			last_category: z.string().max(64).optional(),
+			viewMode: z.enum(['timeline', 'table']).optional(),
+			columnVisibility: z.record(z.string(), z.boolean()).optional(),
+			columnOrder: z.array(z.string()).optional()
 		})
 		.optional(),
 	travels: z
@@ -96,7 +100,32 @@ const PagePrefsSchema = z.object({
 			showReminder: z.boolean().optional()
 		})
 		.optional(),
-	maintenance_report_pdf: z.record(z.string(), z.array(z.string())).optional()
+	notes: z
+		.object({
+			sortBy: z.enum(['newest', 'oldest', 'name']).optional(),
+			viewMode: z.enum(['timeline', 'table']).optional(),
+			columnVisibility: z.record(z.string(), z.boolean()).optional()
+		})
+		.optional(),
+	maintenance_report_pdf: z.record(z.string(), z.array(z.string())).optional(),
+	maintenance_report_opts: z
+		.record(
+			z.string(),
+			z.object({
+				includeAttachments: z.boolean().optional(),
+				includeNotes: z.boolean().optional()
+			})
+		)
+		.optional(),
+	insights: z
+		.object({
+			vehicleId: z.string().max(64).optional(),
+			timeRange: z.enum(['6m', '1y', '2y', 'all']).optional(),
+			mileageMode: z.enum(['odometer', 'delta']).optional(),
+			costMode: z.enum(['monthly', 'cumulative']).optional(),
+			showServiceEvents: z.boolean().optional()
+		})
+		.optional()
 });
 
 export const UserSettingsSchema = z.object({

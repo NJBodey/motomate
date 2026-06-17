@@ -69,11 +69,13 @@
 	}
 
 	const allBlocks = $derived(data.raw ? parseChangelog(data.raw) : []);
-	const blocks = $derived.by(() => {
-		if (!data.currentVersion) return allBlocks;
-		return allBlocks.filter((b) => semverGte(b.version, data.currentVersion));
-	});
 	const latestVersion = $derived(allBlocks[0]?.version ?? null);
+	const blocks = $derived.by(() => {
+		if (!latestVersion) return allBlocks;
+		const [major, minor] = latestVersion.split('.').map(Number);
+		const minorFloor = `${major}.${minor}.0`;
+		return allBlocks.filter((b) => semverGte(b.version, minorFloor));
+	});
 </script>
 
 <PageHeader title={$_('settings.changelog.title')} subtitle={$_('settings.changelog.subtitle')}>
