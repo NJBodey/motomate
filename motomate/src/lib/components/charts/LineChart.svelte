@@ -96,9 +96,22 @@
 	let hoveredEvent = $state<string | null>(null);
 	let eventTooltip = $state<{ x: number; y: number; month: string; title: string } | null>(null);
 	let svgEl = $state<SVGSVGElement | undefined>();
+	let touchDismissTimer: ReturnType<typeof setTimeout> | null = null;
 
-	function onPointerMove(e: PointerEvent) {
+	$effect(() => () => {
+		if (touchDismissTimer) clearTimeout(touchDismissTimer);
+	});
+
+	function clearTouchDismiss() {
+		if (touchDismissTimer) {
+			clearTimeout(touchDismissTimer);
+			touchDismissTimer = null;
+		}
+	}
+
+	function showNearestTooltip(e: PointerEvent) {
 		if (!svgEl || points.length === 0) return;
+		clearTouchDismiss();
 		const rect = svgEl.getBoundingClientRect();
 		const relX = ((e.clientX - rect.left) / rect.width) * W;
 		let nearest = 0;
@@ -118,6 +131,52 @@
 			value: formatValue(p.value)
 		};
 	}
+
+	function onPointerMove(e: PointerEvent) {
+		showNearestTooltip(e);
+	}
+
+	function onPointerDown(e: PointerEvent) {
+		if (e.pointerType !== 'touch') return;
+		showNearestTooltip(e);
+	}
+
+	function onPointerLeave(e: PointerEvent) {
+		if (e.pointerType === 'touch') {
+			touchDismissTimer = setTimeout(() => {
+				tooltipData = null;
+				touchDismissTimer = null;
+			}, 2500);
+			return;
+		}
+		tooltipData = null;
+	}
+
+	function onEventPointerEnter(e: PointerEvent, ev: { label: string; title: string }) {
+		clearTouchDismiss();
+		hoveredEvent = ev.label;
+		if (!svgEl) return;
+		const rect = svgEl.getBoundingClientRect();
+		eventTooltip = {
+			x: e.clientX - rect.left,
+			y: e.clientY - rect.top,
+			month: formatMonthLabel(ev.label, locale),
+			title: ev.title
+		};
+	}
+
+	function onEventPointerLeave(e: PointerEvent) {
+		if (e.pointerType === 'touch') {
+			touchDismissTimer = setTimeout(() => {
+				hoveredEvent = null;
+				eventTooltip = null;
+				touchDismissTimer = null;
+			}, 2500);
+			return;
+		}
+		hoveredEvent = null;
+		eventTooltip = null;
+	}
 </script>
 
 <div class="chart-wrap">
@@ -129,7 +188,8 @@
 		width="100%"
 		preserveAspectRatio="xMidYMid meet"
 		onpointermove={onPointerMove}
-		onpointerleave={() => (tooltipData = null)}
+		onpointerdown={onPointerDown}
+		onpointerleave={onPointerLeave}
 		style="display:block; cursor:crosshair"
 	>
 		<defs>
@@ -220,21 +280,8 @@
 					onkeydown={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') oneventclick?.();
 					}}
-					onpointerenter={(e) => {
-						hoveredEvent = ev.label;
-						if (!svgEl) return;
-						const rect = svgEl.getBoundingClientRect();
-						eventTooltip = {
-							x: e.clientX - rect.left,
-							y: e.clientY - rect.top,
-							month: formatMonthLabel(ev.label, locale),
-							title: ev.title
-						};
-					}}
-					onpointerleave={() => {
-						hoveredEvent = null;
-						eventTooltip = null;
-					}}
+					onpointerenter={(e) => onEventPointerEnter(e, ev)}
+					onpointerleave={onEventPointerLeave}
 					style="cursor: {oneventclick ? 'pointer' : 'default'}"
 				/>
 				<circle
@@ -248,21 +295,8 @@
 					onkeydown={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') oneventclick?.();
 					}}
-					onpointerenter={(e) => {
-						hoveredEvent = ev.label;
-						if (!svgEl) return;
-						const rect = svgEl.getBoundingClientRect();
-						eventTooltip = {
-							x: e.clientX - rect.left,
-							y: e.clientY - rect.top,
-							month: formatMonthLabel(ev.label, locale),
-							title: ev.title
-						};
-					}}
-					onpointerleave={() => {
-						hoveredEvent = null;
-						eventTooltip = null;
-					}}
+					onpointerenter={(e) => onEventPointerEnter(e, ev)}
+					onpointerleave={onEventPointerLeave}
 					style="cursor: {oneventclick ? 'pointer' : 'default'}"
 				/>
 			{/if}

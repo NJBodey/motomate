@@ -63,6 +63,18 @@
 	let hoveredBar = $state<number | null>(null);
 	let tooltipData = $state<{ x: number; y: number; label: string; value: string } | null>(null);
 	let svgEl = $state<SVGSVGElement | undefined>();
+	let touchDismissTimer: ReturnType<typeof setTimeout> | null = null;
+
+	$effect(() => () => {
+		if (touchDismissTimer) clearTimeout(touchDismissTimer);
+	});
+
+	function clearTouchDismiss() {
+		if (touchDismissTimer) {
+			clearTimeout(touchDismissTimer);
+			touchDismissTimer = null;
+		}
+	}
 
 	function formatMonthLabel(ym: string, loc: string): string {
 		try {
@@ -73,6 +85,7 @@
 	}
 
 	function onBarPointerEnter(e: PointerEvent, i: number) {
+		clearTouchDismiss();
 		hoveredBar = i;
 		if (!svgEl) return;
 		const rect = svgEl.getBoundingClientRect();
@@ -85,7 +98,15 @@
 		};
 	}
 
-	function onBarPointerLeave() {
+	function onBarPointerLeave(e: PointerEvent) {
+		if (e.pointerType === 'touch') {
+			touchDismissTimer = setTimeout(() => {
+				hoveredBar = null;
+				tooltipData = null;
+				touchDismissTimer = null;
+			}, 2500);
+			return;
+		}
 		hoveredBar = null;
 		tooltipData = null;
 	}
@@ -99,7 +120,7 @@
 		viewBox="0 0 {W} {height}"
 		width="100%"
 		preserveAspectRatio="xMidYMid meet"
-		onpointerleave={onBarPointerLeave}
+		onpointerleave={(e) => onBarPointerLeave(e)}
 		style="display:block"
 	>
 		{#each yTicks as tick (tick)}
