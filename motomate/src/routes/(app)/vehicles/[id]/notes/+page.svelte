@@ -210,7 +210,7 @@
 	</div>
 	<div class="page-actions">
 		<button class="btn-primary" onclick={openNewNote}>
-			+ {$_('vehicle.notes.new')}
+			+ {$_('common.add')}
 		</button>
 	</div>
 </div>
@@ -460,6 +460,7 @@
 
 	.btn-primary {
 		padding: 0.5rem 1rem;
+		min-height: 44px;
 		background: var(--accent);
 		color: #fff;
 		border: none;

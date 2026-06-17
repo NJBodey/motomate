@@ -472,8 +472,18 @@
 		align-items: center;
 		flex-shrink: 0;
 	}
+	@media (max-width: 640px) {
+		.page-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.page-actions {
+			width: 100%;
+		}
+	}
 	.btn-primary {
 		padding: 0.5rem 1rem;
+		min-height: 44px;
 		background: var(--accent);
 		color: #fff;
 		border: none;
