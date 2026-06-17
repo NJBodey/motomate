@@ -449,7 +449,9 @@
 						"download": "Descarcă PDF",
 						"downloading": "Se descarcă...",
 						"cancel": "Anulează",
-						"includeFinance": "Include rezumatul cheltuielilor"
+						"includeFinance": "Include cheltuielile",
+						"includeAttachments": "Include atașamentele",
+						"includeNotes": "Include notițele"
 					},
 					"pdf": {
 						"generatedOn": "Generat la data de",
@@ -475,7 +477,8 @@
 						"catAdministrative": "Administrative",
 						"catFuel": "Combustibil",
 						"catOther": "Altele",
-						"documentInApp": "Acest document este disponibil în biblioteca ta de documente MotoMate."
+						"documentInApp": "Acest document este disponibil în biblioteca ta de documente MotoMate.",
+						"vehicleNotes": "Notițe"
 					}
 				}
 			},

@@ -101,6 +101,15 @@ const PagePrefsSchema = z.object({
 		})
 		.optional(),
 	maintenance_report_pdf: z.record(z.string(), z.array(z.string())).optional(),
+	maintenance_report_opts: z
+		.record(
+			z.string(),
+			z.object({
+				includeAttachments: z.boolean().optional(),
+				includeNotes: z.boolean().optional()
+			})
+		)
+		.optional(),
 	insights: z
 		.object({
 			vehicleId: z.string().max(64).optional(),

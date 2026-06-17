@@ -6,7 +6,8 @@ import type {
 	Vehicle,
 	ServiceLog,
 	Document as DocRecord,
-	FinanceTransaction
+	FinanceTransaction,
+	VehicleNote
 } from '$lib/db/schema.js';
 
 import { locales, supportedLocales } from '$lib/i18n/locales.js';
@@ -38,6 +39,7 @@ interface ReportTranslations {
 	catAdministrative: string;
 	catFuel: string;
 	catOther: string;
+	vehicleNotes: string;
 }
 
 export interface MaintenanceReportOptions {
@@ -52,6 +54,8 @@ export interface MaintenanceReportOptions {
 	dateTo?: string;
 	includeFinanceSummary?: boolean;
 	financeTransactions?: FinanceTransaction[];
+	includeAttachments?: boolean;
+	notes?: VehicleNote[];
 }
 
 // Font name constants
@@ -98,7 +102,8 @@ const FALLBACK_TRANSLATIONS: ReportTranslations = {
 	catAccessories: 'Accessories',
 	catAdministrative: 'Administrative',
 	catFuel: 'Fuel',
-	catOther: 'Other'
+	catOther: 'Other',
+	vehicleNotes: 'Notes'
 };
 
 function loadTranslations(locale: string): ReportTranslations {
@@ -608,6 +613,73 @@ function drawAddendumIndex(doc: PDFDoc, entries: AddendumEntry[], t: ReportTrans
 	}
 }
 
+function stripMarkdown(md: string): string {
+	return md
+		.replace(/#{1,6}\s+/g, '')
+		.replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
+		.replace(/_{1,2}([^_]+)_{1,2}/g, '$1')
+		.replace(/`{1,3}[^`]*`{1,3}/g, '')
+		.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+		.replace(/^>\s+/gm, '')
+		.replace(/^[-*+]\s+/gm, '')
+		.replace(/^\d+\.\s+/gm, '')
+		.replace(/\n{3,}/g, '\n\n')
+		.trim();
+}
+
+function drawNotes(doc: PDFDoc, notes: VehicleNote[], t: ReportTranslations, locale: string): void {
+	doc.addPage();
+
+	doc
+		.fontSize(15)
+		.font(FS)
+		.fillColor(INK)
+		.text(t.vehicleNotes, ML, ML + 4);
+	hRule(doc, doc.y + 6, ACCENT, 1.5);
+	doc.y += 20;
+
+	const sorted = [...notes].sort(
+		(a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+	);
+
+	for (const note of sorted) {
+		const plainText = stripMarkdown(note.content);
+		if (!plainText && !note.title) continue;
+
+		ensureSpace(doc, 44);
+		const entryTop = doc.y;
+
+		if (note.title) {
+			doc.fontSize(10).font(FS).fillColor(INK).text(note.title, ML, entryTop, { width: CW });
+		}
+
+		const dateStr = fmtDateShort(note.updated_at, locale);
+		doc
+			.fontSize(9)
+			.font(FN)
+			.fillColor(MUTED)
+			.text(dateStr, ML, note.title ? doc.y + 2 : entryTop, { lineBreak: false });
+
+		doc.y += 14;
+
+		if (plainText) {
+			const lines = plainText.split('\n');
+			for (const line of lines) {
+				if (!line.trim()) {
+					doc.y += 6;
+					continue;
+				}
+				ensureSpace(doc, 16);
+				doc.fontSize(9).font(FB).fillColor(INK).text(line, ML, doc.y, { width: CW });
+			}
+		}
+
+		doc.y += 8;
+		hRule(doc, doc.y, RULE, 0.3);
+		doc.y += 8;
+	}
+}
+
 export async function buildMaintenanceReport(opts: MaintenanceReportOptions): Promise<Buffer> {
 	const { vehicle, trackerNames, docs, docBuffers, locale } = opts;
 	const t = loadTranslations(locale);
@@ -678,19 +750,34 @@ export async function buildMaintenanceReport(opts: MaintenanceReportOptions): Pr
 		drawFinanceSummary(pdfDoc, financeTransactions, t, locale);
 	}
 
-	const orderedAttachments = [...attachmentIndex.entries()]
-		.sort((a, b) => a[1] - b[1])
-		.map(([id, idx]) => ({ id, idx, doc: docMap.get(id)! }));
+	const includeAttachments = opts.includeAttachments !== false;
 
-	const addendumEntries: AddendumEntry[] = orderedAttachments.map(({ id, doc: d }) => ({
-		tag: `[A${attachmentIndex.get(id)}]`,
-		doc: d,
-		embeddable: (isImage(d.mime_type) || isPdf(d.mime_type)) && docBuffers.has(id)
-	}));
-	drawAddendumIndex(pdfDoc, addendumEntries, t);
+	const orderedAttachments = includeAttachments
+		? [...attachmentIndex.entries()]
+				.sort((a, b) => a[1] - b[1])
+				.map(([id, idx]) => ({ id, idx, doc: docMap.get(id)! }))
+		: [];
+
+	if (includeAttachments) {
+		const addendumEntries: AddendumEntry[] = orderedAttachments.map(({ id, doc: d }) => ({
+			tag: `[A${attachmentIndex.get(id)}]`,
+			doc: d,
+			embeddable: (isImage(d.mime_type) || isPdf(d.mime_type)) && docBuffers.has(id)
+		}));
+		drawAddendumIndex(pdfDoc, addendumEntries, t);
+	}
+
+	const notes = opts.notes ?? [];
+	if (notes.length > 0) {
+		drawNotes(pdfDoc, notes, t, locale);
+	}
 
 	const contentPageCount = pdfDoc.bufferedPageRange().count;
 	stampFooters(pdfDoc, contentPageCount);
+
+	if (!includeAttachments) {
+		return flushDoc(pdfDoc);
+	}
 
 	// Attachment pages — images inline, PDFs via pdf-lib merge after flush
 	const pdfCoverPageIndices = new Map<string, number>();

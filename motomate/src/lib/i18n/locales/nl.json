@@ -476,7 +476,9 @@
 						"download": "PDF downloaden",
 						"downloading": "Bezig...",
 						"cancel": "Annuleren",
-						"includeFinance": "Uitgavenoverzicht meenemen"
+						"includeFinance": "Uitgaven meenemen",
+						"includeAttachments": "Bijlagen meenemen",
+						"includeNotes": "Notities meenemen"
 					},
 					"pdf": {
 						"generatedOn": "Gegenereerd op",
@@ -502,7 +504,8 @@
 						"catAdministrative": "Administratief",
 						"catFuel": "Brandstof",
 						"catOther": "Overig",
-						"documentInApp": "Dit document is beschikbaar in uw MotoMate-documentenbibliotheek."
+						"documentInApp": "Dit document is beschikbaar in uw MotoMate-documentenbibliotheek.",
+						"vehicleNotes": "Notities"
 					}
 				}
 			},

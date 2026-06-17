@@ -476,7 +476,9 @@
 						"download": "PDF herunterladen",
 						"downloading": "Wird geladen...",
 						"cancel": "Abbrechen",
-						"includeFinance": "Kostenübersicht einbeziehen"
+						"includeFinance": "Kosten einbeziehen",
+						"includeAttachments": "Anhänge einbeziehen",
+						"includeNotes": "Notizen einbeziehen"
 					},
 					"pdf": {
 						"generatedOn": "Erstellt am",
@@ -502,7 +504,8 @@
 						"catAdministrative": "Verwaltung",
 						"catFuel": "Kraftstoff",
 						"catOther": "Sonstiges",
-						"documentInApp": "Dieses Dokument ist in Ihrer MotoMate-Dokumentenbibliothek verfuegbar."
+						"documentInApp": "Dieses Dokument ist in Ihrer MotoMate-Dokumentenbibliothek verfuegbar.",
+						"vehicleNotes": "Notizen"
 					}
 				}
 			},

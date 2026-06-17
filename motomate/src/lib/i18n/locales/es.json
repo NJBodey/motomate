@@ -476,7 +476,9 @@
 						"download": "Descargar PDF",
 						"downloading": "Descargando...",
 						"cancel": "Cancelar",
-						"includeFinance": "Incluir resumen de gastos"
+						"includeFinance": "Incluir gastos",
+						"includeAttachments": "Incluir archivos adjuntos",
+						"includeNotes": "Incluir notas"
 					},
 					"pdf": {
 						"generatedOn": "Generado el",
@@ -502,7 +504,8 @@
 						"catAdministrative": "Administrativo",
 						"catFuel": "Combustible",
 						"catOther": "Otros",
-						"documentInApp": "Este documento esta disponible en su biblioteca de documentos de MotoMate."
+						"documentInApp": "Este documento esta disponible en su biblioteca de documentos de MotoMate.",
+						"vehicleNotes": "Notas"
 					}
 				}
 			},

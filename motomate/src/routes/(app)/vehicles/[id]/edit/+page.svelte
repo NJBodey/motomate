@@ -30,6 +30,8 @@
 		untrack(() => new Set<string>(data.reportExcludedTrackerIds ?? []))
 	);
 	let includeFinance = $state(true);
+	let includeAttachments = $state(untrack(() => data.includeAttachments ?? true));
+	let includeNotes = $state(untrack(() => data.includeNotes ?? false));
 	let reportDownloading = $state(false);
 
 	async function handleReportDownload() {
@@ -39,11 +41,18 @@
 			method: 'PATCH',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({
-				page_prefs: { maintenance_report_pdf: { [data.vehicle.id]: excluded } }
+				page_prefs: {
+					maintenance_report_pdf: { [data.vehicle.id]: excluded },
+					maintenance_report_opts: { [data.vehicle.id]: { includeAttachments, includeNotes } }
+				}
 			})
 		});
-		const url = `/api/vehicles/${data.vehicle.id}/report${includeFinance ? '' : '?noFinance'}`;
-		window.location.href = url;
+		const params = new URLSearchParams();
+		if (!includeFinance) params.set('noFinance', '1');
+		if (!includeAttachments) params.set('noAttachments', '1');
+		if (includeNotes) params.set('includeNotes', '1');
+		const qs = params.toString();
+		window.location.href = `/api/vehicles/${data.vehicle.id}/report${qs ? '?' + qs : ''}`;
 		reportDownloading = false;
 		showReportModal = false;
 	}
@@ -468,8 +477,16 @@
 	</ul>
 	<div class="report-section-divider"></div>
 	<label class="tracker-check-label">
+		<input type="checkbox" bind:checked={includeAttachments} />
+		{$_('vehicle.edit.settings.report.modal.includeAttachments')}
+	</label>
+	<label class="tracker-check-label">
 		<input type="checkbox" bind:checked={includeFinance} />
 		{$_('vehicle.edit.settings.report.modal.includeFinance')}
+	</label>
+	<label class="tracker-check-label" class:tracker-check-label--disabled={!data.hasNotes}>
+		<input type="checkbox" bind:checked={includeNotes} disabled={!data.hasNotes} />
+		{$_('vehicle.edit.settings.report.modal.includeNotes')}
 	</label>
 	{#snippet footer()}
 		<button type="button" class="btn-ghost" onclick={() => (showReportModal = false)}>
@@ -813,6 +830,11 @@
 		accent-color: var(--accent);
 		cursor: pointer;
 		flex-shrink: 0;
+	}
+
+	.tracker-check-label--disabled {
+		color: var(--text-subtle);
+		cursor: default;
 	}
 
 	.report-section-divider {

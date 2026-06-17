@@ -12,6 +12,7 @@ import {
 	recomputeTrackerStatuses,
 	getTrackersByVehicle
 } from '$lib/db/repositories/maintenance.js';
+import { getNotesByVehicle } from '$lib/db/repositories/notes.js';
 import { UpdateVehicleSchema } from '$lib/validators/schemas.js';
 import { getStorage } from '$lib/storage/index.js';
 import type { VehicleMeta } from '$lib/db/schema.js';
@@ -43,14 +44,19 @@ async function safeDeleteStorage(key: string | null | undefined): Promise<void> 
 
 export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	await parent();
-	const trackers = await getTrackersByVehicle(params.id, locals.user!.id);
-	const excluded =
-		(locals.user!.settings?.page_prefs?.maintenance_report_pdf?.[params.id] as
-			| string[]
-			| undefined) ?? [];
+	const [trackers, notes] = await Promise.all([
+		getTrackersByVehicle(params.id, locals.user!.id),
+		getNotesByVehicle(params.id, locals.user!.id)
+	]);
+	const prefs = locals.user!.settings?.page_prefs;
+	const excluded = (prefs?.maintenance_report_pdf?.[params.id] as string[] | undefined) ?? [];
+	const opts = (prefs as any)?.maintenance_report_opts?.[params.id] ?? {};
 	return {
 		reportTrackers: trackers.map((t) => ({ id: t.id, name: t.template.name })),
-		reportExcludedTrackerIds: excluded
+		reportExcludedTrackerIds: excluded,
+		includeAttachments: (opts.includeAttachments ?? true) as boolean,
+		includeNotes: (opts.includeNotes ?? false) as boolean,
+		hasNotes: notes.length > 0
 	};
 };
 

@@ -5,6 +5,7 @@ import { getServiceLogsByVehicle } from '$lib/db/repositories/service-logs.js';
 import { getTrackersByVehicle } from '$lib/db/repositories/maintenance.js';
 import { getDocumentsByIds } from '$lib/db/repositories/documents.js';
 import { getFinanceTransactionsByVehicle } from '$lib/db/repositories/finance-transactions.js';
+import { getNotesByVehicle } from '$lib/db/repositories/notes.js';
 import { getStorage } from '$lib/storage/index.js';
 import { buildMaintenanceReport } from '$lib/pdf/maintenance-report.js';
 
@@ -17,31 +18,39 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 	const dateFrom = url.searchParams.get('from') ?? undefined;
 	const dateTo = url.searchParams.get('to') ?? undefined;
 	const noFinance = url.searchParams.has('noFinance');
+	const noAttachments = url.searchParams.has('noAttachments');
+	const withNotes = url.searchParams.has('includeNotes');
 
-	const [serviceLogs, trackers, financeTransactions] = await Promise.all([
+	const [serviceLogs, trackers, financeTransactions, notes] = await Promise.all([
 		getServiceLogsByVehicle(params.id, locals.user.id),
 		getTrackersByVehicle(params.id, locals.user.id),
-		getFinanceTransactionsByVehicle(params.id, locals.user.id)
+		getFinanceTransactionsByVehicle(params.id, locals.user.id),
+		withNotes ? getNotesByVehicle(params.id, locals.user.id) : Promise.resolve([])
 	]);
 
 	const trackerNames = new Map(trackers.map((t) => [t.id, t.template.name]));
 	const reportLogs = serviceLogs.filter((l) => !l.is_reminder);
 
-	const allDocIds = [...new Set(reportLogs.flatMap((l) => (l.attachments as string[]) ?? []))];
-	const docs = allDocIds.length ? await getDocumentsByIds(allDocIds, locals.user.id) : [];
-
-	const storage = getStorage();
+	const docs: Awaited<ReturnType<typeof getDocumentsByIds>> = [];
 	const docBuffers = new Map<string, Buffer>();
-	await Promise.all(
-		docs.map(async (doc) => {
-			try {
-				const buf = await storage.getBuffer(doc.storage_key);
-				docBuffers.set(doc.id, buf);
-			} catch {
-				// skip missing files
-			}
-		})
-	);
+
+	if (!noAttachments) {
+		const allDocIds = [...new Set(reportLogs.flatMap((l) => (l.attachments as string[]) ?? []))];
+		const fetched = allDocIds.length ? await getDocumentsByIds(allDocIds, locals.user.id) : [];
+		docs.push(...fetched);
+
+		const storage = getStorage();
+		await Promise.all(
+			fetched.map(async (doc) => {
+				try {
+					const buf = await storage.getBuffer(doc.storage_key);
+					docBuffers.set(doc.id, buf);
+				} catch {
+					// skip missing files
+				}
+			})
+		);
+	}
 
 	const locale = locals.user.settings?.locale ?? 'en';
 	const excludedTrackerIds =
@@ -60,7 +69,9 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 		dateFrom,
 		dateTo,
 		includeFinanceSummary: !noFinance,
-		financeTransactions
+		financeTransactions,
+		includeAttachments: !noAttachments,
+		notes
 	});
 
 	const safeName = vehicle.name.replace(/[^a-zA-Z0-9-]/g, '_');
