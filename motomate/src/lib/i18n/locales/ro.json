@@ -728,6 +728,7 @@
 		"form": {
 			"addTitle": "Adaugă",
 			"editTitle": "Editează",
+			"switchType": "Înregistrează altceva în schimb",
 			"category": "Categorie",
 			"amount": "Sumă ({currency})",
 			"date": "Dată",

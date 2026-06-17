@@ -728,6 +728,7 @@
 		"form": {
 			"addTitle": "Add",
 			"editTitle": "Edit",
+			"switchType": "Log something else instead",
 			"category": "Category",
 			"amount": "Amount ({currency})",
 			"date": "Date",
@@ -1135,7 +1136,7 @@
 		"addEntry": {
 			"title": "Add entry",
 			"chooseVehicle": "Choose a vehicle",
-			"whatLogging": "What are you logging?",
+			"whatLogging": "What are you logging on your timeline?",
 			"maintenance": "Maintenance",
 			"maintenanceDesc": "Oil, tires, or repairs",
 			"mileage": "Mileage",

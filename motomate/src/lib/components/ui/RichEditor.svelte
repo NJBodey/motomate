@@ -37,6 +37,7 @@
 
 	let editorEl = $state<HTMLDivElement | undefined>();
 	let editor = $state<Editor | undefined>();
+	let editorFailed = $state(false);
 	let currentMarkdown = $state(untrack(() => content));
 	let editorTick = $state(0);
 	let showDocPicker = $state(false);
@@ -85,31 +86,36 @@
 			}
 		});
 
-		const instance = new Editor({
-			element: editorEl,
-			extensions: [
-				StarterKit.configure({ heading: { levels: [1, 2, 3] }, link: false }),
-				ctrlASelectAll,
-				Link.configure({
-					openOnClick: false,
-					HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
-				}),
-				Markdown.configure({ html: false, transformPastedText: true })
-			],
-			content: initialContent,
-			onUpdate({ editor: e }) {
-				currentMarkdown = (e.storage as any).markdown.getMarkdown();
-				onchange?.(currentMarkdown);
-			},
-			onTransaction() {
-				editorTick++;
-			}
-		});
+		try {
+			const instance = new Editor({
+				element: editorEl,
+				extensions: [
+					StarterKit.configure({ heading: { levels: [1, 2, 3] }, link: false }),
+					ctrlASelectAll,
+					Link.configure({
+						openOnClick: false,
+						HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
+					}),
+					Markdown.configure({ html: false, transformPastedText: true })
+				],
+				content: initialContent,
+				onUpdate({ editor: e }) {
+					currentMarkdown = (e.storage as any).markdown.getMarkdown();
+					onchange?.(currentMarkdown);
+				},
+				onTransaction() {
+					editorTick++;
+				}
+			});
 
-		editor = instance;
+			editor = instance;
+		} catch (err) {
+			console.error('RichEditor failed to initialize', err);
+			editorFailed = true;
+		}
 
 		return () => {
-			instance.destroy();
+			editor?.destroy();
 			editor = undefined;
 		};
 	});
@@ -390,9 +396,20 @@
 	<div
 		bind:this={editorEl}
 		class="editor-content"
+		class:editor-content--hidden={editorFailed}
 		style="min-height:{minHeight}"
 		data-placeholder={placeholder}
 	></div>
+
+	{#if editorFailed}
+		<textarea
+			class="editor-fallback"
+			style="min-height:{minHeight}"
+			{placeholder}
+			bind:value={currentMarkdown}
+			oninput={() => onchange?.(currentMarkdown)}
+		></textarea>
+	{/if}
 
 	<input type="hidden" {name} value={currentMarkdown} />
 </div>
@@ -633,6 +650,27 @@
 		line-height: var(--leading-base);
 		font-size: var(--text-base);
 		color: var(--text);
+	}
+
+	.editor-content--hidden {
+		display: none;
+	}
+
+	.editor-fallback {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		border: none;
+		background: none;
+		color: var(--text);
+		font-family: var(--font-sans);
+		font-size: var(--text-base);
+		line-height: var(--leading-base);
+		resize: vertical;
+		box-sizing: border-box;
+	}
+
+	.editor-fallback:focus {
+		outline: none;
 	}
 
 	/* ProseMirror global styles */

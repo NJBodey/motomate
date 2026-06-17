@@ -30,7 +30,8 @@
 		odometerUnit,
 		allDocs = [],
 		pagePrefsCategory,
-		editData
+		editData,
+		onSwitchType
 	}: {
 		vehicleId: string;
 		locale: string;
@@ -39,6 +40,7 @@
 		allDocs?: DocRecord[];
 		pagePrefsCategory?: string;
 		editData?: EditData;
+		onSwitchType?: () => void;
 	} = $props();
 
 	const _initDraft = untrack(() =>
@@ -172,6 +174,11 @@
 		};
 	}}
 >
+	{#if !editData && onSwitchType}
+		<button type="button" class="switch-type-link" onclick={onSwitchType}>
+			← {$_('finance.form.switchType')}
+		</button>
+	{/if}
 	{#if showDraftBanner}<DraftBanner
 			savedAt={_initDraft!.savedAt}
 			hasUnsavedFile={_initDraft!.hasUnsavedFile ?? false}
@@ -374,6 +381,21 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
+	}
+
+	.switch-type-link {
+		align-self: flex-start;
+		background: none;
+		border: none;
+		padding: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		cursor: pointer;
+	}
+
+	.switch-type-link:hover {
+		color: var(--text);
+		text-decoration: underline;
 	}
 
 	.form-row {

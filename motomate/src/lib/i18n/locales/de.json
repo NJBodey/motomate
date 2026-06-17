@@ -727,6 +727,7 @@
 		"form": {
 			"addTitle": "Hinzufügen",
 			"editTitle": "Bearbeiten",
+			"switchType": "Stattdessen etwas anderes erfassen",
 			"category": "Kategorie",
 			"amount": "Betrag ({currency})",
 			"date": "Datum",

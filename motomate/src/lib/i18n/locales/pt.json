@@ -728,6 +728,7 @@
 		"form": {
 			"addTitle": "Adicionar",
 			"editTitle": "Editar",
+			"switchType": "Registar outra coisa em vez disso",
 			"category": "Categoria",
 			"amount": "Valor ({currency})",
 			"date": "Data",

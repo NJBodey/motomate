@@ -728,6 +728,7 @@
 		"form": {
 			"addTitle": "Aggiungi",
 			"editTitle": "Modifica",
+			"switchType": "Registra qualcosa di diverso",
 			"category": "Categoria",
 			"amount": "Importo ({currency})",
 			"date": "Data",

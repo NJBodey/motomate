@@ -676,8 +676,10 @@
 		margin-top: 0.25rem;
 		line-height: var(--leading-snug);
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
 	}
 
 	.note-doc-refs {

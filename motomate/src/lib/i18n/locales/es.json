@@ -727,6 +727,7 @@
 		"form": {
 			"addTitle": "Añadir",
 			"editTitle": "Editar",
+			"switchType": "Registrar otra cosa en su lugar",
 			"category": "Categoría",
 			"amount": "Importe ({currency})",
 			"date": "Fecha",
@@ -1145,7 +1146,7 @@
 		"addEntry": {
 			"title": "Añadir entrada",
 			"chooseVehicle": "Elegir vehículo",
-			"whatLogging": "¿Qué vas a registrar?",
+			"whatLogging": "¿Qué vas a registrar en tu línea de tiempo?",
 			"maintenance": "Mantenimiento",
 			"maintenanceDesc": "Aceite, neumáticos o reparaciones",
 			"mileage": "Kilometraje",

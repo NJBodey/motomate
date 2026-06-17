@@ -121,6 +121,7 @@
 {#if open}
 	<div class="sheet-backdrop" onclick={onclose} aria-hidden="true"></div>
 	<div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="travel-sheet-title">
+		<div class="sheet-drag-handle" aria-hidden="true"></div>
 		<div class="sheet-header">
 			<h2 id="travel-sheet-title" class="sheet-title">
 				{mode === 'create' ? $_('travels.form.createTitle') : $_('travels.form.editTitle')}
@@ -632,6 +633,46 @@
 		outline: 2px solid var(--accent);
 		outline-offset: 1px;
 	}
+	.sheet-drag-handle {
+		display: none;
+	}
+	@media (max-width: 768px) {
+		.sheet-panel {
+			top: auto;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			max-height: 90dvh;
+			border-left: none;
+			border-top: 1px solid var(--border);
+			border-radius: 14px 14px 0 0;
+			animation: slideInUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+		}
+		.sheet-drag-handle {
+			display: block;
+			width: 32px;
+			height: 3px;
+			background: var(--border);
+			border-radius: 2px;
+			margin: var(--space-2) auto 0;
+			flex-shrink: 0;
+		}
+		.sheet-header {
+			padding-top: var(--space-4);
+		}
+		.form-scroll {
+			padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+		}
+	}
+	@keyframes slideInUp {
+		from {
+			transform: translateY(100%);
+		}
+		to {
+			transform: translateY(0);
+		}
+	}
 	@keyframes fadeIn {
 		from {
 			opacity: 0;
@@ -651,7 +692,7 @@
 	@media (prefers-reduced-motion: reduce) {
 		.sheet-backdrop,
 		.sheet-panel {
-			animation: none;
+			animation: none !important;
 		}
 	}
 	.form-scroll {

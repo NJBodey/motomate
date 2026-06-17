@@ -727,6 +727,7 @@
 		"form": {
 			"addTitle": "Toevoegen",
 			"editTitle": "Bewerken",
+			"switchType": "Toch iets anders registreren",
 			"category": "Categorie",
 			"amount": "Bedrag ({currency})",
 			"date": "Datum",
@@ -1145,7 +1146,7 @@
 		"addEntry": {
 			"title": "Item toevoegen",
 			"chooseVehicle": "Kies voertuig",
-			"whatLogging": "Wat ga je registreren?",
+			"whatLogging": "Wat ga je registreren op je tijdlijn?",
 			"maintenance": "Onderhoud",
 			"maintenanceDesc": "Olie, banden of reparaties",
 			"mileage": "Kilometerstand",

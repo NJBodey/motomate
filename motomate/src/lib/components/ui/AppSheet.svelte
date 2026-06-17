@@ -1,9 +1,20 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { sheet } from '$lib/stores/sheet.svelte.js';
 
 	function close() {
 		sheet.closeSheet();
 	}
+
+	$effect(() => {
+		if (sheet.open && browser) {
+			const prev = document.documentElement.style.overflow;
+			document.documentElement.style.overflow = 'hidden';
+			return () => {
+				document.documentElement.style.overflow = prev;
+			};
+		}
+	});
 
 	function handleBackdrop(e: MouseEvent) {
 		if (e.target === e.currentTarget) close();

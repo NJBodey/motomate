@@ -32,7 +32,11 @@
 			currency,
 			odometerUnit: data.vehicle.odometer_unit,
 			allDocs: data.allDocs ?? [],
-			pagePrefsCategory: data.page_prefs?.last_category
+			pagePrefsCategory: data.page_prefs?.last_category,
+			onSwitchType: () => {
+				sheet.closeSheet();
+				quickAdd.open(data.vehicle.id);
+			}
 		});
 	}
 
@@ -415,14 +419,7 @@
 	</div>
 	<div class="page-actions">
 		<a href="/insights?v={data.vehicle.id}" class="btn-ghost">{$_('layout.nav.insights')} →</a>
-		<button
-			type="button"
-			class="btn-primary"
-			onclick={() =>
-				typeof window !== 'undefined' && window.innerWidth <= 768
-					? quickAdd.open(data.vehicle.id)
-					: openAddForm()}
-		>
+		<button type="button" class="btn-primary" onclick={openAddForm}>
 			+ {$_('finance.addExpense')}
 		</button>
 	</div>
