@@ -224,6 +224,8 @@
 						unitConverting = false;
 						showUnitConversionDialog = false;
 						if (result.type === 'success') {
+							odometerInput = data.vehicle.current_odometer;
+							selectedDistanceUnit = data.vehicle.odometer_unit as DistanceUnit;
 							toasts.success('Distance values converted');
 						} else if (result.type === 'failure' && (result.data as any)?.error) {
 							toasts.error((result.data as any).error);
