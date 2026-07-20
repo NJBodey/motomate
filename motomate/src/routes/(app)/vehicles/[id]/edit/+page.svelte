@@ -6,7 +6,12 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
-	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
+	import {
+		DISTANCE_UNITS,
+		getDistanceUnitTranslationKey,
+		getMeasurementUnitTranslationKey,
+		type DistanceUnit
+	} from '$lib/utils/measurement.js';
 
 	let {
 		data,
@@ -22,8 +27,11 @@
 
 	let showDeleteDialog = $state(false);
 	let showArchiveDialog = $state(false);
+	let showUnitConversionDialog = $state(false);
 	let deleteLoading = $state(false);
 	let archiveLoading = $state(false);
+	let unitConverting = $state(false);
+	let unitConversionForm = $state<HTMLFormElement | null>(null);
 
 	let showReportModal = $state(false);
 	let excludedTrackerIds = $state(
@@ -71,6 +79,11 @@
 	const vehicleMeasurementUnitLabel = $derived(
 		$_(getMeasurementUnitTranslationKey(data.vehicle.odometer_unit))
 	);
+	let selectedDistanceUnit = $state<DistanceUnit>(
+		untrack(() => (data.vehicle.odometer_unit === 'mi' ? 'mi' : 'km'))
+	);
+	const canConvertDistanceUnit = $derived(data.vehicle.odometer_unit !== 'h');
+	const distanceUnitChanged = $derived(selectedDistanceUnit !== data.vehicle.odometer_unit);
 	const isHoursVehicle = $derived(data.vehicle.odometer_unit === 'h');
 	const vehicleUnitTitle = $derived(
 		isHoursVehicle
@@ -183,6 +196,55 @@
 	</section>
 
 	<div class="divider"></div>
+
+	{#if canConvertDistanceUnit}
+		<section class="edit-section">
+			<h2 class="section-label">{$_('vehicle.edit.measurementUnit.title')}</h2>
+			<form
+				method="POST"
+				action="?/convertUnit"
+				bind:this={unitConversionForm}
+				use:enhance={() => {
+					unitConverting = true;
+					return async ({ result, update }) => {
+						await update({ reset: false });
+						unitConverting = false;
+						showUnitConversionDialog = false;
+						if (result.type === 'success') {
+							toasts.success('Distance values converted');
+						} else if (result.type === 'failure' && (result.data as any)?.error) {
+							toasts.error((result.data as any).error);
+						}
+					};
+				}}
+			>
+				<div class="toggle-row">
+					{#each DISTANCE_UNITS as unit}
+						<label class="toggle-opt" class:toggle-opt--active={selectedDistanceUnit === unit}>
+							<input
+								type="radio"
+								name="odometer_unit"
+								value={unit}
+								bind:group={selectedDistanceUnit}
+								class="sr-only"
+							/>
+							{$_(getDistanceUnitTranslationKey(unit))}
+						</label>
+					{/each}
+				</div>
+				<button
+					type="button"
+					class="btn-secondary"
+					disabled={!distanceUnitChanged || unitConverting}
+					onclick={() => (showUnitConversionDialog = true)}
+				>
+					Convert saved distance data
+				</button>
+			</form>
+		</section>
+
+		<div class="divider"></div>
+	{/if}
 
 	<!-- Vehicle details & Purchase/Sale -->
 	<section class="edit-section">
@@ -390,6 +452,18 @@
 		</div>
 	</section>
 </div>
+
+<ConfirmDialog
+	open={showUnitConversionDialog}
+	title="Convert vehicle distance data?"
+	description="All recorded odometer readings, maintenance intervals, and distance-based reminders will be converted to the selected unit."
+	confirmLabel="Convert"
+	cancelLabel="Cancel"
+	danger={false}
+	loading={unitConverting}
+	onconfirm={() => unitConversionForm?.requestSubmit()}
+	onclose={() => (showUnitConversionDialog = false)}
+/>
 
 <ConfirmDialog
 	open={showDeleteDialog}

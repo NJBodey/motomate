@@ -34,6 +34,16 @@ export function resolveDistanceUnitPreference(value: unknown): DistanceUnit {
 	return isDistanceUnit(value) ? value : DEFAULT_ODOMETER_UNIT;
 }
 
+const KILOMETRES_PER_MILE = 1.609344;
+
+/**
+ * Convert an integer distance reading while preserving the application's integer storage model.
+ */
+export function convertDistanceValue(value: number, from: DistanceUnit, to: DistanceUnit): number {
+	if (from === to) return value;
+	return Math.round(from === 'km' ? value / KILOMETRES_PER_MILE : value * KILOMETRES_PER_MILE);
+}
+
 export function getMeasurementBasis(unit: MeasurementUnit): MeasurementBasis {
 	return isDistanceUnit(unit) ? 'distance' : 'duration';
 }

@@ -1,12 +1,22 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '../index.js';
-import { vehicles, odometer_logs, service_logs } from '../schema.js';
+import {
+	active_trackers,
+	finance_transactions,
+	odometer_logs,
+	service_logs,
+	task_templates,
+	vehicles,
+	workflow_rules
+} from '../schema.js';
 import { CreateVehicleSchema, UpdateVehicleSchema } from '../../validators/schemas.js';
 import type { InsertVehicle, Vehicle, OdometerLog } from '../schema.js';
 import { generateId } from '../../utils/id.js';
 import {
 	DEFAULT_ODOMETER_UNIT,
+	convertDistanceValue,
 	getMeasurementBasis,
+	isDistanceUnit,
 	isDistanceMeasurementValue,
 	isMeasurementUnit,
 	maxComparableMeasurement,
@@ -134,6 +144,148 @@ export async function updateVehicle(id: string, userId: string, input: unknown):
 		.update(vehicles)
 		.set(patch)
 		.where(and(eq(vehicles.id, id), eq(vehicles.user_id, userId)));
+}
+
+/**
+ * Convert all distance data attached to one vehicle. This intentionally excludes hour-based
+ * vehicles and runs as a single database transaction so labels and values cannot diverge.
+ */
+export async function convertVehicleDistanceUnit(
+	id: string,
+	userId: string,
+	targetUnit: 'km' | 'mi'
+): Promise<boolean> {
+	const vehicle = await getVehicleById(id, userId);
+	if (!vehicle || !isDistanceUnit(vehicle.odometer_unit)) return false;
+
+	const sourceUnit = vehicle.odometer_unit;
+	if (sourceUnit === targetUnit) return true;
+	const convert = (value: number | null) =>
+		value == null ? null : convertDistanceValue(value, sourceUnit, targetUnit);
+	const updatedAt = new Date().toISOString();
+
+	await db.transaction(async (tx) => {
+		await tx
+			.update(vehicles)
+			.set({
+				current_odometer: convert(vehicle.current_odometer)!,
+				current_measurement: convert(vehicle.current_measurement)!,
+				current_measurement_unit: targetUnit,
+				odometer_unit: targetUnit,
+				updated_at: updatedAt
+			})
+			.where(and(eq(vehicles.id, id), eq(vehicles.user_id, userId)));
+
+		const odometerRows = await tx
+			.select()
+			.from(odometer_logs)
+			.where(eq(odometer_logs.vehicle_id, id));
+		for (const row of odometerRows) {
+			await tx
+				.update(odometer_logs)
+				.set({
+					odometer: convert(row.odometer)!,
+					measurement: convert(row.measurement),
+					measurement_unit: targetUnit
+				})
+				.where(eq(odometer_logs.id, row.id));
+		}
+
+		const serviceRows = await tx.select().from(service_logs).where(eq(service_logs.vehicle_id, id));
+		for (const row of serviceRows) {
+			await tx
+				.update(service_logs)
+				.set({
+					odometer_at_service: convert(row.odometer_at_service)!,
+					measurement_at_service: convert(row.measurement_at_service),
+					measurement_unit: targetUnit
+				})
+				.where(eq(service_logs.id, row.id));
+		}
+
+		const financeRows = await tx
+			.select()
+			.from(finance_transactions)
+			.where(eq(finance_transactions.vehicle_id, id));
+		for (const row of financeRows) {
+			await tx
+				.update(finance_transactions)
+				.set({
+					odometer_at_transaction: convert(row.odometer_at_transaction),
+					measurement_at_transaction: convert(row.measurement_at_transaction),
+					measurement_unit: targetUnit,
+					updated_at: updatedAt
+				})
+				.where(eq(finance_transactions.id, row.id));
+		}
+
+		const trackerRows = await tx
+			.select()
+			.from(active_trackers)
+			.where(eq(active_trackers.vehicle_id, id));
+		for (const row of trackerRows) {
+			await tx
+				.update(active_trackers)
+				.set({
+					last_done_odometer: convert(row.last_done_odometer),
+					last_done_measurement: convert(row.last_done_measurement),
+					next_due_odometer: convert(row.next_due_odometer),
+					next_due_measurement: convert(row.next_due_measurement),
+					measurement_unit: targetUnit,
+					updated_at: updatedAt
+				})
+				.where(eq(active_trackers.id, row.id));
+		}
+
+		const templateRows = await tx
+			.select()
+			.from(task_templates)
+			.where(eq(task_templates.vehicle_id, id));
+		for (const row of templateRows) {
+			await tx
+				.update(task_templates)
+				.set({
+					interval_km: convert(row.interval_km),
+					interval_measurement: convert(row.interval_measurement),
+					interval_unit: targetUnit
+				})
+				.where(eq(task_templates.id, row.id));
+		}
+
+		const ruleRows = await tx
+			.select()
+			.from(workflow_rules)
+			.where(and(eq(workflow_rules.vehicle_id, id), eq(workflow_rules.user_id, userId)));
+		for (const row of ruleRows) {
+			const trigger = row.trigger as Record<string, unknown>;
+			if (trigger.type === 'odometer_upcoming' && typeof trigger.km_before === 'number') {
+				await tx
+					.update(workflow_rules)
+					.set({
+						trigger: {
+							...trigger,
+							km_before: convertDistanceValue(trigger.km_before, sourceUnit, targetUnit)
+						} as any,
+						updated_at: updatedAt
+					})
+					.where(eq(workflow_rules.id, row.id));
+			}
+			if (trigger.type === 'odometer_overdue' && typeof trigger.km_past === 'number') {
+				await tx
+					.update(workflow_rules)
+					.set({
+						trigger: {
+							...trigger,
+							km_past: convertDistanceValue(trigger.km_past, sourceUnit, targetUnit)
+						} as any,
+						updated_at: updatedAt
+					})
+					.where(eq(workflow_rules.id, row.id));
+			}
+		}
+	});
+
+	return true;
 }
 
 export async function archiveVehicle(id: string, userId: string): Promise<void> {
