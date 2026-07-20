@@ -6,7 +6,9 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
 	import { _, waitLocale } from '$lib/i18n';
+	import { formatNumber } from '$lib/utils/format.js';
 	import {
+		convertDistanceValue,
 		DISTANCE_UNITS,
 		getDistanceUnitTranslationKey,
 		getMeasurementUnitTranslationKey,
@@ -84,6 +86,17 @@
 	);
 	const canConvertDistanceUnit = $derived(data.vehicle.odometer_unit !== 'h');
 	const distanceUnitChanged = $derived(selectedDistanceUnit !== data.vehicle.odometer_unit);
+	const locale = $derived(data.user?.settings?.locale ?? 'en');
+	const currency = $derived(data.user?.settings?.currency ?? 'EUR');
+	const convertedCurrentReading = $derived(
+		canConvertDistanceUnit
+			? convertDistanceValue(
+					data.vehicle.current_odometer,
+					data.vehicle.odometer_unit as DistanceUnit,
+					selectedDistanceUnit
+				)
+			: data.vehicle.current_odometer
+	);
 	const isHoursVehicle = $derived(data.vehicle.odometer_unit === 'h');
 	const vehicleUnitTitle = $derived(
 		isHoursVehicle
@@ -218,28 +231,46 @@
 					};
 				}}
 			>
-				<div class="toggle-row">
-					{#each DISTANCE_UNITS as unit}
-						<label class="toggle-opt" class:toggle-opt--active={selectedDistanceUnit === unit}>
-							<input
-								type="radio"
-								name="odometer_unit"
-								value={unit}
-								bind:group={selectedDistanceUnit}
-								class="sr-only"
-							/>
-							{$_(getDistanceUnitTranslationKey(unit))}
-						</label>
-					{/each}
+				<div class="unit-converter">
+					<div class="unit-converter__context">
+						<div class="unit-converter__eyebrow">Current reading</div>
+						<div class="unit-converter__reading">
+							{formatNumber(data.vehicle.current_odometer, locale)}
+							{data.vehicle.odometer_unit}
+							<span aria-hidden="true">→</span>
+							<strong>{formatNumber(convertedCurrentReading, locale)} {selectedDistanceUnit}</strong
+							>
+						</div>
+						<p>Convert every saved distance and maintenance interval together.</p>
+					</div>
+					<div class="unit-converter__controls">
+						<div class="unit-toggle" aria-label={$_('vehicle.edit.measurementUnit.title')}>
+							{#each DISTANCE_UNITS as unit}
+								<label
+									class:unit-toggle__option--active={selectedDistanceUnit === unit}
+									class="unit-toggle__option"
+								>
+									<input
+										type="radio"
+										name="odometer_unit"
+										value={unit}
+										bind:group={selectedDistanceUnit}
+										class="sr-only"
+									/>
+									{$_(getDistanceUnitTranslationKey(unit))}
+								</label>
+							{/each}
+						</div>
+						<button
+							type="button"
+							class="btn-primary"
+							disabled={!distanceUnitChanged || unitConverting}
+							onclick={() => (showUnitConversionDialog = true)}
+						>
+							Review conversion
+						</button>
+					</div>
 				</div>
-				<button
-					type="button"
-					class="btn-secondary"
-					disabled={!distanceUnitChanged || unitConverting}
-					onclick={() => (showUnitConversionDialog = true)}
-				>
-					Convert saved distance data
-				</button>
 			</form>
 		</section>
 
@@ -353,7 +384,7 @@
 					<label class="field">
 						<span class="field-label">{$_('vehicle.edit.purchasePrice')}</span>
 						<div class="field-input-group">
-							<span class="input-prefix">€</span>
+							<span class="input-prefix">{currency}</span>
 							<input
 								name="purchase_price"
 								type="number"
@@ -368,7 +399,7 @@
 					<label class="field">
 						<span class="field-label">{$_('vehicle.edit.soldPrice')}</span>
 						<div class="field-input-group">
-							<span class="input-prefix">€</span>
+							<span class="input-prefix">{currency}</span>
 							<input
 								name="sold_price"
 								type="number"
@@ -455,9 +486,9 @@
 
 <ConfirmDialog
 	open={showUnitConversionDialog}
-	title="Convert vehicle distance data?"
-	description="All recorded odometer readings, maintenance intervals, and distance-based reminders will be converted to the selected unit."
-	confirmLabel="Convert"
+	title="Convert {data.vehicle.odometer_unit} to {selectedDistanceUnit}?"
+	description={`Your current reading will become ${formatNumber(convertedCurrentReading, locale)} ${selectedDistanceUnit}. Odometer history, service records, maintenance intervals, and distance-based reminders will remain aligned.`}
+	confirmLabel="Convert distances"
 	cancelLabel="Cancel"
 	danger={false}
 	loading={unitConverting}
@@ -660,6 +691,77 @@
 	.settings-divider {
 		height: 1px;
 		margin: var(--space-2) 0;
+	}
+	.unit-converter {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-6);
+		padding: var(--space-4) 0;
+	}
+	.unit-converter__context {
+		min-width: 0;
+	}
+	.unit-converter__eyebrow {
+		font-size: var(--text-xs);
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+	.unit-converter__reading {
+		display: flex;
+		align-items: baseline;
+		gap: var(--space-2);
+		margin-top: var(--space-1);
+		font-family: var(--font-mono);
+		font-size: var(--text-lg);
+		color: var(--text-muted);
+	}
+	.unit-converter__reading strong {
+		color: var(--text);
+		font-weight: 650;
+	}
+	.unit-converter__context p {
+		margin: var(--space-1) 0 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+	.unit-converter__controls {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		flex-shrink: 0;
+	}
+	.unit-toggle {
+		display: inline-flex;
+		padding: 3px;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		background: var(--bg-muted);
+	}
+	.unit-toggle__option {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 48px;
+		min-height: 38px;
+		padding: 0 var(--space-3);
+		border-radius: 7px;
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--text-muted);
+		cursor: pointer;
+		transition:
+			background 120ms ease,
+			color 120ms ease,
+			box-shadow 120ms ease;
+	}
+	.unit-toggle__option--active {
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 12%, transparent);
 	}
 	.inline-form {
 		display: flex;
@@ -871,9 +973,14 @@
 			align-items: stretch;
 		}
 		.settings-box,
+		.unit-converter,
 		.danger-box {
 			flex-direction: column;
 			align-items: flex-start;
+		}
+		.unit-converter__controls {
+			width: 100%;
+			justify-content: space-between;
 		}
 	}
 

@@ -164,9 +164,8 @@ export async function convertVehicleDistanceUnit(
 		value == null ? null : convertDistanceValue(value, sourceUnit, targetUnit);
 	const updatedAt = new Date().toISOString();
 
-	await db.transaction(async (tx) => {
-		await tx
-			.update(vehicles)
+	db.transaction((tx) => {
+		tx.update(vehicles)
 			.set({
 				current_odometer: convert(vehicle.current_odometer)!,
 				current_measurement: convert(vehicle.current_measurement)!,
@@ -176,13 +175,13 @@ export async function convertVehicleDistanceUnit(
 			})
 			.where(and(eq(vehicles.id, id), eq(vehicles.user_id, userId)));
 
-		const odometerRows = await tx
+		const odometerRows = tx
 			.select()
 			.from(odometer_logs)
-			.where(eq(odometer_logs.vehicle_id, id));
+			.where(eq(odometer_logs.vehicle_id, id))
+			.all();
 		for (const row of odometerRows) {
-			await tx
-				.update(odometer_logs)
+			tx.update(odometer_logs)
 				.set({
 					odometer: convert(row.odometer)!,
 					measurement: convert(row.measurement),
@@ -191,10 +190,9 @@ export async function convertVehicleDistanceUnit(
 				.where(eq(odometer_logs.id, row.id));
 		}
 
-		const serviceRows = await tx.select().from(service_logs).where(eq(service_logs.vehicle_id, id));
+		const serviceRows = tx.select().from(service_logs).where(eq(service_logs.vehicle_id, id)).all();
 		for (const row of serviceRows) {
-			await tx
-				.update(service_logs)
+			tx.update(service_logs)
 				.set({
 					odometer_at_service: convert(row.odometer_at_service)!,
 					measurement_at_service: convert(row.measurement_at_service),
@@ -203,13 +201,13 @@ export async function convertVehicleDistanceUnit(
 				.where(eq(service_logs.id, row.id));
 		}
 
-		const financeRows = await tx
+		const financeRows = tx
 			.select()
 			.from(finance_transactions)
-			.where(eq(finance_transactions.vehicle_id, id));
+			.where(eq(finance_transactions.vehicle_id, id))
+			.all();
 		for (const row of financeRows) {
-			await tx
-				.update(finance_transactions)
+			tx.update(finance_transactions)
 				.set({
 					odometer_at_transaction: convert(row.odometer_at_transaction),
 					measurement_at_transaction: convert(row.measurement_at_transaction),
@@ -219,13 +217,13 @@ export async function convertVehicleDistanceUnit(
 				.where(eq(finance_transactions.id, row.id));
 		}
 
-		const trackerRows = await tx
+		const trackerRows = tx
 			.select()
 			.from(active_trackers)
-			.where(eq(active_trackers.vehicle_id, id));
+			.where(eq(active_trackers.vehicle_id, id))
+			.all();
 		for (const row of trackerRows) {
-			await tx
-				.update(active_trackers)
+			tx.update(active_trackers)
 				.set({
 					last_done_odometer: convert(row.last_done_odometer),
 					last_done_measurement: convert(row.last_done_measurement),
@@ -237,13 +235,13 @@ export async function convertVehicleDistanceUnit(
 				.where(eq(active_trackers.id, row.id));
 		}
 
-		const templateRows = await tx
+		const templateRows = tx
 			.select()
 			.from(task_templates)
-			.where(eq(task_templates.vehicle_id, id));
+			.where(eq(task_templates.vehicle_id, id))
+			.all();
 		for (const row of templateRows) {
-			await tx
-				.update(task_templates)
+			tx.update(task_templates)
 				.set({
 					interval_km: convert(row.interval_km),
 					interval_measurement: convert(row.interval_measurement),
@@ -252,15 +250,15 @@ export async function convertVehicleDistanceUnit(
 				.where(eq(task_templates.id, row.id));
 		}
 
-		const ruleRows = await tx
+		const ruleRows = tx
 			.select()
 			.from(workflow_rules)
-			.where(and(eq(workflow_rules.vehicle_id, id), eq(workflow_rules.user_id, userId)));
+			.where(and(eq(workflow_rules.vehicle_id, id), eq(workflow_rules.user_id, userId)))
+			.all();
 		for (const row of ruleRows) {
 			const trigger = row.trigger as Record<string, unknown>;
 			if (trigger.type === 'odometer_upcoming' && typeof trigger.km_before === 'number') {
-				await tx
-					.update(workflow_rules)
+				tx.update(workflow_rules)
 					.set({
 						trigger: {
 							...trigger,
@@ -271,8 +269,7 @@ export async function convertVehicleDistanceUnit(
 					.where(eq(workflow_rules.id, row.id));
 			}
 			if (trigger.type === 'odometer_overdue' && typeof trigger.km_past === 'number') {
-				await tx
-					.update(workflow_rules)
+				tx.update(workflow_rules)
 					.set({
 						trigger: {
 							...trigger,
