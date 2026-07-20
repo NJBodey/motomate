@@ -29,6 +29,11 @@ export function isDistanceUnit(value: unknown): value is DistanceUnit {
 	return typeof value === 'string' && DISTANCE_UNITS.includes(value as DistanceUnit);
 }
 
+/** Return a safe distance preference for user-facing defaults. */
+export function resolveDistanceUnitPreference(value: unknown): DistanceUnit {
+	return isDistanceUnit(value) ? value : DEFAULT_ODOMETER_UNIT;
+}
+
 export function getMeasurementBasis(unit: MeasurementUnit): MeasurementBasis {
 	return isDistanceUnit(unit) ? 'distance' : 'duration';
 }
