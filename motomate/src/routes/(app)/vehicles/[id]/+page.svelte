@@ -28,6 +28,7 @@
 	});
 
 	const locale = $derived(data.user?.settings?.locale ?? 'en');
+	// Timeline records retain their original currency code; the account preference controls display.
 	const currency = $derived(data.currency ?? data.user?.settings?.currency ?? 'EUR');
 	const unit = $derived(data.vehicle.odometer_unit);
 	const isHoursVehicle = $derived(unit === 'h');

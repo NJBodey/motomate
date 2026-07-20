@@ -149,6 +149,10 @@ export async function updateVehicle(id: string, userId: string, input: unknown):
 /**
  * Convert all distance data attached to one vehicle. This intentionally excludes hour-based
  * vehicles and runs as a single database transaction so labels and values cannot diverge.
+ *
+ * better-sqlite3 transactions require a synchronous callback. Drizzle's SQLite update builders
+ * are lazy, so every update inside this callback must finish with `.run()` to execute before the
+ * transaction commits.
  */
 export async function convertVehicleDistanceUnit(
 	id: string,
