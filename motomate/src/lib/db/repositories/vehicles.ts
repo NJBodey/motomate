@@ -173,7 +173,8 @@ export async function convertVehicleDistanceUnit(
 				odometer_unit: targetUnit,
 				updated_at: updatedAt
 			})
-			.where(and(eq(vehicles.id, id), eq(vehicles.user_id, userId)));
+			.where(and(eq(vehicles.id, id), eq(vehicles.user_id, userId)))
+			.run();
 
 		const odometerRows = tx
 			.select()
@@ -187,7 +188,8 @@ export async function convertVehicleDistanceUnit(
 					measurement: convert(row.measurement),
 					measurement_unit: targetUnit
 				})
-				.where(eq(odometer_logs.id, row.id));
+				.where(eq(odometer_logs.id, row.id))
+				.run();
 		}
 
 		const serviceRows = tx.select().from(service_logs).where(eq(service_logs.vehicle_id, id)).all();
@@ -198,7 +200,8 @@ export async function convertVehicleDistanceUnit(
 					measurement_at_service: convert(row.measurement_at_service),
 					measurement_unit: targetUnit
 				})
-				.where(eq(service_logs.id, row.id));
+				.where(eq(service_logs.id, row.id))
+				.run();
 		}
 
 		const financeRows = tx
@@ -214,7 +217,8 @@ export async function convertVehicleDistanceUnit(
 					measurement_unit: targetUnit,
 					updated_at: updatedAt
 				})
-				.where(eq(finance_transactions.id, row.id));
+				.where(eq(finance_transactions.id, row.id))
+				.run();
 		}
 
 		const trackerRows = tx
@@ -232,7 +236,8 @@ export async function convertVehicleDistanceUnit(
 					measurement_unit: targetUnit,
 					updated_at: updatedAt
 				})
-				.where(eq(active_trackers.id, row.id));
+				.where(eq(active_trackers.id, row.id))
+				.run();
 		}
 
 		const templateRows = tx
@@ -247,7 +252,8 @@ export async function convertVehicleDistanceUnit(
 					interval_measurement: convert(row.interval_measurement),
 					interval_unit: targetUnit
 				})
-				.where(eq(task_templates.id, row.id));
+				.where(eq(task_templates.id, row.id))
+				.run();
 		}
 
 		const ruleRows = tx
@@ -266,7 +272,8 @@ export async function convertVehicleDistanceUnit(
 						} as any,
 						updated_at: updatedAt
 					})
-					.where(eq(workflow_rules.id, row.id));
+					.where(eq(workflow_rules.id, row.id))
+					.run();
 			}
 			if (trigger.type === 'odometer_overdue' && typeof trigger.km_past === 'number') {
 				tx.update(workflow_rules)
@@ -277,7 +284,8 @@ export async function convertVehicleDistanceUnit(
 						} as any,
 						updated_at: updatedAt
 					})
-					.where(eq(workflow_rules.id, row.id));
+					.where(eq(workflow_rules.id, row.id))
+					.run();
 			}
 		}
 	});
