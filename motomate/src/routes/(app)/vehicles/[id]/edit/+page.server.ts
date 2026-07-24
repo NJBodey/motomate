@@ -118,14 +118,17 @@ export const actions: Actions = {
 	},
 
 	convertUnit: async ({ request, locals, params }) => {
+		const locale = locals.user!.settings.locale;
 		const targetUnit = String((await request.formData()).get('odometer_unit') ?? '');
 		if (!isDistanceUnit(targetUnit)) {
-			return fail(400, { error: 'Choose kilometres or miles.' });
+			return fail(400, { error: await serverT('vehicle.edit.errors.chooseDistanceUnit', locale) });
 		}
 
 		const converted = await convertVehicleDistanceUnit(params.id, locals.user!.id, targetUnit);
 		if (!converted) {
-			return fail(400, { error: 'This vehicle cannot be converted to a distance unit.' });
+			return fail(400, {
+				error: await serverT('vehicle.edit.errors.notDistanceConvertible', locale)
+			});
 		}
 
 		return { unitConverted: true };

@@ -524,7 +524,7 @@
 				"title": "Unité de mesure",
 				"locked": "Verrouillée après création",
 				"eyebrow": "Relevé actuel",
-				"summary": "Convertir ensemble toutes les distances enregistrées et les intervalles d'entretien.",
+				"summary": "Convertir toutes les données enregistrées ensemble.",
 				"review": "Vérifier la conversion",
 				"converted": "Valeurs de distance converties",
 				"dialogTitle": "Convertir {from} en {to} ?",
@@ -728,10 +728,11 @@
 			"notSet": "Non défini",
 			"addHint": "Ajouter dans Paramètres → Achat & Vente",
 			"expenses": "Dépenses",
-			"transactions": "{count} transaction",
+			"transactions": "{count, plural, one {# transaction} other {# transactions}}",
 			"transactions_plural": "{count} transactions",
 			"totalInvested": "Total investi",
-			"soldFor": "Vendu pour"
+			"soldFor": "Vendu pour",
+			"currencyCount": "{count, plural, one {# devise} other {# devises}}"
 		},
 		"form": {
 			"addTitle": "Ajouter",
@@ -1282,7 +1283,9 @@
 			"title": "Dépenses",
 			"modMonthly": "Mensuel",
 			"modCumulative": "Cumulatif",
-			"viewDetails": "Voir les dépenses"
+			"viewDetails": "Voir les dépenses",
+			"mixedTitle": "Plusieurs devises",
+			"mixedDesc": "Ce graphique est masqué car les transactions sélectionnées utilisent plusieurs devises. Les totaux sont affichés par devise ci-dessus."
 		},
 		"empty": {
 			"title": "Pas encore de données",

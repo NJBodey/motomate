@@ -525,7 +525,7 @@
 				"title": "Unità di misura",
 				"locked": "Bloccata dopo la creazione",
 				"eyebrow": "Lettura attuale",
-				"summary": "Converti insieme tutte le distanze salvate e gli intervalli di manutenzione.",
+				"summary": "Converti insieme tutti i dati salvati.",
 				"review": "Rivedi la conversione",
 				"converted": "Valori di distanza convertiti",
 				"dialogTitle": "Convertire {from} in {to}?",
@@ -729,10 +729,11 @@
 			"notSet": "Non impostato",
 			"addHint": "Aggiungi in Impostazioni → Acquisto & Vendita",
 			"expenses": "Spese",
-			"transactions": "{count} transazione",
+			"transactions": "{count, plural, one {# transazione} other {# transazioni}}",
 			"transactions_plural": "{count} transazioni",
 			"totalInvested": "Totale investito",
-			"soldFor": "Venduto per"
+			"soldFor": "Venduto per",
+			"currencyCount": "{count, plural, one {# valuta} other {# valute}}"
 		},
 		"form": {
 			"addTitle": "Aggiungi",
@@ -1283,7 +1284,9 @@
 			"title": "Spese",
 			"modMonthly": "Mensile",
 			"modCumulative": "Cumulativo",
-			"viewDetails": "Vedi le spese"
+			"viewDetails": "Vedi le spese",
+			"mixedTitle": "Più valute",
+			"mixedDesc": "Questo grafico è nascosto perché le transazioni selezionate usano più di una valuta. I totali sono mostrati per valuta sopra."
 		},
 		"empty": {
 			"title": "Nessun dato ancora",

@@ -388,7 +388,7 @@
 				"title": "Unitate de măsură",
 				"locked": "Unitatea de măsură nu mai poate fi schimbată după crearea vehiculului.",
 				"eyebrow": "Citire curentă",
-				"summary": "Convertește împreună toate distanțele salvate și intervalele de întreținere.",
+				"summary": "Convertește împreună toate datele salvate.",
 				"review": "Verifică conversia",
 				"converted": "Valori de distanță convertite",
 				"dialogTitle": "Convertești {from} în {to}?",
@@ -732,7 +732,8 @@
 			"transactions": "{count, plural, =1 {1 tranzacție} other {# tranzacții}}",
 			"transactions_plural": "{count, plural, =1 {1 tranzacție} other {# tranzacții}}",
 			"totalInvested": "Total investit",
-			"soldFor": "Vândut pentru"
+			"soldFor": "Vândut pentru",
+			"currencyCount": "{count, plural, one {# valută} other {# valute}}"
 		},
 		"form": {
 			"addTitle": "Adaugă",
@@ -1263,7 +1264,9 @@
 			"modCumulative": "Cumulativ",
 			"modMonthly": "Lunar",
 			"title": "Cheltuieli",
-			"viewDetails": "Vezi cheltuielile"
+			"viewDetails": "Vezi cheltuielile",
+			"mixedTitle": "Mai multe valute",
+			"mixedDesc": "Acest grafic este ascuns deoarece tranzacțiile selectate folosesc mai multe valute. Totalurile sunt afișate pe valută mai sus."
 		},
 		"empty": {
 			"costs": "Adaugă cheltuieli pentru a vedea ce ai cheltuit.",
