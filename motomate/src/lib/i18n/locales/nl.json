@@ -516,11 +516,20 @@
 				"imageTooLarge": "Afbeelding te groot (max. 2 MB)",
 				"invalidImageFormat": "Ongeldig afbeeldingsformaat. Ondersteund: JPEG, PNG, WebP, GIF",
 				"invalidFileExt": "Ongeldige bestandsextensie. Ondersteund: .jpg, .jpeg, .png, .webp, .gif",
-				"uploadFailed": "Upload mislukt: opslagfout"
+				"uploadFailed": "Upload mislukt: opslagfout",
+				"chooseDistanceUnit": "Kies kilometers of mijlen.",
+				"notDistanceConvertible": "Dit voertuig kan niet naar een afstandseenheid worden omgerekend."
 			},
 			"measurementUnit": {
 				"title": "Meeteenheid",
-				"locked": "Eenheid kan je niet meer aanpassen na het aanmaken van je voertuig."
+				"locked": "Eenheid kan je niet meer aanpassen na het aanmaken van je voertuig.",
+				"eyebrow": "Huidige stand",
+				"summary": "Reken alle opgeslagen afstanden en onderhoudsintervallen samen om.",
+				"review": "Omrekening controleren",
+				"converted": "Afstandswaarden omgerekend",
+				"dialogTitle": "{from} omrekenen naar {to}?",
+				"dialogDescription": "Je huidige stand wordt {value} {unit}. Kilometerstandgeschiedenis, servicebeurten, onderhoudsintervallen en afstandsherinneringen blijven op elkaar afgestemd.",
+				"confirm": "Afstanden omrekenen"
 			},
 			"usageUpdated": "Draaiuren bijgewerkt"
 		},

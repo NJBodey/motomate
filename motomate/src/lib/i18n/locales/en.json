@@ -386,7 +386,14 @@
 			},
 			"measurementUnit": {
 				"title": "Measurement unit",
-				"locked": "Unit can no longer be changed after creating your vehicle."
+				"locked": "Unit can no longer be changed after creating your vehicle.",
+				"eyebrow": "Current reading",
+				"summary": "Convert every saved distance and maintenance interval together.",
+				"review": "Review conversion",
+				"converted": "Distance values converted",
+				"dialogTitle": "Convert {from} to {to}?",
+				"dialogDescription": "Your current reading will become {value} {unit}. Odometer history, service records, maintenance intervals, and distance-based reminders will remain aligned.",
+				"confirm": "Convert distances"
 			},
 			"vehicleDetails": "Vehicle details",
 			"fields": {
@@ -489,7 +496,9 @@
 				"imageTooLarge": "Image too large (max 2 MB)",
 				"invalidImageFormat": "Invalid image format. Supported: JPEG, PNG, WebP, GIF",
 				"invalidFileExt": "Invalid file extension. Supported: .jpg, .jpeg, .png, .webp, .gif",
-				"uploadFailed": "Upload failed: storage error"
+				"uploadFailed": "Upload failed: storage error",
+				"chooseDistanceUnit": "Choose kilometres or miles.",
+				"notDistanceConvertible": "This vehicle cannot be converted to a distance unit."
 			}
 		},
 		"layout": {

@@ -516,11 +516,20 @@
 				"imageTooLarge": "Imagen demasiado grande (máx. 2 MB)",
 				"invalidImageFormat": "Formato de imagen no válido. Compatible: JPEG, PNG, WebP, GIF",
 				"invalidFileExt": "Extensión de archivo no válida. Compatible: .jpg, .jpeg, .png, .webp, .gif",
-				"uploadFailed": "Error al subir: error de almacenamiento"
+				"uploadFailed": "Error al subir: error de almacenamiento",
+				"chooseDistanceUnit": "Elige kilómetros o millas.",
+				"notDistanceConvertible": "Este vehículo no se puede convertir a una unidad de distancia."
 			},
 			"measurementUnit": {
 				"title": "Unidad de medida",
-				"locked": "Bloqueada tras la creación"
+				"locked": "Bloqueada tras la creación",
+				"eyebrow": "Lectura actual",
+				"summary": "Convierte juntas todas las distancias guardadas y los intervalos de mantenimiento.",
+				"review": "Revisar conversión",
+				"converted": "Valores de distancia convertidos",
+				"dialogTitle": "¿Convertir {from} a {to}?",
+				"dialogDescription": "Tu lectura actual pasará a ser {value} {unit}. El historial del odómetro, los registros de servicio, los intervalos de mantenimiento y los recordatorios por distancia se mantendrán alineados.",
+				"confirm": "Convertir distancias"
 			},
 			"usageUpdated": "Uso actualizado"
 		},

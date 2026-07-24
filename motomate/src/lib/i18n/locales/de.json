@@ -516,11 +516,20 @@
 				"imageTooLarge": "Bild zu groß (max. 2 MB)",
 				"invalidImageFormat": "Ungültiges Bildformat. Unterstützt: JPEG, PNG, WebP, GIF",
 				"invalidFileExt": "Ungültige Dateiendung. Unterstützt: .jpg, .jpeg, .png, .webp, .gif",
-				"uploadFailed": "Upload fehlgeschlagen: Speicherfehler"
+				"uploadFailed": "Upload fehlgeschlagen: Speicherfehler",
+				"chooseDistanceUnit": "Wähle Kilometer oder Meilen.",
+				"notDistanceConvertible": "Dieses Fahrzeug kann nicht in eine Distanzeinheit umgerechnet werden."
 			},
 			"measurementUnit": {
 				"title": "Messeinheit",
-				"locked": "Nach Erstellung gesperrt"
+				"locked": "Nach Erstellung gesperrt",
+				"eyebrow": "Aktueller Stand",
+				"summary": "Alle gespeicherten Distanzen und Wartungsintervalle gemeinsam umrechnen.",
+				"review": "Umrechnung prüfen",
+				"converted": "Distanzwerte umgerechnet",
+				"dialogTitle": "{from} in {to} umrechnen?",
+				"dialogDescription": "Dein aktueller Stand wird zu {value} {unit}. Kilometerstand-Verlauf, Serviceeinträge, Wartungsintervalle und distanzbasierte Erinnerungen bleiben abgestimmt.",
+				"confirm": "Distanzen umrechnen"
 			},
 			"usageUpdated": "Verbrauch aktualisiert"
 		},

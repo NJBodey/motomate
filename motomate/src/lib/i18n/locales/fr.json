@@ -516,11 +516,20 @@
 				"imageTooLarge": "Image trop grande (max 2 Mo)",
 				"invalidImageFormat": "Format d'image invalide. Pris en charge : JPEG, PNG, WebP, GIF",
 				"invalidFileExt": "Extension de fichier invalide. Prise en charge : .jpg, .jpeg, .png, .webp, .gif",
-				"uploadFailed": "Échec du téléchargement : erreur de stockage"
+				"uploadFailed": "Échec du téléchargement : erreur de stockage",
+				"chooseDistanceUnit": "Choisissez les kilomètres ou les miles.",
+				"notDistanceConvertible": "Ce véhicule ne peut pas être converti en unité de distance."
 			},
 			"measurementUnit": {
 				"title": "Unité de mesure",
-				"locked": "Verrouillée après création"
+				"locked": "Verrouillée après création",
+				"eyebrow": "Relevé actuel",
+				"summary": "Convertir ensemble toutes les distances enregistrées et les intervalles d'entretien.",
+				"review": "Vérifier la conversion",
+				"converted": "Valeurs de distance converties",
+				"dialogTitle": "Convertir {from} en {to} ?",
+				"dialogDescription": "Votre relevé actuel deviendra {value} {unit}. L'historique du compteur, les entretiens, les intervalles d'entretien et les rappels basés sur la distance resteront cohérents.",
+				"confirm": "Convertir les distances"
 			},
 			"usageUpdated": "Usage mis à jour"
 		},
