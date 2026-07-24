@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- You can now convert an existing vehicle between kilometers and miles (not compatible with hours, ofcourse)
+- Your account currency and distance preferences are now applied consistently across, while each entry keeps the currency it was originally recorded in
+- Spending totals now group by currency when a vehicle has entries in more than one currency, instead of adding different currencies into a single incorrect total
+- Fix: new vehicles now default to your account distance unit
+- Fix: the theme selector no longer resets to 'system' after saving your profile
+- Fix: the measurement unit toggle in profile settings now switches on click and saves correctly
+- Fix: the maintenance page heading now matches the size used on the other vehicle pages
+
 ## 0.4.0
 
 - Added an 'Insights' view showing how far you've ridden and what you've spent. You can filter by vehicle and time range, toggle between monthly and cumulative costs, and see service events directly on your mileage chart
