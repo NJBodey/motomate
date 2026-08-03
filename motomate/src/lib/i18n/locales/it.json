@@ -1285,8 +1285,7 @@
 			"modMonthly": "Mensile",
 			"modCumulative": "Cumulativo",
 			"viewDetails": "Vedi le spese",
-			"mixedTitle": "Più valute",
-			"mixedDesc": "Questo grafico è nascosto perché le transazioni selezionate usano più di una valuta. I totali sono mostrati per valuta sopra."
+			"currencyNote": "Il grafico mostra solo {currency}. Non incluso: {excluded}."
 		},
 		"empty": {
 			"title": "Nessun dato ancora",

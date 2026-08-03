@@ -1284,8 +1284,7 @@
 			"modMonthly": "Monatlich",
 			"modCumulative": "Kumuliert",
 			"viewDetails": "Ausgaben anzeigen",
-			"mixedTitle": "Mehrere Währungen",
-			"mixedDesc": "Dieses Diagramm ist ausgeblendet, weil die ausgewählten Transaktionen mehrere Währungen verwenden. Die Summen werden oben je Währung angezeigt."
+			"currencyNote": "Diagramm zeigt nur {currency}. Nicht enthalten: {excluded}."
 		},
 		"empty": {
 			"title": "Noch keine Daten",
