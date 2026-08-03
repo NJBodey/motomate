@@ -12,20 +12,10 @@ import {
 import { getServiceLogsByVehicle } from '$lib/db/repositories/service-logs.js';
 import { getTravelsByVehicle } from '$lib/db/repositories/travels.js';
 import { getStorage } from '$lib/storage/index.js';
-import { generateId } from '$lib/utils/id.js';
+import { attachmentStorageKey } from '$lib/utils/storage.js';
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 const PER_PAGE = 10;
-
-function storageKey(userId: string, filename: string): string {
-	const ext =
-		filename
-			.split('.')
-			.pop()
-			?.replace(/[^a-zA-Z0-9]/g, '') ?? 'bin';
-	const id = generateId();
-	return `files/${userId}/${id}.${ext}`;
-}
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const { vehicle } = await parent();
@@ -90,7 +80,7 @@ export const actions: Actions = {
 		const doc_type = String(formData.get('doc_type') || 'other');
 		const expires_at = String(formData.get('expires_at') || '').trim() || undefined;
 
-		const key = storageKey(user.id, file.name);
+		const key = attachmentStorageKey(user.id, file.name);
 		const buffer = Buffer.from(await file.arrayBuffer());
 
 		try {

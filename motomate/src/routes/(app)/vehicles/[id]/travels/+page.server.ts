@@ -15,17 +15,7 @@ import {
 	getRouteDocumentsByVehicle
 } from '$lib/db/repositories/documents.js';
 import { getStorage } from '$lib/storage/index.js';
-import { generateId } from '$lib/utils/id.js';
-
-function storageKey(userId: string, filename: string): string {
-	const ext =
-		filename
-			.split('.')
-			.pop()
-			?.replace(/[^a-zA-Z0-9]/g, '') ?? 'bin';
-	const id = generateId();
-	return `files/${userId}/${id}.${ext}`;
-}
+import { attachmentStorageKey } from '$lib/utils/storage.js';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const { vehicle } = await parent();
@@ -112,7 +102,7 @@ export const actions: Actions = {
 				return fail(400, { createError: `GPX file for day ${i + 1} exceeds 20 MB` });
 
 			const buffer = Buffer.from(await file.arrayBuffer());
-			const key = storageKey(userId, `day-${i + 1}.gpx`);
+			const key = attachmentStorageKey(userId, `day-${i + 1}.gpx`);
 			await storage.put(key, buffer, 'application/gpx+xml');
 
 			const doc = await createDocument(userId, {
@@ -218,7 +208,7 @@ export const actions: Actions = {
 				return fail(400, { editError: `GPX file for day ${i + 1} exceeds 20 MB` });
 
 			const buffer = Buffer.from(await file.arrayBuffer());
-			const key = storageKey(userId, `day-${i + 1}.gpx`);
+			const key = attachmentStorageKey(userId, `day-${i + 1}.gpx`);
 			await storage.put(key, buffer, 'application/gpx+xml');
 
 			const doc = await createDocument(userId, {

@@ -7,7 +7,7 @@ export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10 MB
 const VALID_DOC_TYPES = ['service', 'quotation', 'papers', 'photo', 'notes', 'other'] as const;
 type ValidDocType = (typeof VALID_DOC_TYPES)[number];
 
-export function validateDocType(raw: string): ValidDocType {
+function validateDocType(raw: string): ValidDocType {
 	return VALID_DOC_TYPES.includes(raw as ValidDocType) ? (raw as ValidDocType) : 'other';
 }
 

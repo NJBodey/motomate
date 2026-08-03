@@ -13,4 +13,3 @@ export function getStorage(): StorageAdapter {
 }
 
 export type { StorageAdapter };
-export { storageKey } from './adapter.js';

@@ -25,13 +25,3 @@ export interface StorageAdapter {
 	 */
 	presignedUrl(key: string, expiresInSeconds: number): Promise<string>;
 }
-
-export function storageKey(prefix: string, id: string, filename: string): string {
-	// Sanitize filename: remove path traversal, keep extension
-	const ext =
-		filename
-			.split('.')
-			.pop()
-			?.replace(/[^a-zA-Z0-9]/g, '') ?? 'bin';
-	return `${prefix}/${id}.${ext}`;
-}

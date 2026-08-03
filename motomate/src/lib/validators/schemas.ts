@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { DEFAULT_ODOMETER_UNIT, DISTANCE_UNITS, MEASUREMENT_UNITS } from '../utils/measurement.js';
 
-export const MeasurementUnitSchema = z.enum(MEASUREMENT_UNITS);
+const MeasurementUnitSchema = z.enum(MEASUREMENT_UNITS);
 const DistanceUnitSchema = z.enum(DISTANCE_UNITS);
 
 // Coercion helpers
@@ -155,7 +155,7 @@ export const MagicLinkRequestSchema = z.object({
 	email: z.string().email().toLowerCase().trim()
 });
 
-export const VehicleMetaSchema = z.object({
+const VehicleMetaSchema = z.object({
 	color: optStr(50),
 	notes: optStr(2000),
 	insurance_expires: z
@@ -262,7 +262,7 @@ export const RuleTriggerSchema = z.discriminatedUnion('type', [
 	z.object({ type: z.literal('document_expiring'), days_before: z.number().int().positive() })
 ]);
 
-export const RuleNotificationSchema = z.object({
+const RuleNotificationSchema = z.object({
 	title: z.string().min(1).max(200),
 	body: z.string().min(1).max(1000)
 });

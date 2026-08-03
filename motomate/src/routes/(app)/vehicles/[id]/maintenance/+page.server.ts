@@ -11,11 +11,7 @@ import {
 } from '$lib/db/repositories/maintenance.js';
 import { isReminderTracker } from '$lib/utils/reminder-only.js';
 import { getVehicleById, recomputeCurrentOdometer } from '$lib/db/repositories/vehicles.js';
-import {
-	createServiceLog,
-	getServiceLogsByVehicle,
-	updateServiceLog
-} from '$lib/db/repositories/service-logs.js';
+import { createServiceLog, getServiceLogsByVehicle } from '$lib/db/repositories/service-logs.js';
 import { getOdometerLogs } from '$lib/db/repositories/vehicles.js';
 import { getDocumentsByVehicle } from '$lib/db/repositories/documents.js';
 import { CreateServiceLogSchema } from '$lib/validators/schemas.js';

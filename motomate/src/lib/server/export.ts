@@ -9,7 +9,7 @@ import { getWorkflowRulesByUser } from '$lib/db/repositories/workflow.js';
 import { getNotifications } from '$lib/workflow/channels/inapp.js';
 import { getStorage } from '$lib/storage/index.js';
 
-export async function buildExportData(userId: string) {
+async function buildExportData(userId: string) {
 	const [vehicles, templates, workflowRules, notifications] = await Promise.all([
 		getVehiclesByUser(userId, true),
 		getTemplatesByUser(userId),
