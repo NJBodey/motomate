@@ -1010,7 +1010,8 @@
 															performed_at: tx.performed_at,
 															odometer_at_transaction:
 																tx.measurement_at_transaction ?? tx.odometer_at_transaction,
-															notes: tx.notes
+															notes: tx.notes,
+															attachments: tx.attachments ?? []
 														}
 													});
 												}}>{$_('common.edit')}</button
