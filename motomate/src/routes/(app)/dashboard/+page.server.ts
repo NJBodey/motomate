@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { getVehiclesByUser } from '$lib/db/repositories/vehicles.js';
 import { recomputeTrackerStatuses } from '$lib/db/repositories/maintenance.js';
 import { getRecentLogsAcrossVehicles } from '$lib/db/repositories/service-logs.js';
-import { getFinanceTransactionsByVehicle } from '$lib/db/repositories/finance-transactions.js';
+import { getVehicleExpenses } from '$lib/db/repositories/finance-transactions.js';
 import { getUnreadCount } from '$lib/workflow/channels/inapp.js';
 import { totalByCurrency } from '$lib/utils/money.js';
 
@@ -24,10 +24,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 		getUnreadCount(user.id),
 		Promise.all(
 			vehicles.map(async (v) => {
-				const txns = await getFinanceTransactionsByVehicle(v.id, user.id);
-				const yearTxns = txns.filter((t) => t.performed_at >= yearStart);
+				const expenses = await getVehicleExpenses(v.id, user.id);
+				const yearExpenses = expenses.filter((e) => e.performed_at >= yearStart);
 				const total = totalByCurrency(
-					yearTxns.map((t) => ({ amountCents: t.amount_cents, currency: t.currency })),
+					yearExpenses.map((e) => ({ amountCents: e.amount_cents, currency: e.currency })),
 					user.settings?.currency ?? 'EUR'
 				);
 				return { vehicleId: v.id, total };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { totalByCurrency } from '$lib/utils/money.js';
+import { primaryCurrency, totalByCurrency } from '$lib/utils/money.js';
 
 describe('totalByCurrency', () => {
 	it('collapses an empty set to zero in the fallback currency', () => {
@@ -35,5 +35,26 @@ describe('totalByCurrency', () => {
 			cents: 100,
 			currency: 'CHF'
 		});
+	});
+});
+
+describe('primaryCurrency', () => {
+	const mixed = totalByCurrency([
+		{ amountCents: 500, currency: 'USD' },
+		{ amountCents: 1000, currency: 'EUR' }
+	]);
+
+	it('returns the only currency of a single-currency total', () => {
+		expect(primaryCurrency(totalByCurrency([{ amountCents: 100, currency: 'GBP' }]), 'EUR')).toBe(
+			'GBP'
+		);
+	});
+
+	it('prefers the account currency when it is one of the subtotals', () => {
+		expect(primaryCurrency(mixed, 'USD')).toBe('USD');
+	});
+
+	it('falls back to the largest subtotal when the account currency is absent', () => {
+		expect(primaryCurrency(mixed, 'CHF')).toBe('EUR');
 	});
 });

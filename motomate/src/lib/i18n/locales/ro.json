@@ -1265,8 +1265,7 @@
 			"modMonthly": "Lunar",
 			"title": "Cheltuieli",
 			"viewDetails": "Vezi cheltuielile",
-			"mixedTitle": "Mai multe valute",
-			"mixedDesc": "Acest grafic este ascuns deoarece tranzacțiile selectate folosesc mai multe valute. Totalurile sunt afișate pe valută mai sus."
+			"currencyNote": "Graficul afișează doar {currency}. Neinclus: {excluded}."
 		},
 		"empty": {
 			"costs": "Adaugă cheltuieli pentru a vedea ce ai cheltuit.",

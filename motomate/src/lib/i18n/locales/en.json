@@ -1285,8 +1285,7 @@
 			"modMonthly": "Monthly",
 			"modCumulative": "Cumulative",
 			"viewDetails": "View spending",
-			"mixedTitle": "Multiple currencies",
-			"mixedDesc": "This chart is hidden because the selected transactions use more than one currency. Totals are shown per currency above."
+			"currencyNote": "Chart shows {currency} only. Not included: {excluded}."
 		},
 		"empty": {
 			"title": "No data yet",

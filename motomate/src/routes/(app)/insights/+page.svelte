@@ -4,7 +4,7 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { formatCurrency, formatMoneyTotal, formatNumber } from '$lib/utils/format.js';
-	import { totalByCurrency } from '$lib/utils/money.js';
+	import { primaryCurrency, totalByCurrency } from '$lib/utils/money.js';
 	import { _ } from '$lib/i18n';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import BarChart from '$lib/components/charts/BarChart.svelte';
@@ -55,7 +55,7 @@
 	);
 
 	const filteredFinance = $derived(
-		data.financeTransactions
+		data.expenses
 			.filter((t) => selectedVehicleId === 'all' || t.vehicle_id === selectedVehicleId)
 			.filter((t) => !cutoffDate || t.performed_at >= cutoffDate)
 			.sort((a, b) => a.performed_at.localeCompare(b.performed_at))
@@ -89,10 +89,28 @@
 		return result;
 	});
 
+	const totalCostMoney = $derived(
+		totalByCurrency(
+			filteredFinance.map((t) => ({ amountCents: t.amount_cents, currency: t.currency })),
+			currency
+		)
+	);
+
+	// Charts plot a single currency; prefer the profile currency, else the largest subtotal
+	const costCurrency = $derived(primaryCurrency(totalCostMoney, currency));
+
+	const excludedTotals = $derived(
+		totalCostMoney.mixed ? totalCostMoney.subtotals.filter((s) => s.currency !== costCurrency) : []
+	);
+
+	const chartEntries = $derived(
+		filteredFinance.filter((t) => (t.currency || currency) === costCurrency)
+	);
+
 	const costPoints = $derived.by(() => {
-		if (filteredFinance.length === 0) return [];
+		if (chartEntries.length === 0) return [];
 		const byMonth = new Map<string, number>();
-		for (const t of filteredFinance) {
+		for (const t of chartEntries) {
 			const ym = t.performed_at.slice(0, 7);
 			byMonth.set(ym, (byMonth.get(ym) ?? 0) + t.amount_cents);
 		}
@@ -115,14 +133,6 @@
 	});
 
 	const totalCost = $derived(filteredFinance.reduce((s, t) => s + t.amount_cents, 0));
-	const totalCostMoney = $derived(
-		totalByCurrency(
-			filteredFinance.map((t) => ({ amountCents: t.amount_cents, currency: t.currency })),
-			currency
-		)
-	);
-	const costMixed = $derived(totalCostMoney.mixed);
-	const costCurrency = $derived(totalCostMoney.mixed ? currency : totalCostMoney.currency);
 
 	const serviceEventMarkers = $derived.by(() => {
 		if (!showServiceEvents) return [];
@@ -151,7 +161,7 @@
 			goto('/vehicles/' + selectedVehicleId + '/finance');
 			return;
 		}
-		const txInMonth = data.financeTransactions.filter((t) => t.performed_at.startsWith(label));
+		const txInMonth = chartEntries.filter((t) => t.performed_at.startsWith(label));
 		if (txInMonth.length > 0) selectedVehicleId = txInMonth[0].vehicle_id;
 	}
 
@@ -308,26 +318,31 @@
 					<span class="chart-stat mono">{formatMoneyTotal(totalCostMoney, locale)}</span>
 				{/if}
 			</div>
-			{#if !costMixed}
-				<ViewToggle
-					options={[
-						{ value: 'monthly', label: $_('insights.costs.modMonthly') },
-						{ value: 'cumulative', label: $_('insights.costs.modCumulative') }
-					]}
-					value={costMode}
-					onchange={(v) => (costMode = v as typeof costMode)}
-				/>
-			{/if}
+			<ViewToggle
+				options={[
+					{ value: 'monthly', label: $_('insights.costs.modMonthly') },
+					{ value: 'cumulative', label: $_('insights.costs.modCumulative') }
+				]}
+				value={costMode}
+				onchange={(v) => (costMode = v as typeof costMode)}
+			/>
 		</div>
+		{#if excludedTotals.length > 0}
+			<p class="chart-note">
+				{$_('insights.costs.currencyNote', {
+					values: {
+						currency: costCurrency,
+						excluded: excludedTotals
+							.map((s) => formatCurrency(s.cents, s.currency, locale))
+							.join(' · ')
+					}
+				})}
+			</p>
+		{/if}
 		{#if costPoints.length === 0}
 			<div class="chart-empty">
 				<p class="chart-empty-title">{$_('insights.empty.title')}</p>
 				<p class="chart-empty-desc">{$_('insights.empty.costs')}</p>
-			</div>
-		{:else if costMixed}
-			<div class="chart-empty">
-				<p class="chart-empty-title">{$_('insights.costs.mixedTitle')}</p>
-				<p class="chart-empty-desc">{$_('insights.costs.mixedDesc')}</p>
 			</div>
 		{:else if costMode === 'monthly'}
 			<div class="chart-wrap">

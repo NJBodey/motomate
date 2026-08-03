@@ -1284,8 +1284,7 @@
 			"modMonthly": "Maandelijks",
 			"modCumulative": "Cumulatief",
 			"viewDetails": "Uitgaven bekijken",
-			"mixedTitle": "Meerdere valuta's",
-			"mixedDesc": "Deze grafiek is verborgen omdat de geselecteerde transacties meerdere valuta's gebruiken. De totalen staan hierboven per valuta."
+			"currencyNote": "Grafiek toont alleen {currency}. Niet meegerekend: {excluded}."
 		},
 		"empty": {
 			"title": "Nog geen gegevens",

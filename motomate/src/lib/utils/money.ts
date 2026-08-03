@@ -31,3 +31,11 @@ export function totalByCurrency(items: CurrencyAmount[], fallbackCurrency = 'EUR
 		.sort((a, b) => Math.abs(b.cents) - Math.abs(a.cents));
 	return { mixed: true, subtotals };
 }
+
+/* Pick the one currency a single-scale view (chart, average) should render: the preferred account currency when it is present, otherwise the largest subtotal. */
+export function primaryCurrency(total: MoneyTotal, preferred: string): string {
+	if (!total.mixed) return total.currency;
+	return total.subtotals.some((s) => s.currency === preferred)
+		? preferred
+		: total.subtotals[0].currency;
+}

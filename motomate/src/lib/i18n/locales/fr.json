@@ -1284,8 +1284,7 @@
 			"modMonthly": "Mensuel",
 			"modCumulative": "Cumulatif",
 			"viewDetails": "Voir les dépenses",
-			"mixedTitle": "Plusieurs devises",
-			"mixedDesc": "Ce graphique est masqué car les transactions sélectionnées utilisent plusieurs devises. Les totaux sont affichés par devise ci-dessus."
+			"currencyNote": "Le graphique affiche uniquement {currency}. Non inclus : {excluded}."
 		},
 		"empty": {
 			"title": "Pas encore de données",
