@@ -26,16 +26,14 @@ beforeAll(async () => {
 		{ id: OWNER, email: 'owner@example.com' },
 		{ id: STRANGER, email: 'stranger@example.com' }
 	]);
-	await db
-		.insert(vehicles)
-		.values({
-			id: VEHICLE,
-			user_id: OWNER,
-			name: 'Vespa',
-			make: 'Piaggio',
-			model: 'GTS',
-			year: 2020
-		});
+	await db.insert(vehicles).values({
+		id: VEHICLE,
+		user_id: OWNER,
+		name: 'Vespa',
+		make: 'Piaggio',
+		model: 'GTS',
+		year: 2020
+	});
 
 	await db.insert(finance_transactions).values({
 		id: 'ft_1',
