@@ -9,6 +9,9 @@
 - Fix: the theme selector no longer resets to 'system' after saving your profile
 - Fix: the measurement unit toggle in profile settings now switches on click and saves correctly
 - Fix: the maintenance page heading now matches the size used on the other vehicle pages
+- Fix: show finance tally on the dashboard for all financial entries (instead of only finance entries made from finance-tab)
+- Fix: reuse drawer on various pages
+
 
 ## 0.4.0
 
