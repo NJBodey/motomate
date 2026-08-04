@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import { _, waitLocale } from '$lib/i18n';
-	import { formatDateShort } from '$lib/utils/format';
+	import { formatDateTime } from '$lib/utils/format';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
 	import type { ActionData, PageData } from './$types';
 
@@ -33,7 +33,9 @@
 	const locale = $derived(data.user?.settings?.locale ?? 'en');
 
 	function lastSync(value: string | null): string {
-		return value ? formatDateShort(value.slice(0, 10), locale) : $_('settings.integrations.never');
+		return value
+			? formatDateTime(value, locale, data.user?.timezone)
+			: $_('settings.integrations.never');
 	}
 
 	function announce(result: { type: string; data?: Record<string, unknown> }) {
