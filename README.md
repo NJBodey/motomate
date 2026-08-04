@@ -67,6 +67,7 @@ Made possible thanks to the following people:
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/hawkinslabdev"><img src="https://avatars.githubusercontent.com/u/59891413?v=4?s=100" width="100px;" alt="Dan"/><br /><sub><b>Dan</b></sub></a><br /><a href="https://github.com/hawkinslabdev/motomate/commits?author=hawkinslabdev" title="Code">💻</a> <a href="#ideas-hawkinslabdev" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.varrieur.dev/"><img src="https://avatars.githubusercontent.com/u/1863155?v=4?s=100" width="100px;" alt="Michael Varrieur"/><br /><sub><b>Michael Varrieur</b></sub></a><br /><a href="https://github.com/hawkinslabdev/motomate/commits?author=mvarrieur" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gg64nou"><img src="https://avatars.githubusercontent.com/u/3111206?v=4?s=100" width="100px;" alt="Ovidiu"/><br /><sub><b>Ovidiu</b></sub></a><br /><a href="#translation-gg64nou" title="Translation">🌍</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://ovidiu.nl"><img src="https://avatars.githubusercontent.com/u/63847?v=4?s=100" width="100px;" alt="Ovidiu Curcan"/><br /><sub><b>Ovidiu Curcan</b></sub></a><br /><a href="https://github.com/hawkinslabdev/motomate/commits?author=Ovidiu" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
