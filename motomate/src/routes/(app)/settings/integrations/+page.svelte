@@ -49,6 +49,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{$_('settings.integrations.title')} · {$_('layout.nav.settings')}</title>
+</svelte:head>
+
 <div class="intro">
 	<h2 class="section-title">{$_('settings.integrations.title')}</h2>
 	<p class="section-desc">{$_('settings.integrations.description')}</p>

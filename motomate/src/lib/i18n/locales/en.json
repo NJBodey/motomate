@@ -980,7 +980,11 @@
 			"confirmDeleteDesc": "Delete the rule \"{name}\"? This cannot be undone.",
 			"runCheck": "Run check now",
 			"runCheckDone": "Check complete",
-			"subtitle": "Automated rules for maintenance and reminders."
+			"subtitle": "Automated rules for maintenance and reminders.",
+			"actions": {
+				"title": "Rule actions",
+				"description": "Run the scheduled check now, or restore the default rules."
+			}
 		},
 		"notifications": {
 			"title": "Notifications",

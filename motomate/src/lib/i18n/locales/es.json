@@ -967,7 +967,11 @@
 			"confirmDeleteDesc": "¿Eliminar la regla \"{name}\"? Esta acción no se puede deshacer.",
 			"runCheck": "Verificar ahora",
 			"runCheckDone": "Verificación completada",
-			"subtitle": "Reglas automatizadas para mantenimiento y recordatorios."
+			"subtitle": "Reglas automatizadas para mantenimiento y recordatorios.",
+			"actions": {
+				"title": "Acciones de reglas",
+				"description": "Ejecuta la comprobación programada ahora o restaura las reglas predeterminadas."
+			}
 		},
 		"notifications": {
 			"title": "Notificaciones",

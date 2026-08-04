@@ -968,7 +968,11 @@
 			"confirmDeleteDesc": "Eliminare la regola \"{name}\"? Questa azione non può essere annullata.",
 			"runCheck": "Controlla ora",
 			"runCheckDone": "Controllo completato",
-			"subtitle": "Regole automatizzate per manutenzione e promemoria."
+			"subtitle": "Regole automatizzate per manutenzione e promemoria.",
+			"actions": {
+				"title": "Azioni sulle regole",
+				"description": "Esegui subito il controllo pianificato oppure ripristina le regole predefinite."
+			}
 		},
 		"notifications": {
 			"title": "Notifiche",

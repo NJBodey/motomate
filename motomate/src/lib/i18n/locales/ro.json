@@ -980,7 +980,11 @@
 			"confirmDeleteDesc": "Ștergi regula „{name}”? Această acțiune nu poate fi anulată.",
 			"runCheck": "Rulează verificarea acum",
 			"runCheckDone": "Verificare finalizată",
-			"subtitle": "Reguli automatizate pentru întreținere și mementouri."
+			"subtitle": "Reguli automatizate pentru întreținere și mementouri.",
+			"actions": {
+				"title": "Acțiuni pentru reguli",
+				"description": "Rulează verificarea programată acum sau restaurează regulile implicite."
+			}
 		},
 		"notifications": {
 			"title": "Notificări",

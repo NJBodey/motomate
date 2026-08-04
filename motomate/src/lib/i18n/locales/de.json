@@ -967,7 +967,11 @@
 			"confirmDeleteDesc": "Regel \"{name}\" löschen? Dies kann nicht rückgängig gemacht werden.",
 			"runCheck": "Jetzt prüfen",
 			"runCheckDone": "Prüfung abgeschlossen",
-			"subtitle": "Automatisierte Regeln für Wartung und Erinnerungen."
+			"subtitle": "Automatisierte Regeln für Wartung und Erinnerungen.",
+			"actions": {
+				"title": "Regel-Aktionen",
+				"description": "Führe die geplante Prüfung jetzt aus oder stelle die Standardregeln wieder her."
+			}
 		},
 		"notifications": {
 			"title": "Benachrichtigungen",

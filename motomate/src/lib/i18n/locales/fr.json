@@ -967,7 +967,11 @@
 			"confirmDeleteDesc": "Supprimer la règle \"{name}\" ? Cette action est irréversible.",
 			"runCheck": "Vérifier maintenant",
 			"runCheckDone": "Vérification terminée",
-			"subtitle": "Règles automatisées pour la maintenance et les rappels."
+			"subtitle": "Règles automatisées pour la maintenance et les rappels.",
+			"actions": {
+				"title": "Actions sur les règles",
+				"description": "Lancez la vérification planifiée maintenant, ou restaurez les règles par défaut."
+			}
 		},
 		"notifications": {
 			"title": "Notifications",

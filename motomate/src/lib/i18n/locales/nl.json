@@ -967,7 +967,11 @@
 			"confirmDeleteDesc": "De regel \"{name}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
 			"runCheck": "Nu controleren",
 			"runCheckDone": "Controle voltooid",
-			"subtitle": "Geautomatiseerde regels voor onderhoud en herinneringen."
+			"subtitle": "Geautomatiseerde regels voor onderhoud en herinneringen.",
+			"actions": {
+				"title": "Regelacties",
+				"description": "Voer de geplande controle nu uit, of herstel de standaardregels."
+			}
 		},
 		"notifications": {
 			"title": "Meldingen",
