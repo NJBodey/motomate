@@ -36,12 +36,15 @@ services:
       - AUTH_COOKIE_SECURE=false
       - AUTH_SECRET=change-me-in-production-min-32-chars
       - AUTH_ALLOW_REGISTRATION=true
-      - STORAGE_ADAPTER=local
       - BODY_SIZE_LIMIT=20971520
     restart: unless-stopped
 ```
 
 After downloading the image and starting the container, the application will be ready in a few seconds once database migrations complete.
+
+## Integrations
+
+MotoMate exposes a complete OpenAPI interface for custom API integrations. It supports configurable notification handlers for alerts and it connects directly with S3-compatible object storage and [Paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) for automated document backups.
 
 ## Donate
 
