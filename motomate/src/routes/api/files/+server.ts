@@ -34,7 +34,7 @@ export const OPTIONS: RequestHandler = async () => {
 	return new Response(null, { status: 204 });
 };
 
-export const GET: RequestHandler = async ({ url, locals }) => {
+export const GET: RequestHandler = async ({ url, locals, request }) => {
 	const key = url.searchParams.get('key');
 	const expires = url.searchParams.get('expires');
 	const sig = url.searchParams.get('sig');
@@ -117,18 +117,35 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 	};
 	const contentType = mimeMap[ext] ?? 'application/octet-stream';
 
+	const filename = isDoc || isDemo ? (docRecord?.name ?? key.split('/').pop() ?? null) : null;
+
+	// files/ keys are unique per upload, avatars/ and demo/ keys are reused so they must revalidate
+	const cacheControl = isDoc ? 'private, max-age=31536000, immutable' : 'private, no-cache';
+
+	// Hashes bytes and download filename, so a change to either invalidates the tag
+	const etag = `"${crypto
+		.createHash('sha256')
+		.update(fileBuffer)
+		.update(filename ?? '')
+		.digest('base64url')}"`;
+
+	if (request.headers.get('if-none-match') === etag) {
+		return new Response(null, {
+			status: 304,
+			headers: { ETag: etag, 'Cache-Control': cacheControl }
+		});
+	}
+
 	const headers: Record<string, string> = {
 		'Content-Type': contentType,
 		'Content-Length': String(fileBuffer.length),
-		'Cache-Control': 'private, max-age=3600'
+		'Cache-Control': cacheControl,
+		ETag: etag
 	};
 
-	if (isDoc || isDemo) {
-		const filename = docRecord?.name ?? key.split('/').pop() ?? null;
-		if (filename) {
-			headers['Content-Disposition'] =
-				`attachment; filename="${filename.replace(/"/g, '\\"')}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
-		}
+	if (filename) {
+		headers['Content-Disposition'] =
+			`attachment; filename="${filename.replace(/"/g, '\\"')}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
 	}
 
 	return new Response(fileBuffer.buffer as ArrayBuffer, { headers });

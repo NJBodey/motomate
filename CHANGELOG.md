@@ -17,6 +17,8 @@
 - Fix: reuse document reads during sync instead of reading off the disk twice
 - Fix: remove the `BODY_SIZE_LIMIT` variable in the default docker compose config, it now defaults to 20 MB
 - Fix: bundle the map stylesheet instead of loading it from a CDN, so travel maps render without internet access
+- Fix: replacing a vehicle photo or profile avatar now shows the new image right away, instead of the old one sticking around for up to an hour
+- Fix: vehicle photos and documents are no longer re-downloaded on every visit, so pages open quicker and use less data on mobile
 - Security: Verify ownership before deleting an object/file
 - Security: Close registration by default (except during onboarding)
 - Security: Add SSRF protection to fetch calls via shared URL validation
