@@ -838,7 +838,6 @@ actions:
 		font-size: var(--text-xs);
 		color: var(--text-subtle);
 		margin-top: 0.25rem;
-		font-family: var(--font-mono);
 		font-variant-numeric: tabular-nums;
 	}
 
