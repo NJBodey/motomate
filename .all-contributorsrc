@@ -43,6 +43,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "brdweb",
+      "name": "Jason Mitchell",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58915?v=4",
+      "profile": "https://github.com/brdweb",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
