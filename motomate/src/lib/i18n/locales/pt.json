@@ -1153,13 +1153,16 @@
 				"description": "Os ficheiros anteriores a ativacao ainda nao foram copiados. Executa uma vez depois de configurar e de novo se algo falhar.",
 				"button": "Sincronizar tudo",
 				"running": "A sincronizar",
-				"result": "{uploaded} carregados, {skipped} ja presentes, {pushed} enviados para o paperless.",
 				"failed": "{count} item(s) falharam. Corrige a causa e executa outra vez.",
 				"skipped": "{count} documento(s) nao enviado(s) para o paperless.",
 				"reason": {
 					"unsupported": "tipo de ficheiro nao suportado pelo paperless",
 					"report": "relatorio gerado, nao arquivado"
-				}
+				},
+				"resultS3": "{uploaded} carregados, {skipped} ja no bucket.",
+				"resultPaperless": "{pushed} enviados para o paperless, {already} ja arquivados.",
+				"resend": "Enviar tudo de novo",
+				"resendHint": "Usa isto depois de esvaziares o teu arquivo paperless: ignora o que ja foi enviado."
 			},
 			"saved": "Definicoes guardadas",
 			"saveFailed": "Nao foi possivel guardar as definicoes"
@@ -1215,7 +1218,8 @@
 			"title": "Notificações",
 			"empty": "Sem novas notificações",
 			"viewAll": "Ver tudo",
-			"error": "Não foi possível carregar as notificações"
+			"error": "Não foi possível carregar as notificações",
+			"clearAll": "Limpar tudo"
 		}
 	},
 	"notifications": {

@@ -16,6 +16,26 @@ export type NotificationChannels = {
 	home_assistant?: { enabled: boolean; webhook_url?: string };
 };
 
+// Credentials are encrypted at rest (see $lib/server/secrets.js) thus wont' leave the serverrr
+export type Integrations = {
+	s3?: {
+		enabled: boolean;
+		endpoint?: string;
+		region?: string;
+		bucket?: string;
+		access_key?: string;
+		secret_key?: string;
+		last_sync_at?: string | null;
+	};
+	paperless?: {
+		enabled: boolean;
+		url?: string;
+		token?: string;
+		include_reports?: boolean;
+		last_sync_at?: string | null;
+	};
+};
+
 export type PagePrefs = {
 	maintenance?: {
 		sortBy?: 'status' | 'name' | 'last';
@@ -73,6 +93,7 @@ export type UserSettings = {
 	avatar_key?: string | null;
 	avatar_seed?: string | null;
 	page_prefs?: PagePrefs;
+	integrations?: Integrations;
 };
 
 export type VehicleMeta = {

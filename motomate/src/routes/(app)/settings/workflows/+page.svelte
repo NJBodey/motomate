@@ -3,6 +3,7 @@
 	import type { PageData } from './$types';
 	import type { RuleTrigger } from '$lib/db/schema.js';
 	import type { NextFireInfo } from '$lib/workflow/preview-core.js';
+	import { lastFiredAt } from '$lib/workflow/engine-utils.js';
 	import { _, waitLocale } from '$lib/i18n';
 	import { formatDateTime, formatDateLong } from '$lib/utils/format';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
@@ -150,6 +151,7 @@
 {:else}
 	<div class="rule-list">
 		{#each data.rules as rule}
+			{@const firedAt = lastFiredAt(rule.last_triggered_at)}
 			<div class="rule-row">
 				<!-- Toggle -->
 				<form
@@ -199,11 +201,11 @@
 						}}
 					>
 						<span class="rule-last-fired">
-							{#if rule.last_triggered_at}
+							{#if firedAt}
 								{$_('settings.workflows.lastFired', {
 									values: {
 										date: formatDateTime(
-											rule.last_triggered_at,
+											firedAt,
 											data.user?.settings?.locale ?? 'en',
 											data.user?.timezone
 										)

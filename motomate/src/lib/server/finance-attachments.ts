@@ -1,5 +1,6 @@
 import { createDocument } from '$lib/db/repositories/documents.js';
 import { getStorage } from '$lib/storage/index.js';
+import { onDocumentCreated } from './integrations.js';
 import { attachmentStorageKey } from '$lib/utils/storage.js';
 
 export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -13,9 +14,7 @@ function validateDocType(raw: string): ValidDocType {
 
 export type AttachmentResult = { ids: string[] } | { error: string; status: number };
 
-/* Resolve the attachment list a transaction form submits: an optional uploaded file becomes a
-   document, followed by the document IDs the form kept or linked. The result is the full list, so
-   callers replace rather than append when editing. */
+// Resolves the full attachment list a transaction form submits;; callers replace rather than append when editing
 export async function collectAttachmentIds(
 	formData: FormData,
 	userId: string,
@@ -46,6 +45,7 @@ export async function collectAttachmentIds(
 			mime_type: file.type || 'application/octet-stream',
 			size_bytes: file.size
 		});
+		onDocumentCreated(userId, doc);
 		ids.push(doc.id);
 	}
 

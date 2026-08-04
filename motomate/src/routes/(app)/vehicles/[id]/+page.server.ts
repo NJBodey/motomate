@@ -21,6 +21,7 @@ import {
 import { isReminderTracker } from '$lib/utils/reminder-only.js';
 import { getDocumentsByVehicle, createDocument } from '$lib/db/repositories/documents.js';
 import { getStorage } from '$lib/storage/index.js';
+import { onDocumentCreated } from '$lib/server/integrations.js';
 import { attachmentStorageKey } from '$lib/utils/storage.js';
 import { CreateServiceLogSchema } from '$lib/validators/schemas.js';
 import { runWorkflowChecks } from '$lib/workflow/engine.js';
@@ -120,6 +121,7 @@ export const actions: Actions = {
 				mime_type: attachmentFile.type || 'application/octet-stream',
 				size_bytes: attachmentFile.size
 			});
+			onDocumentCreated(locals.user!.id, doc);
 			attachmentDocIds.push(doc.id);
 		}
 

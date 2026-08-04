@@ -1152,13 +1152,16 @@
 				"description": "Dateien von vor der Aktivierung wurden noch nicht kopiert. Fuehre das einmal nach der Einrichtung aus und erneut, wenn etwas fehlgeschlagen ist.",
 				"button": "Alles synchronisieren",
 				"running": "Laeuft",
-				"result": "{uploaded} hochgeladen, {skipped} bereits vorhanden, {pushed} an paperless gesendet.",
 				"failed": "{count} Eintraege fehlgeschlagen. Behebe die Ursache und starte erneut.",
 				"skipped": "{count} Dokument(e) nicht an paperless gesendet.",
 				"reason": {
 					"unsupported": "Dateityp wird von paperless nicht unterstuetzt",
 					"report": "generierter Bericht, nicht archiviert"
-				}
+				},
+				"resultS3": "{uploaded} hochgeladen, {skipped} bereits im Bucket.",
+				"resultPaperless": "{pushed} an paperless gesendet, {already} bereits archiviert.",
+				"resend": "Alles erneut senden",
+				"resendHint": "Nutze dies nach dem Leeren deines paperless-Archivs: es ignoriert, was bereits gesendet wurde."
 			},
 			"saved": "Einstellungen gespeichert",
 			"saveFailed": "Einstellungen konnten nicht gespeichert werden"
@@ -1214,7 +1217,8 @@
 			"title": "Benachrichtigungen",
 			"empty": "Keine neuen Benachrichtigungen",
 			"viewAll": "Alle anzeigen",
-			"error": "Benachrichtigungen konnten nicht geladen werden"
+			"error": "Benachrichtigungen konnten nicht geladen werden",
+			"clearAll": "Alle loeschen"
 		}
 	},
 	"notifications": {

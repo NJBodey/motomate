@@ -1153,13 +1153,16 @@
 				"description": "Files added before you switched an integration on are not copied yet. Run this once after configuring, and again whenever something failed.",
 				"button": "Sync all",
 				"running": "Syncing",
-				"result": "{uploaded} uploaded, {skipped} already present, {pushed} sent to paperless.",
 				"failed": "{count} item(s) failed. Fix the cause and run it again.",
 				"skipped": "{count} document(s) not sent to paperless.",
 				"reason": {
 					"unsupported": "file type not supported by paperless",
 					"report": "generated report, not archived"
-				}
+				},
+				"resultS3": "{uploaded} uploaded, {skipped} already in the bucket.",
+				"resultPaperless": "{pushed} sent to paperless, {already} already archived.",
+				"resend": "Send everything again",
+				"resendHint": "Use this after clearing your paperless archive: it ignores what was already sent."
 			},
 			"saved": "Settings saved",
 			"saveFailed": "Could not save the settings"
@@ -1204,7 +1207,8 @@
 			"title": "Notifications",
 			"empty": "No new notifications",
 			"viewAll": "View all",
-			"error": "Could not load notifications"
+			"error": "Could not load notifications",
+			"clearAll": "Clear all"
 		}
 	},
 	"units": {

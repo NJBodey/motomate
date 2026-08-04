@@ -12,6 +12,11 @@ vi.mock('$lib/db/index.js', async () => {
 	migrate(db, { migrationsFolder: 'drizzle' });
 	return { db, sqlite };
 });
+vi.mock('$lib/server/integrations.js', () => ({
+	onDocumentCreated: vi.fn(),
+	mirrorPut: vi.fn(),
+	mirrorDelete: vi.fn()
+}));
 vi.mock('$lib/storage/index.js', () => ({ getStorage: vi.fn() }));
 vi.mock('$lib/workflow/engine.js', () => ({
 	runWorkflowChecks: vi.fn().mockResolvedValue(undefined)

@@ -1153,13 +1153,16 @@
 				"description": "Fisierele de dinainte de activare nu sunt inca copiate. Ruleaza o data dupa configurare si din nou daca ceva esueaza.",
 				"button": "Sincronizeaza tot",
 				"running": "Se sincronizeaza",
-				"result": "{uploaded} incarcate, {skipped} deja prezente, {pushed} trimise catre paperless.",
 				"failed": "{count} element(e) au esuat. Rezolva cauza si ruleaza din nou.",
 				"skipped": "{count} document(e) netrimise catre paperless.",
 				"reason": {
 					"unsupported": "tip de fisier neacceptat de paperless",
 					"report": "raport generat, nearhivat"
-				}
+				},
+				"resultS3": "{uploaded} incarcate, {skipped} deja in bucket.",
+				"resultPaperless": "{pushed} trimise catre paperless, {already} deja arhivate.",
+				"resend": "Trimite tot din nou",
+				"resendHint": "Foloseste asta dupa ce ti-ai golit arhiva paperless: ignora ce a fost deja trimis."
 			},
 			"saved": "Setari salvate",
 			"saveFailed": "Setarile nu au putut fi salvate"
@@ -1204,7 +1207,8 @@
 			"title": "Notificări",
 			"empty": "Nicio notificare nouă",
 			"viewAll": "Vezi toate",
-			"error": "Notificările nu au putut fi încărcate"
+			"error": "Notificările nu au putut fi încărcate",
+			"clearAll": "Sterge tot"
 		}
 	},
 	"units": {

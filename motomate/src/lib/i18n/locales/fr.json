@@ -1152,13 +1152,16 @@
 				"description": "Les fichiers anterieurs a l activation ne sont pas encore copies. Lancez ceci une fois apres la configuration, puis a nouveau en cas d echec.",
 				"button": "Tout synchroniser",
 				"running": "En cours",
-				"result": "{uploaded} televerses, {skipped} deja presents, {pushed} envoyes vers paperless.",
 				"failed": "{count} element(s) en echec. Corrigez la cause et relancez.",
 				"skipped": "{count} document(s) non envoye(s) vers paperless.",
 				"reason": {
 					"unsupported": "type de fichier non pris en charge par paperless",
 					"report": "rapport genere, non archive"
-				}
+				},
+				"resultS3": "{uploaded} televerses, {skipped} deja dans le bucket.",
+				"resultPaperless": "{pushed} envoyes vers paperless, {already} deja archives.",
+				"resend": "Tout renvoyer",
+				"resendHint": "A utiliser apres avoir vide votre archive paperless : cela ignore ce qui a deja ete envoye."
 			},
 			"saved": "Parametres enregistres",
 			"saveFailed": "Impossible d enregistrer les parametres"
@@ -1214,7 +1217,8 @@
 			"title": "Notifications",
 			"empty": "Aucune nouvelle notification",
 			"viewAll": "Tout afficher",
-			"error": "Impossible de charger les notifications"
+			"error": "Impossible de charger les notifications",
+			"clearAll": "Tout effacer"
 		}
 	},
 	"notifications": {

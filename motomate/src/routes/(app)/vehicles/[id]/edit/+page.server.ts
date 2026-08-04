@@ -16,6 +16,7 @@ import {
 import { getNotesByVehicle } from '$lib/db/repositories/notes.js';
 import { UpdateVehicleSchema } from '$lib/validators/schemas.js';
 import { getStorage } from '$lib/storage/index.js';
+import { mirrorPut, mirrorDelete } from '$lib/server/integrations.js';
 import type { VehicleMeta } from '$lib/db/schema.js';
 import { db } from '$lib/db/index.js';
 import { vehicles } from '$lib/db/schema.js';
@@ -69,8 +70,7 @@ export const actions: Actions = {
 		const purchasePrice = formData.get('purchase_price') as string;
 		const soldPrice = formData.get('sold_price') as string;
 
-		// Handle purchase/sale prices with validation
-		// Empty string or explicit 0/0.00 means "no price set" (null)
+		// Empty string or an explicit 0 means "no price set", stored as null
 		let purchasePriceCents: number | null = null;
 		if (purchasePrice && purchasePrice !== '') {
 			const parsed = parseFloat(purchasePrice);
@@ -267,11 +267,14 @@ export const actions: Actions = {
 				return fail(500, { error: await serverT('vehicle.edit.errors.uploadFailed', locale) });
 			}
 
+			mirrorPut(user.id, key, MimeTypeMap[safeExt] || 'image/jpeg');
+
 			newCoverKey = key;
 			newMeta.avatar_emoji = undefined; // Clear emoji when an image is successfully uploaded
 
 			// Delete old avatar AFTER successful upload
 			await safeDeleteStorage(oldKey);
+			if (oldKey && oldKey !== key) mirrorDelete(user.id, oldKey);
 		} else if (emoji) {
 			newMeta.avatar_emoji = emoji;
 			await safeDeleteStorage(vehicle.cover_image_key);

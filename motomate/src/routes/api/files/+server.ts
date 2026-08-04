@@ -52,9 +52,6 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 	// Demo assets are only accessible when demo mode is explicitly enabled
 	if (isDemo && pubEnv.PUBLIC_DEMO_ENABLED !== 'true') error(404, 'File not found');
 
-	// Only local adapter serves files via this endpoint
-	if (env.STORAGE_ADAPTER === 's3') error(400, 'Use pre-signed S3 URL directly');
-
 	// Resolve document record once
 	let docRecord: Awaited<ReturnType<typeof getDocumentByStorageKey>> = undefined;
 	if (isDoc || isDemo) {

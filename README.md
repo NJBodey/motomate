@@ -20,6 +20,13 @@ We want to make it incredibly simple for riders and vehicle enthusiasts to host 
 
 You can run MotoMate locally using Docker Compose:
 
+```sh
+# You need to generate a random AUTH_SECRET first:
+echo "AUTH_SECRET=$(openssl rand -hex 32)" > .env
+```
+
+Then save the following contents into your `docker-compose.yml` file:
+
 ```yaml
 services:
   motomate:
@@ -33,10 +40,9 @@ services:
       - TZ=Europe/Amsterdam
       - PUBLIC_APP_URL=http://localhost:3000
       - PUBLIC_APP_ORIGINS=http://localhost
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_ALLOW_REGISTRATION=false
       - AUTH_COOKIE_SECURE=false
-      - AUTH_SECRET=change-me-in-production-min-32-chars
-      - AUTH_ALLOW_REGISTRATION=true
-      - BODY_SIZE_LIMIT=20971520
     restart: unless-stopped
 ```
 

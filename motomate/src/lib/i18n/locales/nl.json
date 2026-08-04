@@ -1152,13 +1152,16 @@
 				"description": "Bestanden van voor het inschakelen zijn nog niet gekopieerd. Draai dit een keer na het instellen, en opnieuw als er iets is mislukt.",
 				"button": "Alles synchroniseren",
 				"running": "Bezig",
-				"result": "{uploaded} geupload, {skipped} al aanwezig, {pushed} naar paperless gestuurd.",
 				"failed": "{count} item(s) mislukt. Los de oorzaak op en probeer opnieuw.",
 				"skipped": "{count} document(en) niet naar paperless gestuurd.",
 				"reason": {
 					"unsupported": "bestandstype wordt niet ondersteund door paperless",
 					"report": "gegenereerd rapport, niet gearchiveerd"
-				}
+				},
+				"resultS3": "{uploaded} geupload, {skipped} al in de bucket.",
+				"resultPaperless": "{pushed} naar paperless gestuurd, {already} al gearchiveerd.",
+				"resend": "Alles opnieuw versturen",
+				"resendHint": "Gebruik dit nadat je je paperless-archief hebt geleegd: het negeert wat al verstuurd was."
 			},
 			"saved": "Instellingen opgeslagen",
 			"saveFailed": "Kon de instellingen niet opslaan"
@@ -1214,7 +1217,8 @@
 			"title": "Meldingen",
 			"empty": "Geen nieuwe meldingen",
 			"viewAll": "Alles bekijken",
-			"error": "Meldingen konden niet worden geladen"
+			"error": "Meldingen konden niet worden geladen",
+			"clearAll": "Alles wissen"
 		}
 	},
 	"notifications": {
