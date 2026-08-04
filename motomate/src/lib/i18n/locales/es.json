@@ -1053,7 +1053,8 @@
 			"sourceCode": "Codigo fuente",
 			"reportIssue": "Reportar un problema",
 			"tapAgain": "Toca de nuevo para abrir",
-			"changelog": "Changelog"
+			"changelog": "Changelog",
+			"integrations": "Integraciones"
 		},
 		"changelog": {
 			"title": "¿Qué hay de nuevo?",
@@ -1118,6 +1119,49 @@
 				"link": "Ver documentación",
 				"specLink": "Spec OpenAPI sin procesar"
 			}
+		},
+		"integrations": {
+			"title": "Integraciones",
+			"description": "MotoMate siempre guarda tus archivos en este servidor. Estos destinos opcionales reciben una copia.",
+			"storedPlaceholder": "Guardado, dejalo vacio para mantenerlo",
+			"test": "Probar conexion",
+			"testOk": "La conexion funciona",
+			"never": "Nunca",
+			"lastSync": "Ultima sincronizacion: {date}",
+			"s3": {
+				"label": "Copia en S3",
+				"description": "Replica documentos e imagenes en cualquier bucket compatible con S3, incluidos MinIO, SeaweedFS, Garage y Backblaze B2.",
+				"endpointLabel": "Endpoint",
+				"endpointHint": "Dejalo vacio para AWS S3. Los proveedores autoalojados como MinIO o SeaweedFS necesitan la URL completa.",
+				"regionLabel": "Region",
+				"bucketLabel": "Bucket",
+				"accessKeyLabel": "Clave de acceso",
+				"secretKeyLabel": "Clave secreta"
+			},
+			"paperless": {
+				"label": "Paperless-ngx",
+				"description": "Envia una copia de cada documento subido a tu archivo paperless-ngx para OCR y busqueda de texto completo.",
+				"urlLabel": "URL del servidor",
+				"tokenLabel": "Token de API",
+				"tokenHint": "Crea uno en paperless-ngx en Ajustes y luego Tokens de API.",
+				"includeReportsLabel": "Archivar tambien los informes de mantenimiento",
+				"includeReportsHint": "Los informes generados por MotoMate se omiten por defecto porque puedes volver a generarlos. Activa esto para conservarlos tambien en paperless."
+			},
+			"sync": {
+				"title": "Sincronizar todo",
+				"description": "Los archivos anteriores a la activacion aun no se han copiado. Ejecutalo una vez tras configurar y de nuevo si algo falla.",
+				"button": "Sincronizar todo",
+				"running": "Sincronizando",
+				"result": "{uploaded} subidos, {skipped} ya presentes, {pushed} enviados a paperless.",
+				"failed": "{count} elemento(s) fallaron. Corrige la causa y vuelve a ejecutarlo.",
+				"skipped": "{count} documento(s) no enviado(s) a paperless.",
+				"reason": {
+					"unsupported": "tipo de archivo no admitido por paperless",
+					"report": "informe generado, no archivado"
+				}
+			},
+			"saved": "Ajustes guardados",
+			"saveFailed": "No se pudieron guardar los ajustes"
 		}
 	},
 	"units": {
@@ -1193,6 +1237,16 @@
 		"odometerNudge": {
 			"title": "Actualiza tu odómetro",
 			"body": "¿Has conducido {{vehicle_name}} recientemente? Actualiza el odómetro para mantener precisos tus registros de mantenimiento."
+		},
+		"integration": {
+			"s3": {
+				"title": "La copia en S3 esta fallando",
+				"body": "MotoMate no pudo copiar tus archivos al bucket. Revisa la conexion en Ajustes, Integraciones."
+			},
+			"paperless": {
+				"title": "El archivado en paperless esta fallando",
+				"body": "MotoMate no pudo enviar un documento a paperless-ngx. Revisa la conexion en Ajustes, Integraciones."
+			}
 		}
 	},
 	"travels": {

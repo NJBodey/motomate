@@ -859,7 +859,8 @@
 			"changelog": "Changelog",
 			"sourceCode": "Source code",
 			"reportIssue": "Report an Issue",
-			"tapAgain": "Tap again to open"
+			"tapAgain": "Tap again to open",
+			"integrations": "Integrations"
 		},
 		"profile": {
 			"title": "Preferences",
@@ -1119,6 +1120,49 @@
 				"link": "View documentation",
 				"specLink": "Raw OpenAPI spec"
 			}
+		},
+		"integrations": {
+			"title": "Integrations",
+			"description": "MotoMate always keeps your files on this server. These optional targets receive a copy.",
+			"storedPlaceholder": "Stored, leave empty to keep",
+			"test": "Test connection",
+			"testOk": "Connection works",
+			"never": "Never",
+			"lastSync": "Last sync: {date}",
+			"s3": {
+				"label": "S3 backup",
+				"description": "Mirror documents and images to any S3-compatible bucket, including MinIO, SeaweedFS, Garage and Backblaze B2.",
+				"endpointLabel": "Endpoint",
+				"endpointHint": "Leave empty for AWS S3. Self-hosted providers such as MinIO or SeaweedFS need the full URL.",
+				"regionLabel": "Region",
+				"bucketLabel": "Bucket",
+				"accessKeyLabel": "Access key",
+				"secretKeyLabel": "Secret key"
+			},
+			"paperless": {
+				"label": "Paperless-ngx",
+				"description": "Send a copy of every uploaded document to your paperless-ngx archive for OCR and full-text search.",
+				"urlLabel": "Server URL",
+				"tokenLabel": "API token",
+				"tokenHint": "Create one in paperless-ngx under Settings, then API tokens.",
+				"includeReportsLabel": "Also archive maintenance reports",
+				"includeReportsHint": "Reports MotoMate generated are skipped by default because you can regenerate them. Turn this on to keep them in paperless too."
+			},
+			"sync": {
+				"title": "Sync all",
+				"description": "Files added before you switched an integration on are not copied yet. Run this once after configuring, and again whenever something failed.",
+				"button": "Sync all",
+				"running": "Syncing",
+				"result": "{uploaded} uploaded, {skipped} already present, {pushed} sent to paperless.",
+				"failed": "{count} item(s) failed. Fix the cause and run it again.",
+				"skipped": "{count} document(s) not sent to paperless.",
+				"reason": {
+					"unsupported": "file type not supported by paperless",
+					"report": "generated report, not archived"
+				}
+			},
+			"saved": "Settings saved",
+			"saveFailed": "Could not save the settings"
 		}
 	},
 	"layout": {
@@ -1257,6 +1301,16 @@
 		"odometerNudge": {
 			"title": "Update your odometer",
 			"body": "Did you ride {{vehicle_name}} recently? Update the odometer to keep your maintenance trackers accurate."
+		},
+		"integration": {
+			"s3": {
+				"title": "S3 backup is failing",
+				"body": "MotoMate could not copy your files to the bucket. Check the connection under Settings, Integrations."
+			},
+			"paperless": {
+				"title": "Paperless archiving is failing",
+				"body": "MotoMate could not send a document to paperless-ngx. Check the connection under Settings, Integrations."
+			}
 		}
 	},
 	"insights": {
