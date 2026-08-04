@@ -4,6 +4,11 @@ vi.mock('$lib/db/repositories/documents.js', () => ({
 	createDocument: vi.fn(),
 	getDocumentsByVehicle: vi.fn()
 }));
+vi.mock('$lib/server/integrations.js', () => ({
+	onDocumentCreated: vi.fn(),
+	mirrorPut: vi.fn(),
+	mirrorDelete: vi.fn()
+}));
 vi.mock('$lib/storage/index.js', () => ({
 	getStorage: vi.fn()
 }));

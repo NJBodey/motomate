@@ -9,8 +9,7 @@ import { collectAttachmentIds } from './finance-attachments.js';
 
 export type ServiceLogEditResult = { warning?: string } | { error: string; status: number };
 
-/* Shared by the vehicle timeline and the maintenance history, so a service log edits the same way
-   from either page: fields, the trackers it resets, and its attachments. */
+// Shared by the timeline and the maintenance history so a service log edits the same way from either page
 export async function applyServiceLogEdit(
 	formData: FormData,
 	userId: string,

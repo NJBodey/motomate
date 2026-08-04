@@ -967,7 +967,11 @@
 			"confirmDeleteDesc": "Supprimer la règle \"{name}\" ? Cette action est irréversible.",
 			"runCheck": "Vérifier maintenant",
 			"runCheckDone": "Vérification terminée",
-			"subtitle": "Règles automatisées pour la maintenance et les rappels."
+			"subtitle": "Règles automatisées pour la maintenance et les rappels.",
+			"actions": {
+				"title": "Actions sur les règles",
+				"description": "Lancez la vérification planifiée maintenant, ou restaurez les règles par défaut."
+			}
 		},
 		"notifications": {
 			"title": "Notifications",
@@ -1053,7 +1057,8 @@
 			"sourceCode": "Code source",
 			"reportIssue": "Signaler un probleme",
 			"tapAgain": "Appuyez a nouveau pour ouvrir",
-			"changelog": "Changelog"
+			"changelog": "Changelog",
+			"integrations": "Integrations"
 		},
 		"changelog": {
 			"title": "Quoi de neuf ?",
@@ -1118,6 +1123,52 @@
 				"link": "Voir la documentation",
 				"specLink": "Spec OpenAPI brute"
 			}
+		},
+		"integrations": {
+			"title": "Integrations",
+			"description": "MotoMate conserve toujours vos fichiers sur ce serveur. Ces destinations optionnelles en recoivent une copie.",
+			"storedPlaceholder": "Enregistre, laissez vide pour conserver",
+			"test": "Tester la connexion",
+			"testOk": "La connexion fonctionne",
+			"never": "Jamais",
+			"lastSync": "Derniere synchronisation : {date}",
+			"s3": {
+				"label": "Sauvegarde S3",
+				"description": "Copiez documents et images vers tout bucket compatible S3, dont MinIO, SeaweedFS, Garage et Backblaze B2.",
+				"endpointLabel": "Endpoint",
+				"endpointHint": "Laissez vide pour AWS S3. Les fournisseurs auto-heberges comme MinIO ou SeaweedFS demandent l URL complete.",
+				"regionLabel": "Region",
+				"bucketLabel": "Bucket",
+				"accessKeyLabel": "Cle d acces",
+				"secretKeyLabel": "Cle secrete"
+			},
+			"paperless": {
+				"label": "Paperless-ngx",
+				"description": "Envoyez une copie de chaque document televerse vers votre archive paperless-ngx pour l OCR et la recherche plein texte.",
+				"urlLabel": "URL du serveur",
+				"tokenLabel": "Jeton API",
+				"tokenHint": "Creez-en un dans paperless-ngx sous Parametres, puis Jetons API.",
+				"includeReportsLabel": "Archiver aussi les rapports d entretien",
+				"includeReportsHint": "Les rapports generes par MotoMate sont ignores par defaut car vous pouvez les regenerer. Activez ceci pour les conserver aussi dans paperless."
+			},
+			"sync": {
+				"title": "Tout synchroniser",
+				"description": "Les fichiers anterieurs a l activation ne sont pas encore copies. Lancez ceci une fois apres la configuration, puis a nouveau en cas d echec.",
+				"button": "Tout synchroniser",
+				"running": "En cours",
+				"failed": "{count} element(s) en echec. Corrigez la cause et relancez.",
+				"skipped": "{count} document(s) non envoye(s) vers paperless.",
+				"reason": {
+					"unsupported": "type de fichier non pris en charge par paperless",
+					"report": "rapport genere, non archive"
+				},
+				"resultS3": "{uploaded} televerses, {skipped} deja dans le bucket.",
+				"resultPaperless": "{pushed} envoyes vers paperless, {already} deja archives.",
+				"resend": "Tout renvoyer",
+				"resendHint": "A utiliser apres avoir vide votre archive paperless : cela ignore ce qui a deja ete envoye."
+			},
+			"saved": "Parametres enregistres",
+			"saveFailed": "Impossible d enregistrer les parametres"
 		}
 	},
 	"units": {
@@ -1170,7 +1221,8 @@
 			"title": "Notifications",
 			"empty": "Aucune nouvelle notification",
 			"viewAll": "Tout afficher",
-			"error": "Impossible de charger les notifications"
+			"error": "Impossible de charger les notifications",
+			"clearAll": "Tout effacer"
 		}
 	},
 	"notifications": {
@@ -1193,6 +1245,16 @@
 		"odometerNudge": {
 			"title": "Mettre à jour votre kilométrage",
 			"body": "Avez-vous roulé avec {{vehicle_name}} récemment ? Mettez à jour le kilométrage pour garder vos trackers d'entretien précis."
+		},
+		"integration": {
+			"s3": {
+				"title": "La sauvegarde S3 echoue",
+				"body": "MotoMate n a pas pu copier vos fichiers vers le bucket. Verifiez la connexion dans Parametres, Integrations."
+			},
+			"paperless": {
+				"title": "L archivage paperless echoue",
+				"body": "MotoMate n a pas pu envoyer un document vers paperless-ngx. Verifiez la connexion dans Parametres, Integrations."
+			}
 		}
 	},
 	"travels": {

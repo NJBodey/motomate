@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { updateUserSettings } from '$lib/db/repositories/users.js';
 import { getStorage } from '$lib/storage/index.js';
+import { mirrorPut, mirrorDelete } from '$lib/server/integrations.js';
 import type { UserSettings } from '$lib/db/schema.js';
 import type { OdometerUnit } from '$lib/utils/measurement.js';
 
@@ -94,9 +95,12 @@ export const actions: Actions = {
 			return fail(500, { avatarError: 'Upload failed — storage error' });
 		}
 
+		mirrorPut(user.id, key, MIME_MAP[safeExt] || 'image/jpeg');
+
 		// Delete old avatar after successful upload (different ext = different key)
 		if (currentKey && currentKey !== key) {
 			await safeDeleteStorage(currentKey);
+			mirrorDelete(user.id, currentKey);
 		}
 
 		await updateUserSettings(user.id, { avatar_key: key });

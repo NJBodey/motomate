@@ -967,7 +967,11 @@
 			"confirmDeleteDesc": "De regel \"{name}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
 			"runCheck": "Nu controleren",
 			"runCheckDone": "Controle voltooid",
-			"subtitle": "Geautomatiseerde regels voor onderhoud en herinneringen."
+			"subtitle": "Geautomatiseerde regels voor onderhoud en herinneringen.",
+			"actions": {
+				"title": "Regelacties",
+				"description": "Voer de geplande controle nu uit, of herstel de standaardregels."
+			}
 		},
 		"notifications": {
 			"title": "Meldingen",
@@ -1053,7 +1057,8 @@
 			"sourceCode": "Broncode",
 			"reportIssue": "Probleem melden",
 			"tapAgain": "Tik nogmaals om te openen",
-			"changelog": "Bekijk changelog"
+			"changelog": "Bekijk changelog",
+			"integrations": "Integraties"
 		},
 		"changelog": {
 			"title": "Wat is er nieuw?",
@@ -1118,6 +1123,52 @@
 				"link": "Documentatie bekijken",
 				"specLink": "Ruwe OpenAPI-spec"
 			}
+		},
+		"integrations": {
+			"title": "Integraties",
+			"description": "MotoMate bewaart je bestanden altijd op deze server. Deze optionele bestemmingen krijgen een kopie.",
+			"storedPlaceholder": "Opgeslagen, laat leeg om te behouden",
+			"test": "Verbinding testen",
+			"testOk": "Verbinding werkt",
+			"never": "Nooit",
+			"lastSync": "Laatste synchronisatie: {date}",
+			"s3": {
+				"label": "S3-back-up",
+				"description": "Kopieer documenten en afbeeldingen naar elke S3-compatibele bucket, waaronder MinIO, SeaweedFS, Garage en Backblaze B2.",
+				"endpointLabel": "Endpoint",
+				"endpointHint": "Laat leeg voor AWS S3. Zelf gehoste providers zoals MinIO of SeaweedFS hebben de volledige URL nodig.",
+				"regionLabel": "Regio",
+				"bucketLabel": "Bucket",
+				"accessKeyLabel": "Access key",
+				"secretKeyLabel": "Secret key"
+			},
+			"paperless": {
+				"label": "Paperless-ngx",
+				"description": "Stuur een kopie van elk geupload document naar je paperless-ngx archief voor OCR en full-text zoeken.",
+				"urlLabel": "Server-URL",
+				"tokenLabel": "API-token",
+				"tokenHint": "Maak er een aan in paperless-ngx onder Instellingen, daarna API-tokens.",
+				"includeReportsLabel": "Onderhoudsrapporten ook archiveren",
+				"includeReportsHint": "Rapporten die MotoMate genereert worden standaard overgeslagen, je kunt ze opnieuw maken. Zet dit aan om ze ook in paperless te bewaren."
+			},
+			"sync": {
+				"title": "Alles synchroniseren",
+				"description": "Bestanden van voor het inschakelen zijn nog niet gekopieerd. Draai dit een keer na het instellen, en opnieuw als er iets is mislukt.",
+				"button": "Alles synchroniseren",
+				"running": "Bezig",
+				"failed": "{count} item(s) mislukt. Los de oorzaak op en probeer opnieuw.",
+				"skipped": "{count} document(en) niet naar paperless gestuurd.",
+				"reason": {
+					"unsupported": "bestandstype wordt niet ondersteund door paperless",
+					"report": "gegenereerd rapport, niet gearchiveerd"
+				},
+				"resultS3": "{uploaded} geupload, {skipped} al in de bucket.",
+				"resultPaperless": "{pushed} naar paperless gestuurd, {already} al gearchiveerd.",
+				"resend": "Alles opnieuw versturen",
+				"resendHint": "Gebruik dit nadat je je paperless-archief hebt geleegd: het negeert wat al verstuurd was."
+			},
+			"saved": "Instellingen opgeslagen",
+			"saveFailed": "Kon de instellingen niet opslaan"
 		}
 	},
 	"units": {
@@ -1170,7 +1221,8 @@
 			"title": "Meldingen",
 			"empty": "Geen nieuwe meldingen",
 			"viewAll": "Alles bekijken",
-			"error": "Meldingen konden niet worden geladen"
+			"error": "Meldingen konden niet worden geladen",
+			"clearAll": "Alles wissen"
 		}
 	},
 	"notifications": {
@@ -1193,6 +1245,16 @@
 		"odometerNudge": {
 			"title": "Kilometerstand bijwerken",
 			"body": "Heb je onlangs gereden op {{vehicle_name}}? Werk de kilometerstand bij om je onderhoudstrackers nauwkeurig te houden."
+		},
+		"integration": {
+			"s3": {
+				"title": "S3-back-up mislukt",
+				"body": "MotoMate kon je bestanden niet naar de bucket kopieren. Controleer de verbinding bij Instellingen, Integraties."
+			},
+			"paperless": {
+				"title": "Paperless-archivering mislukt",
+				"body": "MotoMate kon een document niet naar paperless-ngx sturen. Controleer de verbinding bij Instellingen, Integraties."
+			}
 		}
 	},
 	"travels": {

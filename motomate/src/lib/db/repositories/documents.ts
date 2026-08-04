@@ -1,4 +1,4 @@
-import { eq, and, sql, inArray, or, like } from 'drizzle-orm';
+import { eq, and, asc, sql, inArray, or, like } from 'drizzle-orm';
 import { db } from '../index.js';
 import { documents } from '../schema.js';
 import { CreateDocumentSchema } from '../../validators/schemas.js';
@@ -67,6 +67,13 @@ export async function getDocumentsByVehicleTotal(
 		.from(documents)
 		.where(buildDocWhere(vehicleId, search, docType));
 	return count;
+}
+
+export async function getDocumentsByUser(userId: string): Promise<Document[]> {
+	return db.query.documents.findMany({
+		where: eq(documents.user_id, userId),
+		orderBy: [asc(documents.created_at)]
+	});
 }
 
 export async function getDocumentByStorageKey(storageKey: string): Promise<Document | undefined> {
