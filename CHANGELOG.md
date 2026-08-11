@@ -8,6 +8,7 @@
 - Spending totals now group by currency when a vehicle has entries in more than one currency, instead of adding different currencies into a single incorrect total
 - Your notifications in the notification-tray now have a click-action, a new 'Clear all' button and show 5 items (instead of 3)
 - OpenAPI specification has been upgraded from 3.1 to 3.2.0 with webhooks support
+- Fix: resolve origin trust failures for plain form submissions behind reverse proxy (#85 by @NJBodey)
 - Fix: new vehicles now default to your account distance unit
 - Fix: the theme selector no longer resets to 'system' after saving your profile
 - Fix: the measurement unit toggle in profile settings now switches on click and saves correctly
