@@ -82,7 +82,7 @@ export const actions: Actions = {
 		const doc_type = String(formData.get('doc_type') || 'other');
 		const expires_at = String(formData.get('expires_at') || '').trim() || undefined;
 
-		const key = attachmentStorageKey(user.id, file.name);
+		const key = attachmentStorageKey(user.id, vehicleId, file.name);
 		const buffer = Buffer.from(await file.arrayBuffer());
 
 		try {

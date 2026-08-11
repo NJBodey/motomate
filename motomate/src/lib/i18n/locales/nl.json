@@ -1130,6 +1130,7 @@
 			"storedPlaceholder": "Opgeslagen, laat leeg om te behouden",
 			"test": "Verbinding testen",
 			"testOk": "Verbinding werkt",
+			"testFirst": "Test eerst de verbinding",
 			"never": "Nooit",
 			"lastSync": "Laatste synchronisatie: {date}",
 			"s3": {

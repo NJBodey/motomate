@@ -100,7 +100,7 @@ export const actions: Actions = {
 			if (attachmentFile.size > MAX_ATTACHMENT_SIZE) {
 				return fail(400, { error: 'Attachment too large (max 10 MB)' });
 			}
-			const key = attachmentStorageKey(locals.user!.id, attachmentFile.name);
+			const key = attachmentStorageKey(locals.user!.id, params.id, attachmentFile.name);
 			const buffer = Buffer.from(await attachmentFile.arrayBuffer());
 			try {
 				const storage = getStorage();

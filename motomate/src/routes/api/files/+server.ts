@@ -15,7 +15,11 @@ function isSafePath(key: string): boolean {
 	const isAvatars = normalized.startsWith('avatars/');
 	const isDemo = normalized.startsWith('demo/');
 	if (!isFiles && !isAvatars && !isDemo) return false;
-	if (isFiles && !normalized.match(/^files\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/))
+	// files/{userId}/{id}.{ext} (pre-vehicle-namespacing) or files/{userId}/{vehicleId}/{id}.{ext}
+	if (
+		isFiles &&
+		!normalized.match(/^files\/[a-zA-Z0-9]+\/(?:[a-zA-Z0-9]+\/)?[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/)
+	)
 		return false;
 	if (isAvatars) {
 		// User profile avatar: avatars/users/{userId}.{ext}

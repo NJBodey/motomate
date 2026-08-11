@@ -82,10 +82,105 @@ export async function paperlessTest(cfg: PaperlessConfig): Promise<void> {
 	if (!res.ok) throw new Error(`Paperless responded with ${res.status}`);
 }
 
-// Returns the consume task id. Duplicates are rejected by the paperless consumer, so reposting is safe.
+// Maps entity name -> paperless id. caches the promise so parallel requests dont race to create dupes
+const namedEntityCache = new Map<string, Promise<number>>();
+
+function fingerprint(cfg: PaperlessConfig): string {
+	return `${cfg.url}|${cfg.token}`;
+}
+
+type NamedEntityList = { results: { id: number; name: string }[] };
+
+// helper for both tags and correspondents - finds by name or creates it
+async function findOrCreateNamed(
+	cfg: PaperlessConfig,
+	resource: 'tags' | 'correspondents',
+	name: string
+): Promise<number> {
+	const url = await base(cfg.url);
+	const noun = resource === 'tags' ? 'tag' : 'correspondent';
+	const found = await fetch(`${url}/api/${resource}/?name__iexact=${encodeURIComponent(name)}`, {
+		headers: headers(cfg),
+		redirect: 'manual',
+		signal: AbortSignal.timeout(TIMEOUT_MS)
+	});
+	if (!found.ok)
+		throw new Error(`Paperless responded with ${found.status} while looking up ${noun}`);
+	const existing = (await found.json()) as NamedEntityList;
+	const match = existing.results.find((t) => t.name.toLowerCase() === name.toLowerCase());
+	if (match) return match.id;
+
+	const created = await fetch(`${url}/api/${resource}/`, {
+		method: 'POST',
+		headers: { ...headers(cfg), 'Content-Type': 'application/json' },
+		body: JSON.stringify({ name }),
+		redirect: 'manual',
+		signal: AbortSignal.timeout(TIMEOUT_MS)
+	});
+	if (!created.ok)
+		throw new Error(`Paperless responded with ${created.status} while creating ${noun}`);
+	return ((await created.json()) as { id: number }).id;
+}
+
+function resolveNamed(
+	cfg: PaperlessConfig,
+	resource: 'tags' | 'correspondents',
+	name: string
+): Promise<number> {
+	const key = `${resource}|${fingerprint(cfg)}|${name.trim().toLowerCase()}`;
+	let pending = namedEntityCache.get(key);
+	if (!pending) {
+		pending = findOrCreateNamed(cfg, resource, name.trim());
+		namedEntityCache.set(key, pending);
+		pending.catch(() => namedEntityCache.delete(key)); // don't let a failed lookup poison future attempts
+	}
+	return pending;
+}
+
+// resolves vehicle name to paperless tag id, creates if missing
+export function paperlessResolveTag(cfg: PaperlessConfig, name: string): Promise<number> {
+	return resolveNamed(cfg, 'tags', name);
+}
+
+// resolves name to correspondent id, tag = vehicle, correspondent = sender
+export function paperlessResolveCorrespondent(cfg: PaperlessConfig, name: string): Promise<number> {
+	return resolveNamed(cfg, 'correspondents', name);
+}
+
+// true if a document whose original filename contains `query` already exists (our own dedup check, since paperless's own duplicate rejection can lag behind an async consume task)
+export async function paperlessDocumentExists(
+	cfg: PaperlessConfig,
+	query: string
+): Promise<boolean> {
+	const url = await base(cfg.url);
+	const res = await fetch(
+		`${url}/api/documents/?original_file_name__icontains=${encodeURIComponent(query)}&page_size=1`,
+		{
+			headers: headers(cfg),
+			redirect: 'manual',
+			signal: AbortSignal.timeout(TIMEOUT_MS)
+		}
+	);
+	if (!res.ok)
+		throw new Error(
+			`Paperless responded with ${res.status} while checking for an existing document`
+		);
+	const data = (await res.json()) as { count: number };
+	return data.count > 0;
+}
+
+// returns task id, paperless handles dups so retrying is safe
 export async function paperlessPost(
 	cfg: PaperlessConfig,
-	file: { buffer: Buffer; filename: string; mime: string; title?: string; created?: string }
+	file: {
+		buffer: Buffer;
+		filename: string;
+		mime: string;
+		title?: string;
+		created?: string;
+		tags?: number[];
+		correspondent?: number;
+	}
 ): Promise<string> {
 	const form = new FormData();
 	form.append(
@@ -95,6 +190,8 @@ export async function paperlessPost(
 	);
 	if (file.title) form.append('title', file.title);
 	if (file.created) form.append('created', file.created);
+	for (const tagId of file.tags ?? []) form.append('tags', String(tagId));
+	if (file.correspondent !== undefined) form.append('correspondent', String(file.correspondent));
 
 	const res = await fetch(`${await base(cfg.url)}/api/documents/post_document/`, {
 		method: 'POST',

@@ -27,7 +27,7 @@ export async function collectAttachmentIds(
 		if (file.size > MAX_ATTACHMENT_SIZE) {
 			return { error: 'Attachment too large (max 10 MB)', status: 400 };
 		}
-		const key = attachmentStorageKey(userId, file.name);
+		const key = attachmentStorageKey(userId, vehicleId, file.name);
 		const buffer = Buffer.from(await file.arrayBuffer());
 		try {
 			await getStorage().put(key, buffer, file.type || 'application/octet-stream');

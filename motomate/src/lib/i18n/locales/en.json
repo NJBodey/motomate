@@ -1131,6 +1131,7 @@
 			"storedPlaceholder": "Stored, leave empty to keep",
 			"test": "Test connection",
 			"testOk": "Connection works",
+			"testFirst": "Test the connection first",
 			"never": "Never",
 			"lastSync": "Last sync: {date}",
 			"s3": {

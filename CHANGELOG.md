@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+- Fix: downloading GPX travel files could fail with an error
+- Fix: map tiles failing to load no longer show a confusing error
+- Fix: Paperless-ngx and S3 sync no longer creates duplicate documents on filename changes
+
 ## 0.5.0
 
 - Add your own document storage destinations from your profile page! Save a copy of your documents on a S3-compatible server or in Paperless-ngx

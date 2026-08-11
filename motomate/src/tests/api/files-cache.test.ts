@@ -14,6 +14,7 @@ import { getDocumentByStorageKey } from '$lib/db/repositories/documents.js';
 import { getVehicleByCoverImageKey } from '$lib/db/repositories/vehicles.js';
 
 const DOC_KEY = 'files/u1/doc1.pdf';
+const VEHICLE_NAMESPACED_DOC_KEY = 'files/u1/v1/doc1.pdf';
 const AVATAR_KEY = 'avatars/u1/v1.png';
 const mockUser = { id: 'u1' } as any;
 
@@ -36,6 +37,28 @@ beforeEach(() => {
 		name: 'invoice.pdf'
 	} as any);
 	vi.mocked(getVehicleByCoverImageKey).mockResolvedValue({ id: 'v1' } as any);
+});
+
+describe('key format', () => {
+	it('accepts a document key from before vehicle-namespacing (files/{user}/{id}.{ext})', async () => {
+		const res = await GET(event(DOC_KEY));
+		expect(res.status).toBe(200);
+	});
+
+	it('accepts a vehicle-namespaced document key (files/{user}/{vehicle}/{id}.{ext})', async () => {
+		const res = await GET(event(VEHICLE_NAMESPACED_DOC_KEY));
+		expect(res.status).toBe(200);
+	});
+
+	it('rejects a key with more segments than either shape allows', async () => {
+		await expect(GET(event('files/u1/v1/extra/doc1.pdf'))).rejects.toMatchObject({
+			status: 400
+		});
+	});
+
+	it('rejects path traversal even inside an otherwise valid-looking key', async () => {
+		await expect(GET(event('files/u1/../../etc/passwd'))).rejects.toMatchObject({ status: 400 });
+	});
 });
 
 describe('cache policy', () => {

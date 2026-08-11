@@ -9,7 +9,10 @@ vi.mock('$lib/db/repositories/users.js', () => ({
 	updateUserSettings: vi.fn()
 }));
 vi.mock('$lib/db/repositories/documents.js', () => ({ getDocumentsByUser: vi.fn() }));
-vi.mock('$lib/db/repositories/vehicles.js', () => ({ getVehiclesByUser: vi.fn() }));
+vi.mock('$lib/db/repositories/vehicles.js', () => ({
+	getVehiclesByUser: vi.fn(),
+	getVehicleById: vi.fn()
+}));
 vi.mock('$lib/workflow/channels/inapp.js', () => ({
 	raiseSystemAlert: vi.fn(async () => {}),
 	clearSystemAlert: vi.fn(async () => {})
@@ -25,7 +28,10 @@ vi.mock('$lib/storage/s3.js', async (original) => ({
 vi.mock('$lib/server/paperless.js', async (original) => ({
 	...(await original<Record<string, unknown>>()),
 	paperlessPost: vi.fn(),
-	paperlessTest: vi.fn()
+	paperlessTest: vi.fn(),
+	paperlessResolveTag: vi.fn(),
+	paperlessResolveCorrespondent: vi.fn(),
+	paperlessDocumentExists: vi.fn()
 }));
 
 import {
@@ -38,7 +44,13 @@ import { getVehiclesByUser } from '$lib/db/repositories/vehicles.js';
 import { raiseSystemAlert, clearSystemAlert } from '$lib/workflow/channels/inapp.js';
 import { getStorage } from '$lib/storage/index.js';
 import { s3Put, s3Exists, s3ClientConfig } from '$lib/storage/s3.js';
-import { paperlessPost, PaperlessRejection } from '$lib/server/paperless.js';
+import {
+	paperlessPost,
+	paperlessResolveTag,
+	paperlessResolveCorrespondent,
+	paperlessDocumentExists,
+	PaperlessRejection
+} from '$lib/server/paperless.js';
 import { encryptSecret, decryptSecret, redactCredentials } from '$lib/server/secrets.js';
 import { resolveIntegrations, syncAll, runIntegrationSync } from '$lib/server/integrations.js';
 import type { UserSettings } from '$lib/db/schema.js';
@@ -74,9 +86,10 @@ function settings(overrides: Record<string, unknown> = {}): UserSettings {
 function doc(id: string, created_at: string) {
 	return {
 		id,
+		vehicle_id: 'v1',
 		name: `${id}.pdf`,
 		title: null,
-		storage_key: `files/u1/${id}.pdf`,
+		storage_key: `files/u1/v1/${id}.pdf`,
 		mime_type: 'application/pdf',
 		created_at
 	};
@@ -92,6 +105,7 @@ beforeEach(() => {
 	vi.mocked(s3Exists).mockResolvedValue(false);
 	vi.mocked(s3Put).mockResolvedValue(undefined);
 	vi.mocked(paperlessPost).mockResolvedValue('task-id');
+	vi.mocked(paperlessDocumentExists).mockResolvedValue(false);
 	vi.mocked(raiseSystemAlert).mockResolvedValue(undefined);
 	vi.mocked(clearSystemAlert).mockResolvedValue(undefined);
 });
@@ -215,7 +229,88 @@ describe('syncAll', () => {
 		const summary = await syncAll('u1');
 
 		expect(summary.docsPushed).toBe(1);
-		expect(vi.mocked(paperlessPost).mock.calls[0][1].filename).toBe('new.pdf');
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].filename).toBe('new__new.pdf');
+	});
+
+	it('prefixes the paperless title with the vehicle name so documents stay identifiable per vehicle', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getVehiclesByUser).mockResolvedValue([{ id: 'v1', name: 'Ducati Monster' }] as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+
+		await syncAll('u1');
+
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].title).toBe('Ducati Monster - a.pdf');
+	});
+
+	it('falls back to the plain title when the vehicle cannot be found', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getVehiclesByUser).mockResolvedValue([] as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+
+		await syncAll('u1');
+
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].title).toBe('a.pdf');
+	});
+
+	it('tags the document with the resolved per-vehicle paperless tag', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getVehiclesByUser).mockResolvedValue([{ id: 'v1', name: 'Ducati Monster' }] as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+		vi.mocked(paperlessResolveTag).mockResolvedValue(7);
+
+		await syncAll('u1');
+
+		expect(vi.mocked(paperlessResolveTag)).toHaveBeenCalledWith(
+			expect.anything(),
+			'Ducati Monster'
+		);
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].tags).toEqual([7]);
+	});
+
+	it('still uploads without a tag when tag resolution fails', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getVehiclesByUser).mockResolvedValue([{ id: 'v1', name: 'Ducati Monster' }] as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+		vi.mocked(paperlessResolveTag).mockRejectedValue(new Error('tags endpoint unreachable'));
+
+		const summary = await syncAll('u1');
+
+		expect(summary.docsPushed).toBe(1);
+		expect(summary.docsFailed).toBe(0);
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].tags).toBeUndefined();
+	});
+
+	it('resolves the MotoMate correspondent once per run, not once per document', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([
+			doc('a', '2026-01-01 10:00:00'),
+			doc('b', '2026-01-02 10:00:00')
+		] as never);
+		vi.mocked(paperlessResolveCorrespondent).mockResolvedValue(9);
+
+		await syncAll('u1');
+
+		expect(vi.mocked(paperlessResolveCorrespondent)).toHaveBeenCalledTimes(1);
+		expect(vi.mocked(paperlessResolveCorrespondent)).toHaveBeenCalledWith(
+			expect.anything(),
+			'MotoMate'
+		);
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].correspondent).toBe(9);
+		expect(vi.mocked(paperlessPost).mock.calls[1][1].correspondent).toBe(9);
+	});
+
+	it('still uploads without a correspondent when correspondent resolution fails', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+		vi.mocked(paperlessResolveCorrespondent).mockRejectedValue(
+			new Error('correspondents endpoint unreachable')
+		);
+
+		const summary = await syncAll('u1');
+
+		expect(summary.docsPushed).toBe(1);
+		expect(summary.docsFailed).toBe(0);
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].correspondent).toBeUndefined();
 	});
 
 	it('skips file types paperless cannot parse and still mirrors them to S3', async () => {
@@ -237,7 +332,7 @@ describe('syncAll', () => {
 		expect(summary.docsSkipped).toBe(1);
 		expect(summary.docsPushed).toBe(1);
 		expect(summary.docsFailed).toBe(0);
-		expect(vi.mocked(paperlessPost).mock.calls[0][1].filename).toBe('invoice.pdf');
+		expect(vi.mocked(paperlessPost).mock.calls[0][1].filename).toBe('invoice__invoice.pdf');
 		expect(vi.mocked(s3Put)).toHaveBeenCalledTimes(2);
 	});
 
@@ -282,7 +377,7 @@ describe('syncAll', () => {
 		expect(summary.skipped[0]).toContain('Werkplaatsfactuur 2026.pdf');
 		expect(summary.docsPushed).toBe(1);
 		expect(vi.mocked(paperlessPost).mock.calls[0][1].filename).toBe(
-			'maintenance-report-lookalike.pdf'
+			's__maintenance-report-lookalike.pdf'
 		);
 	});
 
@@ -358,6 +453,52 @@ describe('syncAll', () => {
 		const resent = await syncAll('u1', { resend: true });
 		expect(resent.docsPushed).toBe(2);
 		expect(resent.docsAlreadySent).toBe(0);
+	});
+
+	it('does not re-upload a resent document paperless already has, under its id-embedded filename', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+		vi.mocked(paperlessDocumentExists).mockImplementation(async (_cfg, query) => query === 'a__');
+
+		const summary = await syncAll('u1', { resend: true });
+
+		expect(summary.docsPushed).toBe(0);
+		expect(summary.docsAlreadySent).toBe(1);
+		expect(vi.mocked(paperlessPost)).not.toHaveBeenCalled();
+	});
+
+	it('does not re-upload a document synced before filenames carried the id (bare filename match)', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+		vi.mocked(paperlessDocumentExists).mockImplementation(async (_cfg, query) => query === 'a.pdf');
+
+		const summary = await syncAll('u1', { resend: true });
+
+		expect(summary.docsPushed).toBe(0);
+		expect(summary.docsAlreadySent).toBe(1);
+		expect(vi.mocked(paperlessPost)).not.toHaveBeenCalled();
+	});
+
+	it('uploads on resend when neither the id-embedded nor the bare filename match anything', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+
+		const summary = await syncAll('u1', { resend: true });
+
+		expect(summary.docsPushed).toBe(1);
+		expect(summary.docsAlreadySent).toBe(0);
+		expect(vi.mocked(paperlessPost)).toHaveBeenCalledTimes(1);
+	});
+
+	it('still uploads on resend when the duplicate check itself fails', async () => {
+		vi.mocked(getUserById).mockResolvedValue({ id: 'u1', settings: settings() } as never);
+		vi.mocked(getDocumentsByUser).mockResolvedValue([doc('a', '2026-01-01 10:00:00')] as never);
+		vi.mocked(paperlessDocumentExists).mockRejectedValue(new Error('paperless unreachable'));
+
+		const summary = await syncAll('u1', { resend: true });
+
+		expect(summary.docsPushed).toBe(1);
+		expect(summary.docsFailed).toBe(0);
 	});
 
 	it('repairs on a schedule only for users who enabled an integration', async () => {

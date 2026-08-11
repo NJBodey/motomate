@@ -30,6 +30,18 @@
 	let savingPaperless = $state(false);
 	let syncing = $state(false);
 
+	// Save is blocked while these differ from the last successful test.
+	function s3Fingerprint(): string {
+		return JSON.stringify([s3Endpoint, s3Region, s3Bucket, s3AccessKey, s3Secret]);
+	}
+	function paperlessFingerprint(): string {
+		return JSON.stringify([paperlessUrl, paperlessToken]);
+	}
+	let s3Tested = $state(s3Fingerprint());
+	let paperlessTested = $state(paperlessFingerprint());
+	const s3Dirty = $derived(s3Fingerprint() !== s3Tested);
+	const paperlessDirty = $derived(paperlessFingerprint() !== paperlessTested);
+
 	const locale = $derived(data.user?.settings?.locale ?? 'en');
 
 	function lastSync(value: string | null): string {
@@ -65,12 +77,16 @@
 		method="POST"
 		action="?/saveS3"
 		class="channel-card"
-		use:enhance={() => {
+		use:enhance={({ action }) => {
+			const isTest = action.search === '?/test';
 			savingS3 = true;
 			return async ({ result, update }) => {
 				announce(result);
 				await update({ reset: false });
-				s3Secret = '';
+				if (result.type === 'success') {
+					if (!isTest) s3Secret = '';
+					s3Tested = s3Fingerprint();
+				}
 				savingS3 = false;
 			};
 		}}
@@ -164,7 +180,12 @@
 				/>
 
 				<div class="action-row">
-					<button type="submit" class="save-btn" disabled={savingS3}>
+					<button
+						type="submit"
+						class="save-btn"
+						disabled={savingS3 || s3Dirty}
+						data-tooltip={s3Dirty ? $_('settings.integrations.testFirst') : undefined}
+					>
 						{savingS3 ? $_('common.saving') : $_('common.save')}
 					</button>
 					<button
@@ -191,12 +212,16 @@
 		method="POST"
 		action="?/savePaperless"
 		class="channel-card"
-		use:enhance={() => {
+		use:enhance={({ action }) => {
+			const isTest = action.search === '?/test';
 			savingPaperless = true;
 			return async ({ result, update }) => {
 				announce(result);
 				await update({ reset: false });
-				paperlessToken = '';
+				if (result.type === 'success') {
+					if (!isTest) paperlessToken = '';
+					paperlessTested = paperlessFingerprint();
+				}
 				savingPaperless = false;
 			};
 		}}
@@ -250,14 +275,21 @@
 				/>
 				<p class="channel-hint">{$_('settings.integrations.paperless.tokenHint')}</p>
 
-				<label class="checkbox-row">
+				<label
+					class="checkbox-row"
+					data-tooltip={$_('settings.integrations.paperless.includeReportsHint')}
+				>
 					<input type="checkbox" name="include_reports" bind:checked={paperlessReports} />
 					<span>{$_('settings.integrations.paperless.includeReportsLabel')}</span>
 				</label>
-				<p class="channel-hint">{$_('settings.integrations.paperless.includeReportsHint')}</p>
 
 				<div class="action-row">
-					<button type="submit" class="save-btn" disabled={savingPaperless}>
+					<button
+						type="submit"
+						class="save-btn"
+						disabled={savingPaperless || paperlessDirty}
+						data-tooltip={paperlessDirty ? $_('settings.integrations.testFirst') : undefined}
+					>
 						{savingPaperless ? $_('common.saving') : $_('common.save')}
 					</button>
 					<button
@@ -591,11 +623,11 @@
 		cursor: default;
 	}
 
-	.test-btn[data-tooltip] {
+	[data-tooltip] {
 		position: relative;
 	}
 
-	.test-btn[data-tooltip]::after {
+	[data-tooltip]::after {
 		content: attr(data-tooltip);
 		position: absolute;
 		bottom: calc(100% + 6px);
@@ -617,13 +649,13 @@
 		z-index: 100;
 	}
 
-	.test-btn[data-tooltip]:hover::after,
-	.test-btn[data-tooltip]:focus-visible::after {
+	[data-tooltip]:hover::after,
+	[data-tooltip]:focus-visible::after {
 		opacity: 1;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.test-btn[data-tooltip]::after {
+		[data-tooltip]::after {
 			transition: none;
 		}
 	}

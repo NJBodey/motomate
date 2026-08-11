@@ -4,13 +4,16 @@ import {
 	updateUserSettings
 } from '$lib/db/repositories/users.js';
 import { getDocumentsByUser } from '$lib/db/repositories/documents.js';
-import { getVehiclesByUser } from '$lib/db/repositories/vehicles.js';
+import { getVehiclesByUser, getVehicleById } from '$lib/db/repositories/vehicles.js';
 import { raiseSystemAlert, clearSystemAlert } from '$lib/workflow/channels/inapp.js';
 import { getStorage } from '$lib/storage/index.js';
 import { s3Put, s3Exists, s3MarkDeleted, type S3Config } from '$lib/storage/s3.js';
 import {
 	paperlessPost,
 	paperlessSupports,
+	paperlessResolveTag,
+	paperlessResolveCorrespondent,
+	paperlessDocumentExists,
 	PaperlessRejection,
 	type PaperlessConfig
 } from './paperless.js';
@@ -111,6 +114,30 @@ async function skipReason(
 	return null;
 }
 
+// Title prefix handles fast search/sorting without extra API calls, while tags handle actual filtering.
+function paperlessTitle(vehicleName: string | undefined, doc: Document): string {
+	const title = doc.title || doc.name;
+	return vehicleName ? `${vehicleName} - ${title}` : title;
+}
+
+// Embeds our own document id in the uploaded filename so a later resend can match it via paperlessDocumentExists.
+function paperlessFilename(doc: Document): string {
+	return `${doc.id}__${doc.name}`;
+}
+
+// Identify author/correspondent for all uploads, for proper filtering/search in Paperlesss
+const PAPERLESS_CORRESPONDENT = 'MotoMate';
+
+// Best-effort: a failed lookup/check must never block the document upload itself.
+async function bestEffort<T>(label: string, fn: () => Promise<T>): Promise<T | undefined> {
+	try {
+		return await fn();
+	} catch (e) {
+		console.warn(`[integrations] paperless ${label} failed`, reason(e));
+		return undefined;
+	}
+}
+
 function mimeForKey(key: string): string {
 	return MIME_BY_EXT[key.split('.').pop()?.toLowerCase() ?? ''] ?? 'application/octet-stream';
 }
@@ -160,12 +187,21 @@ export function onDocumentCreated(userId: string, doc: Document): void {
 		const includeReports = user?.settings?.integrations?.paperless?.include_reports ?? false;
 		if (paperless && !(await skipReason(doc, buffer, includeReports))) {
 			try {
+				const vehicle = await getVehicleById(doc.vehicle_id, userId);
+				const tagId = vehicle
+					? await bestEffort('tag', () => paperlessResolveTag(paperless, vehicle.name))
+					: undefined;
+				const correspondentId = await bestEffort('correspondent', () =>
+					paperlessResolveCorrespondent(paperless, PAPERLESS_CORRESPONDENT)
+				);
 				await paperlessPost(paperless, {
 					buffer,
-					filename: doc.name,
+					filename: paperlessFilename(doc),
 					mime: doc.mime_type,
-					title: doc.title || doc.name,
-					created: doc.created_at.slice(0, 10)
+					title: paperlessTitle(vehicle?.name, doc),
+					created: doc.created_at.slice(0, 10),
+					tags: tagId !== undefined ? [tagId] : undefined,
+					correspondent: correspondentId
 				});
 				await advancePaperlessCursor(userId, doc.created_at);
 				await reportSuccess(userId, 'paperless');
@@ -236,6 +272,14 @@ export async function syncAll(
 	if (!s3 && !paperless) return summary;
 
 	const documents = await getDocumentsByUser(userId);
+	const vehicles = await getVehiclesByUser(userId, true);
+	const vehicleName = new Map(vehicles.map((v) => [v.id, v.name]));
+	// Constant name, so resolve it once for the whole run rather than once per document.
+	const correspondentId = paperless
+		? await bestEffort('correspondent', () =>
+				paperlessResolveCorrespondent(paperless, PAPERLESS_CORRESPONDENT)
+			)
+		: undefined;
 	const storage = getStorage();
 	let lastS3Error: unknown = null;
 	let lastPaperlessError: unknown = null;
@@ -289,12 +333,30 @@ export async function syncAll(
 				await noteSkipped(doc, skip);
 				continue;
 			}
+			// resend skips the cursor above, so check paperless directly instead for an existing match
+			if (opts.resend) {
+				const already =
+					(await bestEffort('duplicate check', () =>
+						paperlessDocumentExists(paperless, `${doc.id}__`)
+					)) ||
+					(await bestEffort('duplicate check', () => paperlessDocumentExists(paperless, doc.name)));
+				if (already) {
+					summary.docsAlreadySent++;
+					continue;
+				}
+			}
+			const vName = vehicleName.get(doc.vehicle_id);
+			const tagId = vName
+				? await bestEffort('tag', () => paperlessResolveTag(paperless, vName))
+				: undefined;
 			await paperlessPost(paperless, {
 				buffer: bytes,
-				filename: doc.name,
+				filename: paperlessFilename(doc),
 				mime: doc.mime_type,
-				title: doc.title || doc.name,
-				created: doc.created_at.slice(0, 10)
+				title: paperlessTitle(vName, doc),
+				created: doc.created_at.slice(0, 10),
+				tags: tagId !== undefined ? [tagId] : undefined,
+				correspondent: correspondentId
 			});
 			summary.docsPushed++;
 		} catch (e) {
@@ -310,7 +372,6 @@ export async function syncAll(
 
 	// Avatars and cover images are not documents, so they only ever go to the bucket.
 	if (s3) {
-		const vehicles = await getVehiclesByUser(userId, true);
 		const imageKeys = [
 			...vehicles.filter((v) => v.cover_image_key).map((v) => v.cover_image_key as string),
 			...(user.settings?.avatar_key ? [user.settings.avatar_key] : [])

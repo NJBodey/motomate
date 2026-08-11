@@ -1131,6 +1131,7 @@
 			"storedPlaceholder": "Salvato, lascia vuoto per mantenerlo",
 			"test": "Prova connessione",
 			"testOk": "La connessione funziona",
+			"testFirst": "Prima testa la connessione",
 			"never": "Mai",
 			"lastSync": "Ultima sincronizzazione: {date}",
 			"s3": {

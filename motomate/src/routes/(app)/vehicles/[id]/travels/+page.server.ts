@@ -103,7 +103,7 @@ export const actions: Actions = {
 				return fail(400, { createError: `GPX file for day ${i + 1} exceeds 20 MB` });
 
 			const buffer = Buffer.from(await file.arrayBuffer());
-			const key = attachmentStorageKey(userId, `day-${i + 1}.gpx`);
+			const key = attachmentStorageKey(userId, vehicleId, `day-${i + 1}.gpx`);
 			await storage.put(key, buffer, 'application/gpx+xml');
 
 			const doc = await createDocument(userId, {
@@ -209,7 +209,7 @@ export const actions: Actions = {
 				return fail(400, { editError: `GPX file for day ${i + 1} exceeds 20 MB` });
 
 			const buffer = Buffer.from(await file.arrayBuffer());
-			const key = attachmentStorageKey(userId, `day-${i + 1}.gpx`);
+			const key = attachmentStorageKey(userId, vehicleId, `day-${i + 1}.gpx`);
 			await storage.put(key, buffer, 'application/gpx+xml');
 
 			const doc = await createDocument(userId, {

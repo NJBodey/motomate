@@ -1131,6 +1131,7 @@
 			"storedPlaceholder": "Salvat, lasa gol pentru a-l pastra",
 			"test": "Testeaza conexiunea",
 			"testOk": "Conexiunea functioneaza",
+			"testFirst": "Testeaza mai intai conexiunea",
 			"never": "Niciodata",
 			"lastSync": "Ultima sincronizare: {date}",
 			"s3": {
