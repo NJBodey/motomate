@@ -37,8 +37,10 @@ sw.addEventListener('activate', (event) => {
 sw.addEventListener('fetch', (event) => {
 	if (event.request.method !== 'GET') return;
 
+	const url = new URL(event.request.url);
+	if (url.origin !== sw.location.origin) return;
+
 	async function respond() {
-		const url = new URL(event.request.url);
 		const cache = await caches.open(CACHE);
 
 		// Precached assets (hashed); we'll always serve from cache
@@ -56,7 +58,7 @@ sw.addEventListener('fetch', (event) => {
 			}
 
 			// API responses carry per-user data that would outlive the session; keep page shells only
-			const cacheable = url.origin === sw.location.origin && !url.pathname.startsWith('/api/');
+			const cacheable = !url.pathname.startsWith('/api/');
 
 			if (response.status === 200 && cacheable) {
 				cache.put(event.request, response.clone());
