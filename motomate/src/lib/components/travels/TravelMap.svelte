@@ -206,7 +206,18 @@
 						weight: 3,
 						opacity: getOpacity(file.travelId)
 					},
-					marker_options: { startIconUrl: '', endIconUrl: '', shadowUrl: '' }
+					markers: {
+						startIcon: (L as any).divIcon({
+							className: 'gpx-endpoint-marker gpx-endpoint-marker--start',
+							iconSize: [14, 14],
+							iconAnchor: [7, 7]
+						}),
+						endIcon: (L as any).divIcon({
+							className: 'gpx-endpoint-marker gpx-endpoint-marker--end',
+							iconSize: [14, 14],
+							iconAnchor: [7, 7]
+						})
+					}
 				});
 
 				gpx.on('loaded', (e: any) => {
@@ -405,6 +416,20 @@
 
 	:global(.leaflet-interactive) {
 		cursor: pointer;
+	}
+
+	:global(.gpx-endpoint-marker) {
+		border-radius: 50%;
+		border: 2px solid #fff;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+	}
+
+	:global(.gpx-endpoint-marker--start) {
+		background: #16a34a;
+	}
+
+	:global(.gpx-endpoint-marker--end) {
+		background: #dc2626;
 	}
 
 	:global(.gpx-num-label) {
