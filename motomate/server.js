@@ -26,6 +26,7 @@ const app = express();
 // 'unsafe-inline' is needed by SvelteKit's bootstrap; upgrade-insecure-requests stays off or plain-HTTP LAN installs breaks
 app.use(
 	helmet({
+		referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 		contentSecurityPolicy: {
 			useDefaults: false,
 			directives: {
@@ -35,7 +36,7 @@ app.use(
 				'img-src': ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org'],
 				'font-src': ["'self'", 'data:'],
 				'connect-src': ["'self'"],
-				'worker-src': ["'self'"],
+				'worker-src': ["'self'", 'blob:'],
 				'manifest-src': ["'self'"],
 				'object-src': ["'none'"],
 				'base-uri': ["'self'"],

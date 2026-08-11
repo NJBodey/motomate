@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { _, locale } from '$lib/i18n';
+	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import { formatNumber } from '$lib/utils/format.js';
 	import {
@@ -381,7 +382,7 @@
 					</div>
 				</div>
 
-				<form method="POST" action="?/complete" style="display:contents">
+				<form method="POST" action="?/complete" use:enhance style="display:contents">
 					<input type="hidden" name="display_name" value={displayName} />
 					<input type="hidden" name="vehicle_type" value={vehicleType} />
 					<input type="hidden" name="name" value={name} />
