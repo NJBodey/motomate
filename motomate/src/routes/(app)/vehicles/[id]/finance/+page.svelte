@@ -6,6 +6,7 @@
 	import { replaceState, beforeNavigate } from '$app/navigation';
 	import { formatCurrency, formatDateShort, formatMeasurement } from '$lib/utils/format.js';
 	import { getMeasurementUnitTranslationKey } from '$lib/utils/measurement.js';
+	import { createPrefsSync } from '$lib/utils/prefs-sync.js';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import ViewToggle from '$lib/components/ui/ViewToggle.svelte';
@@ -230,24 +231,10 @@
 	);
 
 	// Persist groupBy, viewMode, columnVisibility
-	let _prefTimer: ReturnType<typeof setTimeout>;
-	let _pendingPrefs: object | null = null;
+	const prefsSync = createPrefsSync('finance');
 	let _firstRun = true;
 
-	function flushPrefs() {
-		if (!_pendingPrefs) return;
-		const body = JSON.stringify({ page_prefs: { finance: _pendingPrefs } });
-		_pendingPrefs = null;
-		clearTimeout(_prefTimer);
-		fetch('/api/prefs', {
-			method: 'PATCH',
-			keepalive: true,
-			headers: { 'content-type': 'application/json' },
-			body
-		});
-	}
-
-	beforeNavigate(() => flushPrefs());
+	beforeNavigate(() => prefsSync.flush());
 
 	$effect(() => {
 		const g = groupBy;
@@ -258,9 +245,7 @@
 			_firstRun = false;
 			return;
 		}
-		_pendingPrefs = { groupBy: g, viewMode: vm, columnVisibility: cv, columnOrder: co };
-		clearTimeout(_prefTimer);
-		_prefTimer = setTimeout(flushPrefs, 600);
+		prefsSync.schedule({ groupBy: g, viewMode: vm, columnVisibility: cv, columnOrder: co });
 	});
 
 	const docMap = $derived(new Map((data.allDocs ?? []).map((d) => [d.id, d])));

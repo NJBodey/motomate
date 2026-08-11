@@ -8,6 +8,7 @@
 	import { _, waitLocale } from '$lib/i18n';
 	import { quickAdd } from '$lib/stores/quickAdd.svelte.js';
 	import { sheet } from '$lib/stores/sheet.svelte.js';
+	import { createPrefsSync } from '$lib/utils/prefs-sync.js';
 	import TransactionForm from '$lib/components/finance/TransactionForm.svelte';
 	import NoteForm from '$lib/components/vehicle/NoteForm.svelte';
 	import OdometerForm from '$lib/components/vehicle/OdometerForm.svelte';
@@ -240,28 +241,14 @@
 			filters.reminder
 	);
 
-	let _prefTimer: ReturnType<typeof setTimeout>;
-	let _pendingTimelinePrefs: object | null = null;
+	const prefsSync = createPrefsSync('timeline');
 	let _prefFirstRun = true;
 
-	function flushTimelinePrefs() {
-		if (!_pendingTimelinePrefs) return;
-		const body = JSON.stringify({ page_prefs: { timeline: _pendingTimelinePrefs } });
-		_pendingTimelinePrefs = null;
-		clearTimeout(_prefTimer);
-		fetch('/api/prefs', {
-			method: 'PATCH',
-			keepalive: true,
-			headers: { 'content-type': 'application/json' },
-			body
-		});
-	}
-
-	beforeNavigate(() => flushTimelinePrefs());
+	beforeNavigate(() => prefsSync.flush());
 
 	$effect(() => {
-		window.addEventListener('beforeunload', flushTimelinePrefs);
-		return () => window.removeEventListener('beforeunload', flushTimelinePrefs);
+		window.addEventListener('beforeunload', prefsSync.flush);
+		return () => window.removeEventListener('beforeunload', prefsSync.flush);
 	});
 
 	$effect(() => {
@@ -275,16 +262,14 @@
 			_prefFirstRun = false;
 			return;
 		}
-		_pendingTimelinePrefs = {
+		prefsSync.schedule({
 			showService: service,
 			showOdometer: odometer,
 			showNotes: note,
 			showTravel: travel,
 			showFinance: finance,
 			showReminder: reminder
-		};
-		clearTimeout(_prefTimer);
-		_prefTimer = setTimeout(flushTimelinePrefs, 600);
+		});
 	});
 
 	// Combined timeline (newest first)

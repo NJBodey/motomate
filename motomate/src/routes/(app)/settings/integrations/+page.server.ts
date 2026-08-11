@@ -3,7 +3,9 @@ import type { Actions, PageServerLoad } from './$types';
 import { getUserById, updateUserSettings } from '$lib/db/repositories/users.js';
 import { IntegrationsSchema } from '$lib/validators/schemas.js';
 import { encryptSecret, decryptSecret } from '$lib/server/secrets.js';
-import { syncAll, testS3, testPaperless } from '$lib/server/integrations.js';
+import { syncAll } from '$lib/server/integrations.js';
+import { s3Test } from '$lib/storage/s3.js';
+import { paperlessTest } from '$lib/server/paperless.js';
 import { clearSystemAlert } from '$lib/workflow/channels/inapp.js';
 import type { Integrations } from '$lib/db/schema.js';
 
@@ -98,7 +100,7 @@ export const actions: Actions = {
 		try {
 			if (target === 's3') {
 				const typed = String(data.get('secret_key') ?? '').trim();
-				await testS3({
+				await s3Test({
 					endpoint: String(data.get('endpoint') ?? '').trim() || undefined,
 					region: String(data.get('region') ?? '').trim() || undefined,
 					bucket: String(data.get('bucket') ?? '').trim(),
@@ -107,7 +109,7 @@ export const actions: Actions = {
 				});
 			} else {
 				const typed = String(data.get('token') ?? '').trim();
-				await testPaperless({
+				await paperlessTest({
 					url: String(data.get('url') ?? '').trim(),
 					token: typed || decryptSecret(current.paperless?.token)
 				});

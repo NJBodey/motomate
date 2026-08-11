@@ -870,7 +870,7 @@ export async function buildMaintenanceReport(opts: MaintenanceReportOptions): Pr
 		return flushDoc(pdfDoc);
 	}
 
-	// Attachment pages — images inline, PDFs via pdf-lib merge after flush
+	// Attachment pages (images inline, PDFs via pdf-lib merge after flush)
 	const pdfCoverPageIndices = new Map<string, number>();
 
 	for (const { id, doc: d } of orderedAttachments) {
@@ -901,7 +901,7 @@ export async function buildMaintenanceReport(opts: MaintenanceReportOptions): Pr
 					.text(`[Could not render: ${d.name}]`, ML, H / 2);
 			}
 		} else if (isPdf(d.mime_type) && docBuffers.has(id)) {
-			// Stub page — actual PDF pages inserted right after this via pdf-lib
+			// Stub page (actual PDF pages inserted right after this via pdf-lib)
 			pdfCoverPageIndices.set(id, pageIdx);
 		} else {
 			pdfDoc

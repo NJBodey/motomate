@@ -5,6 +5,7 @@
 	import { formatYearMonth } from '$lib/utils/format.js';
 	import { sheet } from '$lib/stores/sheet.svelte.js';
 	import { toasts } from '$lib/stores/toasts.svelte.js';
+	import { createPrefsSync } from '$lib/utils/prefs-sync.js';
 	import type { PageData } from './$types';
 	import VehicleNoteForm from '$lib/components/vehicle/VehicleNoteForm.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
@@ -41,24 +42,10 @@
 		untrack(() => data.page_prefs?.columnVisibility ?? defaultColVis)
 	);
 
-	let _prefTimer: ReturnType<typeof setTimeout>;
-	let _pendingPrefs: object | null = null;
+	const prefsSync = createPrefsSync('notes');
 	let _firstRun = true;
 
-	function flushPrefs() {
-		if (!_pendingPrefs) return;
-		const body = JSON.stringify({ page_prefs: { notes: _pendingPrefs } });
-		_pendingPrefs = null;
-		clearTimeout(_prefTimer);
-		fetch('/api/prefs', {
-			method: 'PATCH',
-			keepalive: true,
-			headers: { 'content-type': 'application/json' },
-			body
-		});
-	}
-
-	beforeNavigate(() => flushPrefs());
+	beforeNavigate(() => prefsSync.flush());
 
 	$effect(() => {
 		const s = sortBy;
@@ -68,9 +55,7 @@
 			_firstRun = false;
 			return;
 		}
-		_pendingPrefs = { sortBy: s, viewMode: v, columnVisibility: c };
-		clearTimeout(_prefTimer);
-		_prefTimer = setTimeout(flushPrefs, 600);
+		prefsSync.schedule({ sortBy: s, viewMode: v, columnVisibility: c });
 	});
 
 	function openNewNote() {

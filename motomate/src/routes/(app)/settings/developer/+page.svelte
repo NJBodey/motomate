@@ -365,8 +365,6 @@
 		color: var(--text-subtle);
 		margin: 0 0 var(--space-4);
 	}
-
-	/* Key list — open entry list pattern */
 	.key-list {
 		margin-bottom: var(--space-4);
 	}
@@ -438,8 +436,6 @@
 		gap: 0.5rem;
 		align-items: center;
 	}
-
-	/* Token reveal — inline, neutral */
 	.token-reveal {
 		border: 1px solid var(--border);
 		border-radius: 10px;
@@ -477,8 +473,6 @@
 		gap: 0.5rem;
 		align-items: center;
 	}
-
-	/* Create form — flat pref-form matching profile page */
 	.pref-form {
 		display: flex;
 		flex-direction: column;
@@ -518,8 +512,6 @@
 		outline-offset: 1px;
 		border-color: transparent;
 	}
-
-	/* Docs card */
 	.action-card {
 		border-radius: 10px;
 		padding: 1.25rem 1.5rem;

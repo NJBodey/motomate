@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
 import { dev } from '$app/environment';
-import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -9,22 +8,8 @@ const TTL = 3_600_000;
 
 let cache: { raw: string; at: number } | null = null;
 
-function readAppVersion(): string {
-	try {
-		const tag = execSync('git describe --tags --abbrev=0', { encoding: 'utf-8' }).trim();
-		return tag.replace(/^v/, '');
-	} catch {
-		try {
-			const pkg = JSON.parse(readFileSync(resolve('package.json'), 'utf-8'));
-			return pkg.version ?? '0.0.0';
-		} catch {
-			return '0.0.0';
-		}
-	}
-}
-
 export const load: PageServerLoad = async ({ url }) => {
-	const currentVersion = readAppVersion();
+	const currentVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
 
 	if (dev) {
 		try {

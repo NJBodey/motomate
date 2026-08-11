@@ -30,7 +30,7 @@
 			const lines = section.trim().split('\n');
 			const heading = lines[0];
 			if (!heading.startsWith('## ')) continue;
-			const version = heading.replace(/^## /, '').trim();
+			const version = heading.replace(/^## v?/, '').trim();
 			const entries: Entry[] = [];
 			for (const line of lines.slice(1)) {
 				const trimmed = line.trim();

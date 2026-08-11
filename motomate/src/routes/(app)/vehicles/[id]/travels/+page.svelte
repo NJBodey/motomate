@@ -6,6 +6,7 @@
 	import { replaceState, beforeNavigate } from '$app/navigation';
 	import { _, waitLocale } from '$lib/i18n';
 	import { formatYearMonth } from '$lib/utils/format.js';
+	import { createPrefsSync } from '$lib/utils/prefs-sync.js';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import TravelEntry from '$lib/components/travels/TravelEntry.svelte';
 	import TravelFormModal from '$lib/components/travels/TravelFormModal.svelte';
@@ -107,24 +108,10 @@
 	);
 
 	// Persist sort + filter preferences
-	let _prefTimer: ReturnType<typeof setTimeout>;
-	let _pendingPrefs: object | null = null;
+	const prefsSync = createPrefsSync('travels');
 	let _firstRun = true;
 
-	function flushPrefs() {
-		if (!_pendingPrefs) return;
-		const body = JSON.stringify({ page_prefs: { travels: _pendingPrefs } });
-		_pendingPrefs = null;
-		clearTimeout(_prefTimer);
-		fetch('/api/prefs', {
-			method: 'PATCH',
-			keepalive: true,
-			headers: { 'content-type': 'application/json' },
-			body
-		});
-	}
-
-	beforeNavigate(() => flushPrefs());
+	beforeNavigate(() => prefsSync.flush());
 
 	$effect(() => {
 		const s = sortBy;
@@ -133,9 +120,7 @@
 			_firstRun = false;
 			return;
 		}
-		_pendingPrefs = { sortBy: s, filterBy: f };
-		clearTimeout(_prefTimer);
-		_prefTimer = setTimeout(flushPrefs, 600);
+		prefsSync.schedule({ sortBy: s, filterBy: f });
 	});
 
 	const today = new Date().toISOString().slice(0, 10);

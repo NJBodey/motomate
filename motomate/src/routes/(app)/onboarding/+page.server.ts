@@ -12,6 +12,7 @@ import { locales as localeMap } from '$lib/i18n/locales.js';
 import {
 	DEFAULT_ODOMETER_UNIT,
 	getMeasurementBasis,
+	isDistanceUnit,
 	isMeasurementUnit,
 	resolveDistanceUnitPreference
 } from '$lib/utils/measurement.js';
@@ -122,9 +123,13 @@ export const actions: Actions = {
 			await insertOdometerLog(vehicle.id, userId, vehicleInput.current_odometer);
 		}
 
+		const settingsUpdate: { display_name?: string; odometer_unit?: 'km' | 'mi' } = {};
 		const rawDisplayName = String(data.display_name ?? '').trim();
-		if (rawDisplayName && rawDisplayName.length <= 80) {
-			await updateUserSettings(userId, { display_name: rawDisplayName });
+		if (rawDisplayName && rawDisplayName.length <= 80) settingsUpdate.display_name = rawDisplayName;
+		// 'h' (duration) vehicles don't change the account's distance-unit default.
+		if (isDistanceUnit(odometerUnit)) settingsUpdate.odometer_unit = odometerUnit;
+		if (Object.keys(settingsUpdate).length > 0) {
+			await updateUserSettings(userId, settingsUpdate);
 		}
 		await markOnboardingDone(userId);
 		await seedPresetRulesForUser(userId);

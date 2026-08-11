@@ -66,7 +66,7 @@ class DraftStore {
 			}
 		}
 
-		// Pass 2: server drafts — prefer newer savedAt
+		// Pass 2: server drafts (prefer newer savedAt)
 		if (serverDrafts) {
 			for (const [vehicleId, typeMap] of Object.entries(serverDrafts)) {
 				if (!validSet.has(vehicleId) || !typeMap) continue;

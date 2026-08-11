@@ -487,20 +487,12 @@ export async function seedPresetsForVehicle(
 
 // Active trackers
 
-/**
- * Create a tracker with initial due values inferred from the template.
- *
- * For km-based intervals: next_due_odometer = interval_km (from zero).
- * A vehicle at 9 500 km with a 5 000 km oil interval will immediately show
- * as overdue — correct, because the interval has elapsed since km=0.
- *
- * For date-based intervals: next_due_at = today + interval_months.
- * We assume the last service was "right now" so the clock starts fresh.
- *
- * currentOdometer is only used to decide if the vehicle has already
- * surpassed the first km threshold; the threshold itself is always
- * interval_km (not currentOdometer + interval_km).
- */
+/*
+ * Creates a tracker with default due values from the template.
+ * * KM intervals set next_due_odometer to interval_km (measured from 0).
+ * * Date intervals set next_due_at to today + interval_months.
+ * currentOdometer checks if the vehicle is overdue, but does not shift the initial threshold.
+ **/
 export async function createTracker(
 	vehicleId: string,
 	templateId: string,

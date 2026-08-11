@@ -269,17 +269,11 @@
 					class="input input--large mono"
 					placeholder={$_('onboarding.odometer.placeholder')}
 				/>
-				<div class="unit-toggle">
+				<select bind:value={odometerUnit} class="input unit-select">
 					{#each MEASUREMENT_UNITS as unit}
-						<button
-							class="unit-btn"
-							class:unit-btn--active={odometerUnit === unit}
-							onclick={() => (odometerUnit = unit)}
-						>
-							{$_(getMeasurementUnitTranslationKey(unit))}
-						</button>
+						<option value={unit}>{$_(getMeasurementUnitTranslationKey(unit))}</option>
 					{/each}
-				</div>
+				</select>
 			</div>
 
 			<!-- ── Step 5: Maintenance presets ── -->
@@ -434,7 +428,7 @@
 		justify-content: flex-start;
 		background: var(--bg-subtle);
 		padding: var(--space-6) var(--space-4);
-		flex: 1;
+		min-height: 100dvh;
 	}
 	.step-dots {
 		display: flex;
@@ -601,7 +595,7 @@
 	/* Odometer */
 	.odo-input-row {
 		display: flex;
-		align-items: center;
+		align-items: stretch;
 		gap: 0.75rem;
 	}
 	.input--large {
@@ -609,36 +603,10 @@
 		padding: 0.625rem 1rem;
 		flex: 1;
 	}
-	.unit-toggle {
-		display: flex;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		overflow: hidden;
+	.unit-select {
 		flex-shrink: 0;
-	}
-	.unit-btn {
-		padding: 0.5rem 0.875rem;
-		background: var(--bg-subtle);
-		border: none;
-		border-right: 1px solid var(--border);
+		width: auto;
 		cursor: pointer;
-		font-size: var(--text-sm);
-		font-weight: 500;
-		color: var(--text-muted);
-		transition:
-			background-color 0.15s ease,
-			color 0.15s ease;
-	}
-	.unit-btn:last-child {
-		border-right: none;
-	}
-	.unit-btn:hover:not(.unit-btn--active) {
-		background: var(--bg-muted);
-		color: var(--text);
-	}
-	.unit-btn--active {
-		background: var(--accent);
-		color: #fff;
 	}
 
 	/* Presets */
@@ -704,7 +672,6 @@
 	.preset-interval {
 		font-size: 0.75rem;
 		color: var(--text-subtle);
-		font-family: var(--font-mono);
 	}
 	.sr-only {
 		position: absolute;

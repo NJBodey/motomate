@@ -5,6 +5,7 @@
 	import { page } from '$app/state';
 	import { formatCurrency, formatMoneyTotal, formatNumber } from '$lib/utils/format.js';
 	import { primaryCurrency, totalByCurrency } from '$lib/utils/money.js';
+	import { createPrefsSync } from '$lib/utils/prefs-sync.js';
 	import { _ } from '$lib/i18n';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import BarChart from '$lib/components/charts/BarChart.svelte';
@@ -165,32 +166,10 @@
 		if (txInMonth.length > 0) selectedVehicleId = txInMonth[0].vehicle_id;
 	}
 
-	let _prefTimer: ReturnType<typeof setTimeout> | undefined;
+	const prefsSync = createPrefsSync('insights');
 	let _firstRun = true;
 
-	function flushPrefs() {
-		fetch('/api/prefs', {
-			method: 'PATCH',
-			keepalive: true,
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({
-				page_prefs: {
-					insights: {
-						vehicleId: selectedVehicleId,
-						timeRange,
-						mileageMode,
-						costMode,
-						showServiceEvents
-					}
-				}
-			})
-		});
-	}
-
-	beforeNavigate(() => {
-		clearTimeout(_prefTimer);
-		flushPrefs();
-	});
+	beforeNavigate(() => prefsSync.flush());
 
 	$effect(() => {
 		void [selectedVehicleId, timeRange, mileageMode, costMode, showServiceEvents];
@@ -198,8 +177,13 @@
 			_firstRun = false;
 			return;
 		}
-		clearTimeout(_prefTimer);
-		_prefTimer = setTimeout(flushPrefs, 600);
+		prefsSync.schedule({
+			vehicleId: selectedVehicleId,
+			timeRange,
+			mileageMode,
+			costMode,
+			showServiceEvents
+		});
 	});
 </script>
 

@@ -32,7 +32,7 @@
 		data: { user: any; vehicles: NavVehicle[]; demoMode?: boolean };
 	}>();
 
-	// Initialize i18n with user's locale preference (skip in demo mode — locale is always forced to 'en' server-side).
+	// Initialize i18n with user's locale preference (skip in demo mode as locale is always forced to 'en' server-side)
 	$effect(() => {
 		if (data.user?.settings?.locale && !data.demoMode) {
 			setUserLocale(data.user.settings.locale);

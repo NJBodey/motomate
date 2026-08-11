@@ -7,10 +7,9 @@ import { getDocumentsByUser } from '$lib/db/repositories/documents.js';
 import { getVehiclesByUser } from '$lib/db/repositories/vehicles.js';
 import { raiseSystemAlert, clearSystemAlert } from '$lib/workflow/channels/inapp.js';
 import { getStorage } from '$lib/storage/index.js';
-import { s3Put, s3Exists, s3MarkDeleted, s3Test, type S3Config } from '$lib/storage/s3.js';
+import { s3Put, s3Exists, s3MarkDeleted, type S3Config } from '$lib/storage/s3.js';
 import {
 	paperlessPost,
-	paperlessTest,
 	paperlessSupports,
 	PaperlessRejection,
 	type PaperlessConfig
@@ -188,14 +187,6 @@ async function advancePaperlessCursor(userId: string, createdAt: string): Promis
 	await updateUserSettings(userId, {
 		integrations: { ...current, paperless: { ...current.paperless, last_sync_at: createdAt } }
 	});
-}
-
-export async function testS3(cfg: S3Config): Promise<void> {
-	await s3Test(cfg);
-}
-
-export async function testPaperless(cfg: PaperlessConfig): Promise<void> {
-	await paperlessTest(cfg);
 }
 
 export type SyncSummary = {
