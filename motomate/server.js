@@ -35,7 +35,7 @@ app.use(
 				'img-src': ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org'],
 				'font-src': ["'self'", 'data:'],
 				'connect-src': ["'self'"],
-				'worker-src': ["'self'"],
+				'worker-src': ["'self'", 'blob:'],
 				'manifest-src': ["'self'"],
 				'object-src': ["'none'"],
 				'base-uri': ["'self'"],
