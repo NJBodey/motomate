@@ -31,7 +31,7 @@ jobs:
       - name: Extract changelog entry
         run: |
           VERSION_BARE="${{ steps.get_tag.outputs.version_bare }}"
-          awk "/^## ${VERSION_BARE}\$/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md \
+          awk "/^## v?${VERSION_BARE}\$/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md \
             | sed '/^[[:space:]]*$/d' > /tmp/changelog_entry.md
           if [ ! -s /tmp/changelog_entry.md ]; then
             echo "_No changelog entry found for ${VERSION_BARE}._" > /tmp/changelog_entry.md
@@ -41,6 +41,7 @@ jobs:
         run: |
           VERSION="${{ steps.get_tag.outputs.version }}"
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          PINNED_COMPOSE=$(sed "s|image: ghcr.io/hawkinslabdev/motomate:latest|image: ghcr.io/${REPO}:${VERSION}|" docker-compose.yml)
           {
             echo "## Changes"
             echo ""
@@ -57,23 +58,7 @@ jobs:
             echo "Or pin to this exact version:"
             echo ""
             echo '```yaml'
-            echo "services:"
-            echo "  motomate:"
-            echo "    image: ghcr.io/${REPO}:${VERSION}"
-            echo '    ports:'
-            echo '      - "3000:3000"'
-            echo '    volumes:'
-            echo '      - ./data:/app/data'
-            echo '      - ./uploads:/app/uploads'
-            echo '    environment:'
-            echo '      - TZ=Europe/Amsterdam'
-            echo '      - PUBLIC_APP_URL=http://localhost:3000'
-            echo '      - PUBLIC_APP_ORIGINS=http://localhost'
-            echo '      - AUTH_COOKIE_SECURE=false'
-            echo '      - AUTH_SECRET=change-me-in-production-min-32-chars'
-            echo '      - STORAGE_ADAPTER=local'
-            echo '      - BODY_SIZE_LIMIT=20971520'
-            echo '    restart: unless-stopped'
+            echo "$PINNED_COMPOSE"
             echo '```'
             echo ""
             echo "## What's changed"

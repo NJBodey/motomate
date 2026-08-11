@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.5.0
+## 0.5.0
 
 - Add your own document storage destinations from your profile page! Save a copy of your documents on a S3-compatible server or in Paperless-ngx
 - You can now convert an existing vehicle between kilometers and miles (not compatible with hours, ofcourse)
