@@ -26,6 +26,7 @@ const app = express();
 // 'unsafe-inline' is needed by SvelteKit's bootstrap; upgrade-insecure-requests stays off or plain-HTTP LAN installs breaks
 app.use(
 	helmet({
+		referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 		contentSecurityPolicy: {
 			useDefaults: false,
 			directives: {
